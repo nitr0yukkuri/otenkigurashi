@@ -71,19 +71,13 @@ const initialItems = [
 
 async function main() {
     console.log('Seeding started...');
-    // 既存のアイテムを削除する前に、関連する UserInventory レコードを削除
-    await prisma.userInventory.deleteMany();
-    console.log('Deleted existing user inventories.');
-    await prisma.item.deleteMany();
-    console.log('Deleted existing items.');
+    // ★ データを初期化せず、upsertで更新するように変更
     for (const item of initialItems) {
-        // 同じ名前のアイテムが既にないか確認（念のため）
-        const existing = await prisma.item.findUnique({ where: { name: item.name } });
-        if (!existing) {
-            await prisma.item.create({ data: item });
-        } else {
-            console.log(`Skipping duplicate item: ${item.name}`);
-        }
+        await prisma.item.upsert({
+            where: { name: item.name },
+            update: item,
+            create: item,
+        });
     }
     console.log('Seeding finished.');
 }
