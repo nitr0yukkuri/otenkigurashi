@@ -10,7 +10,6 @@ import CharacterDisplay from './CharacterDisplay';
 import ConfirmationModal from './ConfirmationModal';
 import ItemGetModal from './ItemGetModal';
 
-// ★★★ 変更点: 共通のユーティリティからインポートしてロジックを統一 ★★★
 import {
     WeatherType,
     mapWeatherType,
@@ -25,7 +24,7 @@ const PET_EQUIPMENT_KEY = 'otenki-gurashi-petEquipment';
 const CURRENT_WEATHER_KEY = 'currentWeather';
 const PET_SETTINGS_CHANGED_EVENT = 'petSettingsChanged';
 
-// --- 会話メッセージ (変更なし) ---
+// --- 会話メッセージ ---
 const conversationMessages = {
     sunny: ["おひさまが気持ちいいね！", "こんな日はおさんぽしたくなるな〜", "あったかいね〜！", "ぽかぽかするね", "おせんたくびよりだ！", "まぶしいな〜！"],
     clear: ["雲ひとつないね！", "空がとっても青いよ！", "どこまでも見えそう！", "すがすがしい気分！", "飛行機雲が見えるかも？", "深呼吸したくなるね〜"],
@@ -45,9 +44,26 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const [weather, setWeather] = useState<WeatherType | null>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [temperature, setTemperature] = useState<number | null>(null);
-    const [petName, setPetName] = useState<string>("てんちゃん");
-    const [petColor, setPetColor] = useState<string>("white");
-    const [petEquipment, setPetEquipment] = useState<string | null>(null);
+
+    const [petName, setPetName] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(PET_NAME_STORAGE_KEY) || "てんちゃん";
+        }
+        return "てんちゃん";
+    });
+    const [petColor, setPetColor] = useState<string>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(PET_COLOR_STORAGE_KEY) || "white";
+        }
+        return "white";
+    });
+    const [petEquipment, setPetEquipment] = useState<string | null>(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem(PET_EQUIPMENT_KEY);
+        }
+        return null;
+    });
+
     const [location, setLocation] = useState<string | null>("場所を取得中...");
     const [isClient, setIsClient] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
@@ -78,16 +94,13 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         messageTimeoutRef.current = setTimeout(() => { setMessage(null); }, 2000);
     };
 
-    // デバッグ（おさんぽ）用
     const cycleWeather = () => {
         console.log("Cycling weather");
         setWeather(prev => {
             const weathers: WeatherType[] = ["sunny", "clear", "cloudy", "rainy", "thunderstorm", "snowy", "windy", "night"];
             const currentIndex = prev ? weathers.indexOf(prev) : -1;
             const nextWeather = weathers[(currentIndex + 1) % weathers.length];
-
             console.log("Current weather:", prev, "Next weather:", nextWeather);
-
             setWeatherAndNotify(nextWeather);
             return nextWeather;
         });
@@ -110,8 +123,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             const storedEquipment = localStorage.getItem(PET_EQUIPMENT_KEY);
             setPetEquipment(storedEquipment);
         };
-
-        updatePetSettings();
 
         const handleSettingsChanged = () => {
             updatePetSettings();
@@ -137,7 +148,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                         throw new Error('天気データの形式が正しくありません。');
                     }
                     const currentWeather = data.list[0];
-                    // ★★★ 修正: 共通の mapWeatherType を使用することで判定基準を統一 ★★★
                     const newWeather = mapWeatherType(currentWeather);
                     setLocation(data.city?.name || "不明な場所");
                     setTemperature(Math.round(currentWeather.main.temp));
@@ -206,7 +216,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const handleConfirmWalk = () => {
         setIsModalOpen(false);
         const walkWeather = weather || 'sunny';
-        // ★★★ 変更点: location も URL パラメータに追加する (エンコードしておく) ★★★
+
+        // ★★★ 変更点: location を URL パラメータに追加 ★★★
         const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗"
             ? location
             : "どこかの場所";
@@ -215,7 +226,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     };
 
     const displayWeatherType = weather || 'sunny';
-    // ★★★ 修正: 共通の getBackgroundGradientClass を使用 ★★★
     const dynamicBackgroundClass = getBackgroundGradientClass(displayWeatherType);
     const isNight = displayWeatherType === 'night';
 
@@ -266,7 +276,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                         <div className="w-40 h-40 flex items-center justify-center">
                         </div>
                         <div>
-                            <h1 className="text-xl font-medium text-slate-500 animate-pulse">てんちゃん じゅんびちゅう...</h1>
+                            <h1 className="text-xl font-medium text-slate-500 animate-pulse" suppressHydrationWarning>{petName} じゅんびちゅう...</h1>
                         </div>
                     </div>
                 ) : (
