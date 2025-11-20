@@ -45,24 +45,10 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const [currentTime, setCurrentTime] = useState(new Date());
     const [temperature, setTemperature] = useState<number | null>(null);
 
-    const [petName, setPetName] = useState<string>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem(PET_NAME_STORAGE_KEY) || "てんちゃん";
-        }
-        return "てんちゃん";
-    });
-    const [petColor, setPetColor] = useState<string>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem(PET_COLOR_STORAGE_KEY) || "white";
-        }
-        return "white";
-    });
-    const [petEquipment, setPetEquipment] = useState<string | null>(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem(PET_EQUIPMENT_KEY);
-        }
-        return null;
-    });
+    // ★★★ 変更点: 初期値を固定して hydration mismatch を防ぐ ★★★
+    const [petName, setPetName] = useState("てんちゃん");
+    const [petColor, setPetColor] = useState("white");
+    const [petEquipment, setPetEquipment] = useState<string | null>(null);
 
     const [location, setLocation] = useState<string | null>("場所を取得中...");
     const [isClient, setIsClient] = useState(false);
@@ -123,6 +109,9 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             const storedEquipment = localStorage.getItem(PET_EQUIPMENT_KEY);
             setPetEquipment(storedEquipment);
         };
+
+        // ★★★ 変更点: マウント時に設定を読み込む ★★★
+        updatePetSettings();
 
         const handleSettingsChanged = () => {
             updatePetSettings();

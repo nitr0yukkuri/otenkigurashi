@@ -3,7 +3,8 @@
 'use client';
 
 // Suspense をインポート
-import { Suspense } from 'react';
+// ★ 変更点: useState, useEffect を追加
+import { Suspense, useState, useEffect } from 'react';
 import CharacterFace from '../components/CharacterFace';
 import WeatherIcon from '../components/WeatherIcon';
 import Link from 'next/link';
@@ -29,6 +30,17 @@ function WalkPageComponent() {
         handleModalClose,
         isNight, // ★★★ 変更点: isNight を受け取る ★★★
     } = useWalkLogic();
+
+    // --- ▼▼▼ 追加: 名前をStateで管理し、ローカルストレージから取得 ▼▼▼ ---
+    const [petName, setPetName] = useState("てんちゃん");
+
+    useEffect(() => {
+        const storedName = localStorage.getItem('otenki-gurashi-petName');
+        if (storedName) {
+            setPetName(storedName);
+        }
+    }, []);
+    // --- ▲▲▲ 追加ここまで ▲▲▲ ---
 
     // ★★★ これより下は、受け取った状態を描画するだけのJSX ★★★
 
@@ -63,8 +75,8 @@ function WalkPageComponent() {
                         {loading ? (
                             <div className="animate-pulse text-center">
                                 <div className="w-40 h-40 rounded-full bg-white/50 p-2 mb-4 mx-auto"></div>
-                                {/* ★★★ 変更点: panelTextColor を適用 ★★★ */}
-                                <p className={panelTextColor}>てんちゃん準備中...</p>
+                                {/* ★★★ 変更点: panelTextColor を適用し、名前を動的に表示 ★★★ */}
+                                <p className={panelTextColor}>{petName} 準備中...</p>
                             </div>
                         ) : error ? (
                             <div className="text-center">
