@@ -1,8 +1,11 @@
+// src/app/weather/useWeatherForecast.ts
+
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 // 共通の型定義とヘルパー関数をインポート
-import { WeatherType, mapWeatherType, getTimeOfDay } from '../lib/weatherUtils';
+// ★ 変更点: getBackgroundGradientClass を追加してインポート
+import { WeatherType, mapWeatherType, getTimeOfDay, getBackgroundGradientClass } from '../lib/weatherUtils';
 
 // ===================================
 // 1. このフック固有の型定義
@@ -43,29 +46,8 @@ const getWeatherText = (weatherType: string): string => {
     }
 };
 
-const getBackgroundColorClass = (weatherType: string | undefined): string => {
-    if (!weatherType) return 'bg-sunny'; // デフォルトを 'bg-sunny' に
-    switch (weatherType) {
-        case 'sunny':
-        case 'night':
-        case 'clear':
-            return 'bg-clear'; // ★ グラデーションに変更
-        case 'rainy':
-            return 'bg-rainy'; // ★ グラデーションに変更
-        case 'cloudy':
-        case 'partlyCloudy':
-            return 'bg-cloudy'; // ★ グラデーションに変更
-        case 'snowy':
-            return 'bg-snowy'; // ★ グラデーションに変更
-        // ★ windy, thunderstorm の背景を追加
-        case 'thunderstorm':
-            return 'bg-thunderstorm';
-        case 'windy':
-            return 'bg-windy';
-        default:
-            return 'bg-sunny'; // ★ グラデーションに変更
-    }
-};
+// ★★★ 削除: 古い getBackgroundColorClass 関数を削除しました ★★★
+// (lib/weatherUtils.ts の getBackgroundGradientClass を使用するため)
 
 const generateAdviceMessage = (data: { day: string; weather: string; high: number; low: number; pop: number }, index: number): string => {
     const { day, weather, high, low, pop } = data;
@@ -253,8 +235,12 @@ export function useWeatherForecast() {
     }, [handleInitialMessage]); // useEffect の依存配列
 
     // --- UI（ビュー）に必要な値を計算 ---
-    const todayWeather = useMemo(() => (forecast.length > 0 ? forecast[0].weather : undefined), [forecast]);
-    const dynamicBackgroundClass = useMemo(() => getBackgroundColorClass(todayWeather), [todayWeather]);
+    // ★ 変更点: 型アサーションを追加し、null をデフォルト値に設定 (getBackgroundGradientClass と合わせる)
+    const todayWeather = useMemo(() => (forecast.length > 0 ? forecast[0].weather as WeatherType : null), [forecast]);
+
+    // ★ 変更点: 共通の getBackgroundGradientClass を使用して背景色クラスを計算
+    const dynamicBackgroundClass = useMemo(() => getBackgroundGradientClass(todayWeather), [todayWeather]);
+
     const isNight = useMemo(() => todayWeather === 'night', [todayWeather]);
 
     // --- コンポーネントに渡す値を返す ---
