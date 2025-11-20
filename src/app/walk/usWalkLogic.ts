@@ -38,6 +38,8 @@ export function useWalkLogic() {
         if (hasStartedProcessing.current || isProcessing) return;
 
         const debugWeather = searchParams.get('weather');
+        // ★★★ 追加: URLから場所情報を取得 ★★★
+        const paramLocation = searchParams.get('location');
 
         const obtainItem = (currentWeather: string) => {
             if (hasStartedProcessing.current) return;
@@ -109,7 +111,9 @@ export function useWalkLogic() {
         // 位置情報取得 & 天気取得 & アイテム取得開始のロジック
         if (debugWeather) {
             setWeather(debugWeather);
-            setLocation("デバッグ中");
+            // ★★★ 修正: "デバッグ中" ではなく、受け取った場所を表示する ★★★
+            setLocation(paramLocation ? decodeURIComponent(paramLocation) : "どこかの場所");
+
             setLoading(false);
             obtainItem(debugWeather);
             return;

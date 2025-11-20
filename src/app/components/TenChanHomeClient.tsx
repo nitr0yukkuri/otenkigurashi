@@ -38,9 +38,6 @@ const conversationMessages = {
     default: ["こんにちは！", "なになに？", "えへへっ", "今日も元気だよ！", "何か用かな？", "わーい！", "やっほー！", "（なでなでして！）", "今日はどんな日？", "るんるん♪"]
 };
 
-// ★★★ 変更点: 独自の getBackgroundGradientClass, mapWeatherType, getTimeOfDay を削除 ★★★
-// (../lib/weatherUtils からインポートしたものを使用するため)
-
 // --- メインコンポーネント ---
 export default function TenChanHomeClient({ initialData }: { initialData: any }) {
     const router = useRouter();
@@ -209,7 +206,12 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const handleConfirmWalk = () => {
         setIsModalOpen(false);
         const walkWeather = weather || 'sunny';
-        router.push(`/walk?weather=${walkWeather}`);
+        // ★★★ 変更点: location も URL パラメータに追加する (エンコードしておく) ★★★
+        const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗"
+            ? location
+            : "どこかの場所";
+
+        router.push(`/walk?weather=${walkWeather}&location=${encodeURIComponent(walkLocation)}`);
     };
 
     const displayWeatherType = weather || 'sunny';
