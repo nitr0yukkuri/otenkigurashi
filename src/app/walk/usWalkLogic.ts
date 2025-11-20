@@ -38,6 +38,8 @@ export function useWalkLogic() {
         if (hasStartedProcessing.current || isProcessing) return;
 
         const debugWeather = searchParams.get('weather');
+        // ★★★ 追加: URLから場所情報を取得 ★★★
+        const paramLocation = searchParams.get('location');
 
         const obtainItem = (currentWeather: string) => {
             if (hasStartedProcessing.current) return;
@@ -109,7 +111,29 @@ export function useWalkLogic() {
         // 位置情報取得 & 天気取得 & アイテム取得開始のロジック
         if (debugWeather) {
             setWeather(debugWeather);
-            setLocation("デバッグ中");
+
+            // ★★★ 修正: URLパラメータに場所がない場合、現在地を取得して表示する ★★★
+            if (paramLocation) {
+                setLocation(decodeURIComponent(paramLocation));
+            } else if (navigator.geolocation) {
+                setLocation("現在地を確認中...");
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        // 天気APIを使って地名だけ取得（天気はdebugWeatherを使用）
+                        fetch(`/api/weather/forecast?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
+                            .then(res => res.json())
+                            .then(data => {
+                                setLocation(data.city?.name || "どこかの場所");
+                            })
+                            .catch(() => setLocation("どこかの場所"));
+                    },
+                    () => setLocation("どこかの場所")
+                );
+            } else {
+                setLocation("どこかの場所");
+            }
+            // ★★★ 修正ここまで ★★★
+
             setLoading(false);
             obtainItem(debugWeather);
             return;
