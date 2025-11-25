@@ -10,7 +10,7 @@
     "db:migrate": "dotenv -e .env.local -- prisma migrate dev",
     "db:seed": "dotenv -e .env.local -- node prisma/seed.mjs",
     "db:studio": "dotenv -e .env.local -- prisma studio",
-    "postinstall": "prisma migrate deploy && node prisma/seed.mjs"
+    "postinstall": "prisma generate && prisma migrate deploy && node prisma/seed.mjs"
   },
   "dependencies": {
     "@prisma/client": "^6.17.1",
