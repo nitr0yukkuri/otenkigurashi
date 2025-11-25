@@ -64,10 +64,23 @@ export default function CollectionPage() {
         const fetchCollection = async () => {
             try {
                 const response = await fetch('/api/collection');
+                // ★★★ 修正: レスポンスがOKでない場合はエラーを投げる ★★★
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
                 const data = await response.json();
-                setCollection(data);
+
+                // ★★★ 修正: データが配列であることを確認してからセットする ★★★
+                if (Array.isArray(data)) {
+                    setCollection(data);
+                } else {
+                    console.error("予期しないデータ形式です:", data);
+                    setCollection([]);
+                }
             } catch (error) {
                 console.error("コレクションの取得に失敗しました", error);
+                // エラー時は空配列にしてクラッシュを防ぐ
+                setCollection([]);
             } finally {
                 setLoading(false);
             }
@@ -117,6 +130,7 @@ export default function CollectionPage() {
                         <p className="text-center animate-pulse">読み込み中...</p>
                     ) : (
                         <div className="grid grid-cols-4 gap-4">
+                            {/* ★★★ 修正: collection が配列であることを前提とする（空配列の可能性はある） ★★★ */}
                             {collection.map(item => (
                                 // ★ 6. クリックハンドラとスタイルを適用したボタンに修正
                                 <button
