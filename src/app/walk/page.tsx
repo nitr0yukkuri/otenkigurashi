@@ -1,5 +1,3 @@
-// src/app/walk/page.tsx
-
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
@@ -8,8 +6,6 @@ import WeatherIcon from '../components/WeatherIcon';
 import Link from 'next/link';
 import Footer from '../components/Footer';
 import ItemGetModal from '../components/ItemGetModal';
-
-// ★ 修正: importパスから .ts を削除 (ファイル名変更と合わせて解決)
 import { useWalkLogic } from './useWalkLogic';
 import { getWalkMessage } from './utils';
 

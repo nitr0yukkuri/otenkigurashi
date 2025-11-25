@@ -1,10 +1,7 @@
-// src/app/components/CharacterFace.tsx
-
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ★★★ 変更: Propsの型定義に cheekColor を追加 ★★★
 type CharacterFaceProps = {
     mood?: "happy" | "neutral" | "sad";
     onClick?: () => void;
@@ -62,15 +59,18 @@ export default function CharacterFace({
                     ease: "easeInOut"
                 }}
             >
+                {/* 顔のベース */}
                 <motion.circle
                     cx="60" cy="60" r="60"
                     fill={isRainbow ? '#ff0000' : petColor}
                     animate={isRainbow ? rainbowAnimation : { fill: petColor }}
                 />
 
-                {/* ほっぺの色を適用 */}
+                {/* ほっぺ */}
                 <circle cx="20" cy="70" r="12" fill={cheekColor} />
                 <circle cx="100" cy="70" r="12" fill={cheekColor} />
+
+                {/* 目 */}
                 <motion.g
                     animate={{ scaleY: [1, 0.1, 1, 1, 1] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
@@ -78,6 +78,8 @@ export default function CharacterFace({
                     <circle cx="40" cy="55" r="5" fill="#5D4037" />
                     <circle cx="80" cy="55" r="5" fill="#5D4037" />
                 </motion.g>
+
+                {/* 口 */}
                 <AnimatePresence mode="wait">
                     <motion.path
                         key={mood}

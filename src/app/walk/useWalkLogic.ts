@@ -1,5 +1,3 @@
-// src/app/walk/useWalkLogic.ts
-
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
@@ -146,8 +144,6 @@ export function useWalkLogic() {
                     if (!data.list) throw new Error(data.message || '天気情報が取得できませんでした');
                     setLocation(data.city.name || "不明な場所");
                     const current = data.list[0];
-                    // mapWeatherTypeのインポート元(utils.ts)にある関数を使用
-                    // utils.ts側のmapWeatherTypeはstringを返すのでそのまま使用
                     const realWeather = mapWeatherType(current);
                     setWeather(realWeather);
                     obtainItem(realWeather);
