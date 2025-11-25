@@ -25,12 +25,22 @@ function WalkPageComponent() {
     } = useWalkLogic();
 
     const [petName, setPetName] = useState("てんちゃん");
+    // ★ 追加: 色のステート
+    const [petColor, setPetColor] = useState("white");
+    const [cheekColor, setCheekColor] = useState("#F8BBD0");
 
     useEffect(() => {
         const storedName = localStorage.getItem('otenki-gurashi-petName');
         if (storedName) {
             setPetName(storedName);
         }
+
+        // ★ 追加: 色の設定を読み込む
+        const storedColor = localStorage.getItem('otenki-gurashi-petColor');
+        if (storedColor) setPetColor(storedColor);
+
+        const storedCheek = localStorage.getItem('otenki-gurashi-petCheekColor');
+        if (storedCheek) setCheekColor(storedCheek);
     }, []);
 
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
@@ -63,7 +73,8 @@ function WalkPageComponent() {
                         ) : error ? (
                             <div className="text-center">
                                 <div className="w-40 h-40 rounded-full bg-white p-2 mb-4 mx-auto">
-                                    <CharacterFace mood={'sad'} />
+                                    {/* ★ 変更: 色を渡す */}
+                                    <CharacterFace mood={'sad'} petColor={petColor} cheekColor={cheekColor} />
                                 </div>
                                 <p className="text-red-600 bg-red-100 p-3 rounded-lg shadow-sm">{error}</p>
                                 <Link href="/" className="mt-4 inline-block bg-gray-900 text-white font-bold py-2 px-4 rounded-full text-sm hover:bg-gray-700 transition-colors">
@@ -74,7 +85,8 @@ function WalkPageComponent() {
                             <>
                                 <div className="mb-4"><WeatherIcon type={weather || 'sunny'} size={60} /></div>
                                 <div className="w-40 h-40 rounded-full bg-white p-2 mb-4">
-                                    <CharacterFace mood={'happy'} />
+                                    {/* ★ 変更: 色を渡す */}
+                                    <CharacterFace mood={'happy'} petColor={petColor} cheekColor={cheekColor} />
                                 </div>
                                 <div className="p-3 bg-white/70 backdrop-blur-sm rounded-xl shadow-md max-w-xs text-center">
                                     <p className="text-slate-700 font-medium">{getWalkMessage(weather || undefined)}</p>
