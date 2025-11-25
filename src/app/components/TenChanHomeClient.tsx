@@ -9,6 +9,8 @@ import WeatherDisplay from './WeatherDisplay';
 import CharacterDisplay from './CharacterDisplay';
 import ConfirmationModal from './ConfirmationModal';
 import ItemGetModal from './ItemGetModal';
+import HelpButton from './HelpButton'; // ★ 追加
+import HelpModal from './HelpModal';   // ★ 追加
 
 import {
     WeatherType,
@@ -20,13 +22,13 @@ import {
 // --- キー定義 ---
 const PET_NAME_STORAGE_KEY = 'otenki-gurashi-petName';
 const PET_COLOR_STORAGE_KEY = 'otenki-gurashi-petColor';
-const PET_CHEEK_COLOR_STORAGE_KEY = 'otenki-gurashi-petCheekColor'; // ★ 追加
+const PET_CHEEK_COLOR_STORAGE_KEY = 'otenki-gurashi-petCheekColor';
 const PET_EQUIPMENT_KEY = 'otenki-gurashi-petEquipment';
 const CURRENT_WEATHER_KEY = 'currentWeather';
 const PET_SETTINGS_CHANGED_EVENT = 'petSettingsChanged';
 
 // --- 会話メッセージ ---
-const conversationMessages = {
+const conversationMessages: { [key: string]: string[] } = {
     sunny: ["おひさまが気持ちいいね！", "こんな日はおさんぽしたくなるな〜", "あったかいね〜！", "ぽかぽかするね", "おせんたくびよりだ！", "まぶしいな〜！"],
     clear: ["雲ひとつないね！", "空がとっても青いよ！", "どこまでも見えそう！", "すがすがしい気分！", "飛行機雲が見えるかも？", "深呼吸したくなるね〜"],
     cloudy: ["今日は過ごしやすいね！", "雲の形をずっと見ていられるなあ…", "おひさまはどこかな？", "雨、降らないといいな〜", "雲がゆっくり動いてるよ", "日焼けの心配がなくていいね！"],
@@ -42,13 +44,16 @@ const conversationMessages = {
 export default function TenChanHomeClient({ initialData }: { initialData: any }) {
     const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    // ★ ヘルプモーダルの状態管理
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
+
     const [weather, setWeather] = useState<WeatherType | null>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [temperature, setTemperature] = useState<number | null>(null);
 
     const [petName, setPetName] = useState("てんちゃん");
     const [petColor, setPetColor] = useState("white");
-    const [petCheekColor, setPetCheekColor] = useState("#F8BBD0"); // ★ 追加
+    const [petCheekColor, setPetCheekColor] = useState("#F8BBD0");
     const [petEquipment, setPetEquipment] = useState<string | null>(null);
 
     const [location, setLocation] = useState<string | null>("場所を取得中...");
@@ -107,7 +112,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             if (storedColor) {
                 setPetColor(storedColor);
             }
-            // ★★★ 追加: ほっぺの色読み込み ★★★
             const storedCheekColor = localStorage.getItem(PET_CHEEK_COLOR_STORAGE_KEY);
             if (storedCheekColor) {
                 setPetCheekColor(storedCheekColor);
@@ -243,10 +247,19 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 </h2>
             </ConfirmationModal>
 
+            {/* ★ ヘルプモーダルを追加 */}
+            <HelpModal
+                isOpen={isHelpOpen}
+                onClose={() => setIsHelpOpen(false)}
+            />
+
             <main
                 className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}
             >
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl"></div>
+
+                {/* ★ ヘルプボタンを配置 (右上に) */}
+                <HelpButton onClick={() => setIsHelpOpen(true)} />
 
                 <WeatherDisplay
                     weather={isLoading || error ? null : displayWeatherType}
@@ -276,7 +289,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     <CharacterDisplay
                         petName={petName}
                         petColor={petColor}
-                        cheekColor={petCheekColor} // ★ 追加
+                        cheekColor={petCheekColor}
                         petEquipment={petEquipment}
                         mood={error ? "sad" : "happy"}
                         message={message}
