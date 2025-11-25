@@ -1,10 +1,12 @@
+// src/app/walk/page.tsx
+
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
 import CharacterFace from '../components/CharacterFace';
 import WeatherIcon from '../components/WeatherIcon';
 import Link from 'next/link';
-import Footer from '../components/Footer';
+// import Footer from '../components/Footer'; // ★ 削除: お散歩中はフッターを表示しない
 import ItemGetModal from '../components/ItemGetModal';
 import { useWalkLogic } from './useWalkLogic';
 import { getWalkMessage } from './utils';
@@ -31,7 +33,6 @@ function WalkPageComponent() {
         }
     }, []);
 
-    const linkColor = isNight ? 'text-gray-300 hover:text-white' : 'text-slate-500 hover:text-slate-700';
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
     const panelTextColor = isNight ? 'text-white' : 'text-slate-700';
@@ -43,10 +44,9 @@ function WalkPageComponent() {
             <main className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-slate-700'} transition-colors duration-500 ${dynamicBackgroundClass}`}>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
                 <div className="flex-grow flex flex-col p-6 items-center justify-between">
-                    <div className="w-full">
-                        {(!error || loading) && (
-                            <Link href="/" className={`mb-6 inline-block text-sm ${linkColor} transition-colors`}>← ホーム</Link>
-                        )}
+                    <div className="w-full mt-8"> {/* ★ mt-8を追加してレイアウト調整 */}
+                        {/* ★ 変更: ここにあった「← ホーム」リンクを削除しました */}
+
                         <header className="mb-8 text-center">
                             <h1 className={`text-3xl font-extrabold ${titleColor} tracking-wider`}>
                                 {loading ? 'おさんぽ準備中...' : error ? 'おさんぽ失敗...' : 'おさんぽ中...'}
@@ -83,7 +83,7 @@ function WalkPageComponent() {
                         )}
                     </div>
                 </div>
-                {!error && <Footer />}
+                {/* ★ 変更: Footerコンポーネントの表示を削除しました */}
             </main>
         </div>
     );
