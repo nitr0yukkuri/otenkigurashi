@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { mapWeatherType, getBackgroundColorClass } from './utils';
 
-// 型定義
 type ObtainedItem = {
     id: number | null;
     name: string | null;
@@ -40,7 +39,6 @@ export function useWalkLogic() {
 
             setTimeout(async () => {
                 try {
-                    // 1. アイテムを抽選
                     const itemResponse = await fetch('/api/items/obtain', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -55,7 +53,6 @@ export function useWalkLogic() {
                     setObtainedItem({ id: item.id, name: item.name, iconName: item.iconName, rarity: item.rarity });
                     setIsItemModalOpen(true);
 
-                    // 2. コレクションに記録
                     const collectionResponse = await fetch('/api/collection', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -66,7 +63,6 @@ export function useWalkLogic() {
                         console.error("コレクション記録失敗:", collectionError.message);
                     }
 
-                    // 3. おさんぽ回数を記録
                     const walkCompleteResponse = await fetch('/api/walk/complete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -83,7 +79,6 @@ export function useWalkLogic() {
                     setObtainedItem({ id: null, name: 'ふしぎな石', iconName: 'IoHelpCircle', rarity: 'normal' });
                     setIsItemModalOpen(true);
 
-                    // フォールバック
                     try {
                         await fetch('/api/walk/complete', {
                             method: 'POST',
@@ -97,7 +92,7 @@ export function useWalkLogic() {
                 } finally {
                     setLoading(false);
                 }
-            }, 3000); // 3秒
+            }, 3000);
         };
 
         if (debugWeather) {

@@ -9,7 +9,6 @@ import ItemGetModal from '../components/ItemGetModal';
 import { useWalkLogic } from './useWalkLogic';
 import { getWalkMessage } from './utils';
 
-// UI（ビュー）専用コンポーネント
 function WalkPageComponent() {
     const {
         weather,
