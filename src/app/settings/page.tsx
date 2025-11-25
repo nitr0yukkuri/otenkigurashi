@@ -4,7 +4,6 @@
 
 import Link from 'next/link';
 import Footer from '../components/Footer';
-// ★★★ 追加: IoColorPalette をインポート ★★★
 import { IoSettingsSharp, IoCheckmark, IoBan, IoColorPalette } from 'react-icons/io5';
 import React, { useState, useEffect } from 'react';
 import ItemIcon from '../components/ItemIcon';
@@ -16,11 +15,11 @@ const PET_COLOR_STORAGE_KEY = 'otenki-gurashi-petColor';
 const PET_EQUIPMENT_KEY = 'otenki-gurashi-petEquipment';
 const PET_SETTINGS_CHANGED_EVENT = 'petSettingsChanged';
 
+// ★★★ 修正: 「みず」を削除し、3色に減らしました ★★★
 const colorOptions = [
     { name: 'しろ', value: 'white' },
     { name: 'さくら', value: '#FCE4EC' },
     { name: 'ひよこ', value: '#FFF9C4' },
-    { name: 'みず', value: '#E0F7FA' },
 ];
 
 // CollectionItemの型定義
@@ -133,7 +132,6 @@ export default function SettingsPage() {
         notifySettingsChanged();
     };
 
-    // ★★★ 追加: 自由な色選択用のハンドラ ★★★
     const handleCustomColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const colorValue = event.target.value;
         setPetColor(colorValue);
@@ -228,7 +226,7 @@ export default function SettingsPage() {
                                 </button>
                             ))}
 
-                            {/* ★★★ 追加: 自由な色選択ピッカー ★★★ */}
+                            {/* 自由な色選択ピッカー */}
                             <div className="flex flex-col items-center gap-1 transition-transform hover:scale-105 active:scale-95 relative">
                                 <div
                                     className="w-12 h-12 rounded-full border-2 shadow-inner overflow-hidden flex items-center justify-center"
