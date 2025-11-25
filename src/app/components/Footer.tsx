@@ -13,6 +13,8 @@ const CURRENT_WEATHER_KEY = 'currentWeather';
 
 export default function Footer({ onWalkClick }: { onWalkClick?: () => void }) {
     const [isNight, setIsNight] = useState(false);
+    // ★★★ 追加: マウント状態を管理するステート ★★★
+    const [isMounted, setIsMounted] = useState(false);
 
     // ★★★ 修正箇所1: localStorageを読み取る関数を定義 ★★★
     const updateNightMode = () => {
@@ -23,6 +25,8 @@ export default function Footer({ onWalkClick }: { onWalkClick?: () => void }) {
     useEffect(() => {
         // ★ 1. ページ読み込み時にまず実行
         updateNightMode();
+        // ★★★ 追加: 設定読み込み完了後に表示を許可 ★★★
+        setIsMounted(true);
 
         // ★ 2. 'storage' イベント（localStorageが変更された時）を監視
         const handleStorageChange = (event: StorageEvent) => {
@@ -63,7 +67,8 @@ export default function Footer({ onWalkClick }: { onWalkClick?: () => void }) {
         : 'bg-white/70';
 
     return (
-        <footer className={`w-full ${footerBgClass} backdrop-blur-sm flex-shrink-0 transition-colors duration-300`}>
+        // ★★★ 変更: transition-colors を transition-all に変更し、opacity で表示を制御 ★★★
+        <footer className={`w-full ${footerBgClass} backdrop-blur-sm flex-shrink-0 transition-all duration-500 ${isMounted ? 'opacity-100' : 'opacity-0'}`}>
             <nav className="flex items-center h-20">
                 {navItems.map((item) => (
                     <NavItem
