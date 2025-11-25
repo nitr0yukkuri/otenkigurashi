@@ -20,6 +20,7 @@ import {
 // --- キー定義 ---
 const PET_NAME_STORAGE_KEY = 'otenki-gurashi-petName';
 const PET_COLOR_STORAGE_KEY = 'otenki-gurashi-petColor';
+const PET_CHEEK_COLOR_STORAGE_KEY = 'otenki-gurashi-petCheekColor'; // ★ 追加
 const PET_EQUIPMENT_KEY = 'otenki-gurashi-petEquipment';
 const CURRENT_WEATHER_KEY = 'currentWeather';
 const PET_SETTINGS_CHANGED_EVENT = 'petSettingsChanged';
@@ -45,9 +46,9 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const [currentTime, setCurrentTime] = useState(new Date());
     const [temperature, setTemperature] = useState<number | null>(null);
 
-    // ★★★ 変更点: 初期値を固定して hydration mismatch を防ぐ ★★★
     const [petName, setPetName] = useState("てんちゃん");
     const [petColor, setPetColor] = useState("white");
+    const [petCheekColor, setPetCheekColor] = useState("#F8BBD0"); // ★ 追加
     const [petEquipment, setPetEquipment] = useState<string | null>(null);
 
     const [location, setLocation] = useState<string | null>("場所を取得中...");
@@ -106,11 +107,15 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             if (storedColor) {
                 setPetColor(storedColor);
             }
+            // ★★★ 追加: ほっぺの色読み込み ★★★
+            const storedCheekColor = localStorage.getItem(PET_CHEEK_COLOR_STORAGE_KEY);
+            if (storedCheekColor) {
+                setPetCheekColor(storedCheekColor);
+            }
             const storedEquipment = localStorage.getItem(PET_EQUIPMENT_KEY);
             setPetEquipment(storedEquipment);
         };
 
-        // ★★★ 変更点: マウント時に設定を読み込む ★★★
         updatePetSettings();
 
         const handleSettingsChanged = () => {
@@ -206,7 +211,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         setIsModalOpen(false);
         const walkWeather = weather || 'sunny';
 
-        // ★★★ 変更点: location を URL パラメータに追加 ★★★
         const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗"
             ? location
             : "どこかの場所";
@@ -272,6 +276,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     <CharacterDisplay
                         petName={petName}
                         petColor={petColor}
+                        cheekColor={petCheekColor} // ★ 追加
                         petEquipment={petEquipment}
                         mood={error ? "sad" : "happy"}
                         message={message}

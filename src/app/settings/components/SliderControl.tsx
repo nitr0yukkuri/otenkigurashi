@@ -6,7 +6,7 @@ type Props = {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 };
 
-// ★★★ 修正: defaultエクスポートにする ★★★
+// default エクスポートに変更
 export default function SliderControl({ label, value, onChange }: Props) {
     return (
         <div className="flex items-center gap-4 relative">

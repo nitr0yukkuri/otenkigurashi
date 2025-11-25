@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-// ★★★ 修正: 波括弧 { } を外してデフォルトインポートにする ★★★
+// 波括弧 { } を外してインポート
 import SliderControl from './SliderControl';
 
 export default function VolumeSection() {

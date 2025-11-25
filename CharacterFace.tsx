@@ -4,11 +4,12 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ★ 変更点1: petColor を props に追加
-export default function CharacterFace({ mood = "happy", onClick, petColor = "white" }: {
+// ★★★ 追加: cheekColor prop ★★★
+export default function CharacterFace({ mood = "happy", onClick, petColor = "white", cheekColor = "#F8BBD0" }: {
     mood?: "happy" | "neutral" | "sad",
     onClick?: () => void,
-    petColor?: string // ★ 追加
+    petColor?: string,
+    cheekColor?: string // ★ 追加
 }) {
 
     const getMouthPath = () => {
@@ -22,6 +23,14 @@ export default function CharacterFace({ mood = "happy", onClick, petColor = "whi
             default:
                 return "M 45 75 Q 60 90 75 75";
         }
+    };
+
+    const isRainbow = petColor === 'rainbow';
+    const rainbowAnimation = {
+        fill: [
+            "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff", "#ff0000"
+        ],
+        transition: { duration: 4, repeat: Infinity, ease: "linear" }
     };
 
     return (
@@ -46,11 +55,15 @@ export default function CharacterFace({ mood = "happy", onClick, petColor = "whi
                     ease: "easeInOut"
                 }}
             >
-                {/* ★ 変更点2: fill="white" を fill={petColor} に変更 */}
-                <circle cx="60" cy="60" r="60" fill={petColor} />
+                <motion.circle
+                    cx="60" cy="60" r="60"
+                    fill={isRainbow ? '#ff0000' : petColor}
+                    animate={isRainbow ? rainbowAnimation : { fill: petColor }}
+                />
 
-                <circle cx="20" cy="70" r="12" fill="#F8BBD0" />
-                <circle cx="100" cy="70" r="12" fill="#F8BBD0" />
+                {/* ★★★ 変更: fill={cheekColor} に変更 ★★★ */}
+                <circle cx="20" cy="70" r="12" fill={cheekColor} />
+                <circle cx="100" cy="70" r="12" fill={cheekColor} />
                 <motion.g
                     animate={{ scaleY: [1, 0.1, 1, 1, 1] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}

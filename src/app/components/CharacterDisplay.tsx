@@ -4,12 +4,13 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import CharacterFace from './CharacterFace';
-// ★ ItemIconをインポート
 import ItemIcon from './ItemIcon';
 
 type CharacterDisplayProps = {
     petName: string;
     petColor: string;
+    // ★★★ 追加: cheekColor ★★★
+    cheekColor?: string;
     petEquipment: string | null;
     mood: "happy" | "neutral" | "sad";
     message: string | null;
@@ -17,70 +18,73 @@ type CharacterDisplayProps = {
     isNight?: boolean;
 };
 
-export default function CharacterDisplay({ petName, petColor, petEquipment, mood, message, onCharacterClick, isNight = false }: CharacterDisplayProps) {
+export default function CharacterDisplay({
+    petName,
+    petColor,
+    cheekColor = "#F8BBD0", // デフォルト値
+    petEquipment,
+    mood,
+    message,
+    onCharacterClick,
+    isNight = false
+}: CharacterDisplayProps) {
 
-    // ★★★ 装備を描画するロジック ★★★
     const renderEquipment = () => {
         if (!petEquipment) return null;
 
-        // アイコン名に応じて位置やサイズを調整
         let styleClass = "";
         let initial = {};
         let animate = {};
         let exit = {};
 
         switch (petEquipment) {
-            case 'FaHatCowboy': // 飛ばされた帽子
-            case 'GiAcorn': // どんぐり
-            case 'BsRecordCircle': // なくしたボタン
-            case 'FaLeaf': // 葉っぱ
-            case 'IoSunny': // ひまわりのタネ (頭に乗せる)
-            case 'IoRainy': // あじさい
-            case 'GiSnail': // かたつむり
-            case 'FaStar': // ほしのかけら
-            case 'FaFeather': // 鳥の羽根
-            case 'GiClover': // 四つ葉のクローバー
-            case 'IoWaterOutline': // 雨粒のしずく
-            case 'GiNightSky': // 真夜中の花
-                // 頭の上に乗せるパターン
+            case 'FaHatCowboy':
+            case 'GiAcorn':
+            case 'BsRecordCircle':
+            case 'FaLeaf':
+            case 'IoSunny':
+            case 'IoRainy':
+            case 'GiSnail':
+            case 'FaStar':
+            case 'FaFeather':
+            case 'GiClover':
+            case 'IoWaterOutline':
+            case 'GiNightSky':
                 styleClass = "absolute -top-6 w-1/2 z-10 left-1/4";
                 initial = { opacity: 0, y: -10, rotate: -10 };
                 animate = { opacity: 1, y: 0, rotate: 0 };
                 exit = { opacity: 0, y: -10, rotate: -10 };
                 break;
 
-            case 'GiWhirlwind': // かざぐるま
-            case 'GiStickSplinter': // 小枝
-            case 'FaKey': // ちいさなカギ
-            case 'GiGrass': // 霧吹き草
-            case 'GiPaperLantern': // お守り
-                // 手に持つ（右下）パターン
+            case 'GiWhirlwind':
+            case 'GiStickSplinter':
+            case 'FaKey':
+            case 'GiGrass':
+            case 'GiPaperLantern':
                 styleClass = "absolute bottom-0 -right-2 w-1/3 z-10";
                 initial = { opacity: 0, x: 10, rotate: 20 };
                 animate = { opacity: 1, x: 0, rotate: 0 };
                 exit = { opacity: 0, x: 10, rotate: 20 };
                 break;
 
-            case 'IoCloudy': // わたぐも
-            case 'IoSnow': // 雪の結晶
-            case 'FaFeatherAlt': // たんぽぽの綿毛
-            case 'GiButterfly': // 蝶々
-            case 'IoPaperPlaneOutline': // 飛行機雲
-            case 'BsMoonStarsFill': // 月のしずく
-            case 'GiSparkles': // 眠りの砂
-                // ふわふわ浮くパターン
+            case 'IoCloudy':
+            case 'IoSnow':
+            case 'FaFeatherAlt':
+            case 'GiButterfly':
+            case 'IoPaperPlaneOutline':
+            case 'BsMoonStarsFill':
+            case 'GiSparkles':
                 styleClass = "absolute top-0 -right-6 w-1/3 z-10";
                 initial = { opacity: 0, scale: 0 };
                 animate = {
                     opacity: 1,
                     scale: 1,
-                    y: [0, -5, 0] // ふわふわアニメーション
+                    y: [0, -5, 0]
                 };
                 exit = { opacity: 0, scale: 0 };
                 break;
 
             default:
-                // デフォルト（頭の上）
                 styleClass = "absolute -top-4 w-1/2 z-10 left-1/4";
                 initial = { opacity: 0, y: -5 };
                 animate = { opacity: 1, y: 0 };
@@ -96,9 +100,8 @@ export default function CharacterDisplay({ petName, petColor, petEquipment, mood
                 exit={exit}
                 transition={petEquipment.startsWith('IoCloudy') ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : { type: "spring", stiffness: 300, damping: 20 }}
             >
-                {/* ItemIcon を使用 (色は自動決定) */}
                 <div className="w-full h-full flex items-center justify-center drop-shadow-md">
-                    <ItemIcon name={petEquipment} size={undefined} /> {/* sizeは親divに依存させるためundefined */}
+                    <ItemIcon name={petEquipment} size={undefined} />
                 </div>
             </motion.div>
         );
@@ -108,6 +111,14 @@ export default function CharacterDisplay({ petName, petColor, petEquipment, mood
     const messageText = isNight ? 'text-white' : 'text-slate-700';
     const messageArrow = isNight ? 'border-t-gray-700/80' : 'border-t-white/80';
     const nameBg = isNight ? 'bg-black/30' : 'bg-white/30';
+
+    const isRainbow = petColor === 'rainbow';
+    const rainbowAnimation = {
+        backgroundColor: [
+            "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff", "#ff0000"
+        ],
+        transition: { duration: 4, repeat: Infinity, ease: "linear" }
+    };
 
     return (
         <div className="flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center pb-20 relative">
@@ -126,16 +137,20 @@ export default function CharacterDisplay({ petName, petColor, petEquipment, mood
                 )}
             </AnimatePresence>
 
-            <div className="w-40 h-40 rounded-full relative" style={{ backgroundColor: petColor }}>
-                {/* 装備を表示 */}
+            <motion.div
+                className="w-40 h-40 rounded-full relative"
+                style={{ backgroundColor: isRainbow ? '#ff0000' : petColor }}
+                animate={isRainbow ? rainbowAnimation : { backgroundColor: petColor }}
+            >
                 <AnimatePresence>
                     {renderEquipment()}
                 </AnimatePresence>
 
                 <div className="w-full h-full rounded-full flex items-center justify-center">
-                    <CharacterFace mood={mood} onClick={onCharacterClick} petColor={petColor} />
+                    {/* ★★★ 変更: cheekColorを渡す ★★★ */}
+                    <CharacterFace mood={mood} onClick={onCharacterClick} petColor={petColor} cheekColor={cheekColor} />
                 </div>
-            </div>
+            </motion.div>
 
             <div>
                 <h1 className={`text-4xl font-bold backdrop-blur-sm ${nameBg} rounded-lg px-4 py-1`}>{petName}</h1>
