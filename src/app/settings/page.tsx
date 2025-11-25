@@ -4,9 +4,10 @@
 
 import Link from 'next/link';
 import Footer from '../components/Footer';
-import { IoSettingsSharp, IoCheckmark, IoBan } from 'react-icons/io5';
+// ★★★ 追加: IoColorPalette をインポート ★★★
+import { IoSettingsSharp, IoCheckmark, IoBan, IoColorPalette } from 'react-icons/io5';
 import React, { useState, useEffect } from 'react';
-import ItemIcon from '../components/ItemIcon'; // ★ ItemIconを使用
+import ItemIcon from '../components/ItemIcon';
 
 type WeatherType = "sunny" | "clear" | "rainy" | "cloudy" | "snowy" | "thunderstorm" | "windy" | "night";
 const CURRENT_WEATHER_KEY = 'currentWeather';
@@ -22,7 +23,7 @@ const colorOptions = [
     { name: 'みず', value: '#E0F7FA' },
 ];
 
-// ★ CollectionItemの型定義に category を追加
+// CollectionItemの型定義
 interface CollectionItem {
     id: number;
     name: string;
@@ -31,7 +32,7 @@ interface CollectionItem {
     quantity: number;
     rarity: string;
     weather: string | null;
-    category: string | null; // ★ 追加
+    category: string | null;
 }
 
 const getBackgroundGradientClass = (weather: WeatherType | null): string => {
@@ -59,7 +60,6 @@ export default function SettingsPage() {
     const [petColor, setPetColor] = useState('white');
 
     const [equipment, setEquipment] = useState<string | null>(null);
-    // ★ 装備可能な所持アイテムリスト
     const [equippableItems, setEquippableItems] = useState<CollectionItem[]>([]);
     const [loadingCollection, setLoadingCollection] = useState(true);
 
@@ -81,13 +81,11 @@ export default function SettingsPage() {
         setDynamicBackgroundClass(getBackgroundGradientClass(storedWeather));
         setIsNight(storedWeather === 'night');
 
-        // ★ 装備可能なアイテムのみをフェッチして抽出
         const fetchCollection = async () => {
             try {
                 setLoadingCollection(true);
                 const response = await fetch('/api/collection');
                 const data: CollectionItem[] = await response.json();
-                // 所持していて (quantity > 0)、かつ category が設定されているアイテム
                 const equippable = data.filter(item => item.quantity > 0 && item.category);
                 setEquippableItems(equippable);
             } catch (error) {
@@ -135,14 +133,21 @@ export default function SettingsPage() {
         notifySettingsChanged();
     };
 
-    // ★ 装備選択ハンドラ
+    // ★★★ 追加: 自由な色選択用のハンドラ ★★★
+    const handleCustomColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const colorValue = event.target.value;
+        setPetColor(colorValue);
+        localStorage.setItem(PET_COLOR_STORAGE_KEY, colorValue);
+        notifySettingsChanged();
+    };
+
     const handleEquipmentSelect = (iconName: string | null) => {
         const newEquipment = iconName;
         setEquipment(newEquipment);
         if (newEquipment) {
             localStorage.setItem(PET_EQUIPMENT_KEY, newEquipment);
         } else {
-            localStorage.removeItem(PET_EQUIPMENT_KEY); //「なし」の場合はキーを削除
+            localStorage.removeItem(PET_EQUIPMENT_KEY);
         }
         notifySettingsChanged();
     };
@@ -150,6 +155,9 @@ export default function SettingsPage() {
     const linkColor = isNight ? 'text-gray-300 hover:text-white' : 'text-slate-500 hover:text-slate-700';
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
     const titleIconColor = isNight ? 'text-gray-300' : 'text-slate-500';
+
+    // 現在の色がプリセットに含まれているか判定
+    const isCustomColor = !colorOptions.some(c => c.value === petColor);
 
     return (
         <div className="w-full min-h-screen bg-gray-200 flex items-center justify-center p-4">
@@ -196,7 +204,7 @@ export default function SettingsPage() {
 
                     <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
                         <h2 className="text-lg font-semibold text-slate-600 mb-3">ペットのいろ</h2>
-                        <div className="flex justify-around items-center gap-2">
+                        <div className="flex justify-around items-center gap-2 flex-wrap">
                             {colorOptions.map(color => (
                                 <button
                                     key={color.value}
@@ -219,17 +227,43 @@ export default function SettingsPage() {
                                     <span className="text-xs font-medium text-slate-600">{color.name}</span>
                                 </button>
                             ))}
+
+                            {/* ★★★ 追加: 自由な色選択ピッカー ★★★ */}
+                            <div className="flex flex-col items-center gap-1 transition-transform hover:scale-105 active:scale-95 relative">
+                                <div
+                                    className="w-12 h-12 rounded-full border-2 shadow-inner overflow-hidden flex items-center justify-center"
+                                    style={{
+                                        // プリセット以外の色ならその色を背景に、そうでなければ白背景
+                                        backgroundColor: isCustomColor ? petColor : '#ffffff',
+                                        borderColor: isCustomColor ? '#0ea5e9' : '#ffffff'
+                                    }}
+                                >
+                                    {/* プリセット以外の色選択時はチェックマーク、それ以外はパレットアイコン */}
+                                    {isCustomColor ? (
+                                        <IoCheckmark size={28} className="text-white drop-shadow-md pointer-events-none" />
+                                    ) : (
+                                        <IoColorPalette size={24} className="text-slate-400 pointer-events-none" />
+                                    )}
+
+                                    {/* 透明なカラー入力を重ねる */}
+                                    <input
+                                        type="color"
+                                        value={isCustomColor ? petColor : '#ffffff'}
+                                        onChange={handleCustomColorChange}
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    />
+                                </div>
+                                <span className="text-xs font-medium text-slate-600">じゆう</span>
+                            </div>
                         </div>
                     </section>
 
-                    {/* ★★★ きせかえセクション ★★★ */}
                     <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
                         <h2 className="text-lg font-semibold text-slate-600 mb-3">きせかえ</h2>
                         {loadingCollection ? (
                             <p className="text-xs text-slate-500 text-center animate-pulse">所持アイテムを確認中...</p>
                         ) : (
                             <div className="grid grid-cols-4 gap-2">
-                                {/* 「なし」ボタン */}
                                 <button
                                     key="none"
                                     onClick={() => handleEquipmentSelect(null)}
@@ -246,7 +280,6 @@ export default function SettingsPage() {
                                     <span className="text-xs font-medium text-slate-600">なし</span>
                                 </button>
 
-                                {/* 装備可能なアイテムのリスト */}
                                 {equippableItems.map(item => (
                                     <button
                                         key={item.id}
