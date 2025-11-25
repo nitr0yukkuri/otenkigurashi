@@ -21,8 +21,9 @@ export async function GET(request: Request) {
     const forecastApiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
 
     try {
-        // ★★★ 修正: キャッシュ設定を追加（週間予報APIと合わせる） ★★★
-        const response = await fetch(forecastApiUrl, { next: { revalidate: 600 } });
+        // ★★★ 変更点: キャッシュを無効化 ({ cache: 'no-store' }) ★★★
+        // 時間が空いた際に古い情報が表示されるのを防ぐため、常に最新を取得します
+        const response = await fetch(forecastApiUrl, { cache: 'no-store' });
 
         if (!response.ok) {
             const data = await response.json();

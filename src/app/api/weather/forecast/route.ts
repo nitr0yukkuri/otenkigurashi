@@ -24,9 +24,9 @@ export async function GET(request: Request) {
     const forecastApiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
 
     try {
-        // 10分間（600秒）キャッシュするように設定
-        // 丸められた座標を使うため、近くの場所にいれば同じキャッシュデータを返すようになります
-        const response = await fetch(forecastApiUrl, { next: { revalidate: 600 } });
+        // ★★★ 変更点: キャッシュを無効化 ({ cache: 'no-store' }) ★★★
+        // 時間が空いた際に古い情報が表示されるのを防ぐため、常に最新を取得します
+        const response = await fetch(forecastApiUrl, { cache: 'no-store' });
 
         // レスポンスがOKでない場合、エラー内容を詳しく調査する
         if (!response.ok) {
