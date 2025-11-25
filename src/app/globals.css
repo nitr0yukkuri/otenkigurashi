@@ -1,3 +1,7 @@
+{
+type: uploaded file
+fileName: nitr0yukkuri/otenkigurashi/otenkigurashi-176ea764383a7ee2771e998b46d773a95a5ecc57/src/app/globals.css
+fullContent:
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -73,4 +77,25 @@ body {
 
 .colorful-gradient-background {
     background-image: linear-gradient(160deg, #fce4ec 0%, #f8bbd0 100%);
+}
+
+/* ★★★ 追加: PWA (Standalone) モード時の iPhone 15 フルスクリーン対応 ★★★ */
+@media all and (display-mode: standalone) {
+    main {
+        /* 横幅と高さの制限を解除して画面いっぱいに */
+        max-width: 100% !important;
+        width: 100% !important;
+        height: 100dvh !important; /* Dynamic Viewport Height */
+        border-radius: 0 !important;
+        
+        /* iPhoneのノッチとホームバーの領域を確保 */
+        padding-top: env(safe-area-inset-top) !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+
+    /* PWA時は画面上部の「黒い疑似ノッチ」パーツを隠す（本物のノッチがあるため） */
+    main > div.absolute.top-0 {
+        display: none !important;
+    }
+}
 }
