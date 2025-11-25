@@ -56,7 +56,8 @@ export default function Footer({ onWalkClick }: { onWalkClick?: () => void }) {
 
     const navItems = [
         { name: '天気予報', href: '/weather', icon: <BsCloud size={28} /> },
-        { name: 'おさんぽ', href: undefined, icon: <MdDirectionsWalk size={28} />, onClick: onWalkClick },
+        // ★★★ 修正: onWalkClickがない場合（ホーム以外）はホームへ遷移させる ★★★
+        { name: 'おさんぽ', href: onWalkClick ? undefined : '/', icon: <MdDirectionsWalk size={28} />, onClick: onWalkClick },
         { name: 'ずかん', href: '/collection', icon: <BsBook size={28} /> },
         { name: '実績', href: '/achievements', icon: <FaSeedling size={28} /> },
         { name: '設定', href: '/settings', icon: <IoSettingsSharp size={28} /> },
