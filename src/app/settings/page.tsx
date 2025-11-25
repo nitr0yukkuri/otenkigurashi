@@ -15,14 +15,12 @@ const PET_COLOR_STORAGE_KEY = 'otenki-gurashi-petColor';
 const PET_EQUIPMENT_KEY = 'otenki-gurashi-petEquipment';
 const PET_SETTINGS_CHANGED_EVENT = 'petSettingsChanged';
 
-// ★★★ 修正: 「みず」を削除し、3色に減らしました ★★★
 const colorOptions = [
     { name: 'しろ', value: 'white' },
     { name: 'さくら', value: '#FCE4EC' },
     { name: 'ひよこ', value: '#FFF9C4' },
 ];
 
-// CollectionItemの型定義
 interface CollectionItem {
     id: number;
     name: string;
@@ -47,6 +45,17 @@ const getBackgroundGradientClass = (weather: WeatherType | null): string => {
         default: return 'bg-sunny';
     }
 };
+
+// ★★★ リファクタリング: スライダーUIをコンポーネント化して共通化 ★★★
+const SliderControl = ({ label, value, onChange }: { label: string, value: number, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => (
+    <div className="flex items-center gap-4 relative">
+        <label className="w-16 text-sm font-medium text-slate-600">{label}</label>
+        <div className="flex-1 h-2 bg-white rounded-full relative mr-4">
+            <div className="absolute top-0 left-0 h-full bg-blue-300 rounded-full pointer-events-none" style={{ width: `${value}%` }}></div>
+        </div>
+        <input type="range" min="0" max="100" value={value} onChange={onChange} className="absolute left-20 right-4 top-0 bottom-0 m-auto w-[calc(100%-6rem)] h-6 opacity-0 cursor-pointer z-10" />
+    </div>
+);
 
 export default function SettingsPage() {
     const [dynamicBackgroundClass, setDynamicBackgroundClass] = useState('bg-sunny');
@@ -112,6 +121,14 @@ export default function SettingsPage() {
     const notifySettingsChanged = () => {
         window.dispatchEvent(new CustomEvent(PET_SETTINGS_CHANGED_EVENT));
     };
+
+    // ★★★ リファクタリング: 色保存の共通ロジック ★★★
+    const saveColor = (color: string) => {
+        setPetColor(color);
+        localStorage.setItem(PET_COLOR_STORAGE_KEY, color);
+        notifySettingsChanged();
+    };
+
     const handleSaveName = () => {
         const newName = editingName.trim();
         if (newName) {
@@ -126,18 +143,10 @@ export default function SettingsPage() {
     const handleCancelEditName = () => {
         setIsEditingName(false);
     };
-    const handleColorSelect = (colorValue: string) => {
-        setPetColor(colorValue);
-        localStorage.setItem(PET_COLOR_STORAGE_KEY, colorValue);
-        notifySettingsChanged();
-    };
 
-    const handleCustomColorChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const colorValue = event.target.value;
-        setPetColor(colorValue);
-        localStorage.setItem(PET_COLOR_STORAGE_KEY, colorValue);
-        notifySettingsChanged();
-    };
+    // 共通化した関数を使用
+    const handleColorSelect = (colorValue: string) => saveColor(colorValue);
+    const handleCustomColorChange = (event: React.ChangeEvent<HTMLInputElement>) => saveColor(event.target.value);
 
     const handleEquipmentSelect = (iconName: string | null) => {
         const newEquipment = iconName;
@@ -154,7 +163,6 @@ export default function SettingsPage() {
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
     const titleIconColor = isNight ? 'text-gray-300' : 'text-slate-500';
 
-    // 現在の色がプリセットに含まれているか判定
     const isCustomColor = !colorOptions.some(c => c.value === petColor);
 
     return (
@@ -226,24 +234,20 @@ export default function SettingsPage() {
                                 </button>
                             ))}
 
-                            {/* 自由な色選択ピッカー */}
                             <div className="flex flex-col items-center gap-1 transition-transform hover:scale-105 active:scale-95 relative">
                                 <div
                                     className="w-12 h-12 rounded-full border-2 shadow-inner overflow-hidden flex items-center justify-center"
                                     style={{
-                                        // プリセット以外の色ならその色を背景に、そうでなければ白背景
                                         backgroundColor: isCustomColor ? petColor : '#ffffff',
                                         borderColor: isCustomColor ? '#0ea5e9' : '#ffffff'
                                     }}
                                 >
-                                    {/* プリセット以外の色選択時はチェックマーク、それ以外はパレットアイコン */}
                                     {isCustomColor ? (
                                         <IoCheckmark size={28} className="text-white drop-shadow-md pointer-events-none" />
                                     ) : (
                                         <IoColorPalette size={24} className="text-slate-400 pointer-events-none" />
                                     )}
 
-                                    {/* 透明なカラー入力を重ねる */}
                                     <input
                                         type="color"
                                         value={isCustomColor ? petColor : '#ffffff'}
@@ -304,21 +308,10 @@ export default function SettingsPage() {
 
                     <section className="bg-white/60 backdrop-blur-sm rounded-2xl p-4">
                         <h2 className="text-lg font-semibold text-slate-600 mb-4">音量設定</h2>
+                        {/* ★★★ リファクタリング: SliderControlを使用して記述を簡素化 ★★★ */}
                         <div className="space-y-6">
-                            <div className="flex items-center gap-4 relative">
-                                <label htmlFor="volume-slider" className="w-16 text-sm font-medium text-slate-600">音量</label>
-                                <div className="flex-1 h-2 bg-white rounded-full relative mr-4">
-                                    <div className="absolute top-0 left-0 h-full bg-blue-300 rounded-full pointer-events-none" style={{ width: `${volume}%` }}></div>
-                                </div>
-                                <input id="volume-slider" type="range" min="0" max="100" value={volume} onChange={handleVolumeChange} className="absolute left-20 right-4 top-0 bottom-0 m-auto w-[calc(100%-6rem)] h-6 opacity-0 cursor-pointer z-10" />
-                            </div>
-                            <div className="flex items-center gap-4 relative">
-                                <label htmlFor="sfx-slider" className="w-16 text-sm font-medium text-slate-600">効果音</label>
-                                <div className="flex-1 h-2 bg-white rounded-full relative mr-4">
-                                    <div className="absolute top-0 left-0 h-full bg-blue-300 rounded-full pointer-events-none" style={{ width: `${soundEffectVolume}%` }}></div>
-                                </div>
-                                <input id="sfx-slider" type="range" min="0" max="100" value={soundEffectVolume} onChange={handleSoundEffectVolumeChange} className="absolute left-20 right-4 top-0 bottom-0 m-auto w-[calc(100%-6rem)] h-6 opacity-0 cursor-pointer z-10" />
-                            </div>
+                            <SliderControl label="音量" value={volume} onChange={handleVolumeChange} />
+                            <SliderControl label="効果音" value={soundEffectVolume} onChange={handleSoundEffectVolumeChange} />
                         </div>
                     </section>
                 </div>
