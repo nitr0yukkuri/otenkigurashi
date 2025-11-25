@@ -1,6 +1,5 @@
 // prisma/schema.prisma
 
-// --- 変更ここから ---
 datasource db {
   provider = "postgresql"
   url      = env("PRISMA_DATABASE_URL")
@@ -19,6 +18,8 @@ model Item {
   iconName    String?
   weather     String?
   stage       String?
+  // ★★★ 追加: 装備カテゴリ (nullなら装備不可, 'head', 'hand' など) ★★★
+  category    String?
   inventories UserInventory[]
 }
 
@@ -46,9 +47,6 @@ model UserProgress {
   collectedEpicItemTypesCount     Int @default(0)
   collectedLegendaryItemTypesCount Int @default(0)
 
-  // アイテム収集関連 (総数) - 必要であれば追加
-  // collectedTotalItemCount Int @default(0) // 集めたアイテムの総数
-
   // 連続おさんぽ記録
   consecutiveWalkDays Int      @default(0)
   lastWalkDate        DateTime? // 最後におさんぽした日時
@@ -62,6 +60,3 @@ model UserInventory {
   quantity Int  @default(0)
   item     Item @relation(fields: [itemId], references: [id])
 }
-
-// ★ User, Account, Session, VerificationToken モデルは削除済み
-// --- 変更ここまで ---
