@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
-    const latRaw = searchParams.get('lat'); // 変数名を変更
-    const lonRaw = searchParams.get('lon'); // 変数名を変更
+    const latRaw = searchParams.get('lat');
+    const lonRaw = searchParams.get('lon');
 
     const apiKey = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
 
@@ -14,32 +14,59 @@ export async function GET(request: Request) {
         return NextResponse.json({ message: '緯度または経度が指定されていません。' }, { status: 400 });
     }
 
-    // ★★★ 修正ポイント: 座標を小数点第2位（約1km圏内）で丸める ★★★
-    // これにより、GPSの微細なブレ（誤差）があっても同じURLとして認識させ、
-    // キャッシュをヒットさせることで天候の不一致を防ぎます。
+    // 座標を丸める（キャッシュヒット率向上用だが、今回はno-storeなのでURLの一貫性のため）
     const lat = parseFloat(latRaw).toFixed(2);
     const lon = parseFloat(lonRaw).toFixed(2);
-    // ★★★ 修正ここまで ★★★
 
+    // ★★★ 修正: 「現在の天気」と「週間予報」の両方のURLを用意 ★★★
+    const weatherApiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
     const forecastApiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
 
     try {
-        // ★★★ 変更点: キャッシュを無効化 ({ cache: 'no-store' }) ★★★
-        // 時間が空いた際に古い情報が表示されるのを防ぐため、常に最新を取得します
-        const response = await fetch(forecastApiUrl, { cache: 'no-store' });
+        // ★★★ 修正: 両方のデータを並行して取得（キャッシュなし） ★★★
+        const [weatherRes, forecastRes] = await Promise.all([
+            fetch(weatherApiUrl, { cache: 'no-store' }),
+            fetch(forecastApiUrl, { cache: 'no-store' })
+        ]);
 
-        // レスポンスがOKでない場合、エラー内容を詳しく調査する
-        if (!response.ok) {
-            const errorData = await response.json();
-            console.error('OpenWeatherMap API Error Response:', errorData);
-            throw new Error(errorData.message || '週間天気予報の取得に失敗しました。');
+        if (!weatherRes.ok || !forecastRes.ok) {
+            // 片方でも失敗したらエラー詳細を確認
+            const errorData = !weatherRes.ok ? await weatherRes.json() : await forecastRes.json();
+            console.error('OpenWeatherMap API Error:', errorData);
+            throw new Error(errorData.message || '天気情報の取得に失敗しました。');
         }
 
-        const data = await response.json();
-        return NextResponse.json(data);
+        const currentData = await weatherRes.json();
+        const forecastData = await forecastRes.json();
+
+        // ★★★ 修正: 「現在の天気」を「予報データの形式」に変換して、リストの先頭に追加する ★★★
+        // これにより、「今日の予報」のアイコンや気温が、未来の予測値ではなく「今この瞬間の値」になります。
+
+        const icon = currentData.weather?.[0]?.icon || '01d';
+        const pod = icon.includes('n') ? 'n' : 'd';
+
+        // 現在の天気に雨/雪データがあれば、降水確率(pop)を100%(1)とみなす簡易補正
+        const hasPrecipitation = currentData.rain || currentData.snow;
+        const currentPop = hasPrecipitation ? 1 : 0;
+
+        const currentAsForecastItem = {
+            dt: currentData.dt,
+            main: currentData.main,
+            weather: currentData.weather,
+            clouds: currentData.clouds,
+            wind: currentData.wind,
+            visibility: currentData.visibility,
+            pop: currentPop,
+            sys: { pod: pod },
+            dt_txt: new Date(currentData.dt * 1000).toISOString().replace('T', ' ').substring(0, 19)
+        };
+
+        // 先頭に追加（unshift）
+        forecastData.list.unshift(currentAsForecastItem);
+
+        return NextResponse.json(forecastData);
 
     } catch (error: any) {
-        // エラーメッセージをコンソールに出力
         console.error('API Route Error:', error.message);
         return NextResponse.json({ message: error.message || '外部APIへのリクエスト中にエラーが発生しました。' }, { status: 500 });
     }
