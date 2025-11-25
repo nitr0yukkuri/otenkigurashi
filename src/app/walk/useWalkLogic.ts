@@ -92,7 +92,7 @@ export function useWalkLogic() {
                 } finally {
                     setLoading(false);
                 }
-            }, 3000);
+            }, 2000);
         };
 
         if (debugWeather) {
