@@ -1,0 +1,27 @@
+import React from 'react';
+
+type Props = {
+    label: string;
+    value: number;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+};
+
+// ★★★ 修正: defaultエクスポートにする ★★★
+export default function SliderControl({ label, value, onChange }: Props) {
+    return (
+        <div className="flex items-center gap-4 relative">
+            <label className="w-16 text-sm font-medium text-slate-600">{label}</label>
+            <div className="flex-1 h-2 bg-white rounded-full relative mr-4">
+                <div className="absolute top-0 left-0 h-full bg-blue-300 rounded-full pointer-events-none" style={{ width: `${value}%` }}></div>
+            </div>
+            <input
+                type="range"
+                min="0"
+                max="100"
+                value={value}
+                onChange={onChange}
+                className="absolute left-20 right-4 top-0 bottom-0 m-auto w-[calc(100%-6rem)] h-6 opacity-0 cursor-pointer z-10"
+            />
+        </div>
+    );
+}
