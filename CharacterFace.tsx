@@ -4,13 +4,20 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ★★★ 追加: cheekColor prop ★★★
-export default function CharacterFace({ mood = "happy", onClick, petColor = "white", cheekColor = "#F8BBD0" }: {
-    mood?: "happy" | "neutral" | "sad",
-    onClick?: () => void,
-    petColor?: string,
-    cheekColor?: string // ★ 追加
-}) {
+// ★★★ 変更: Propsの型定義に cheekColor を追加 ★★★
+type CharacterFaceProps = {
+    mood?: "happy" | "neutral" | "sad";
+    onClick?: () => void;
+    petColor?: string;
+    cheekColor?: string;
+};
+
+export default function CharacterFace({
+    mood = "happy",
+    onClick,
+    petColor = "white",
+    cheekColor = "#F8BBD0"
+}: CharacterFaceProps) {
 
     const getMouthPath = () => {
         switch (mood) {
@@ -61,7 +68,7 @@ export default function CharacterFace({ mood = "happy", onClick, petColor = "whi
                     animate={isRainbow ? rainbowAnimation : { fill: petColor }}
                 />
 
-                {/* ★★★ 変更: fill={cheekColor} に変更 ★★★ */}
+                {/* ほっぺの色を適用 */}
                 <circle cx="20" cy="70" r="12" fill={cheekColor} />
                 <circle cx="100" cy="70" r="12" fill={cheekColor} />
                 <motion.g

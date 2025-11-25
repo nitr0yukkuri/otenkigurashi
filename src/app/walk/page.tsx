@@ -12,9 +12,9 @@ import Footer from '../components/Footer';
 import ItemGetModal from '../components/ItemGetModal';
 
 // ★★★ エラー修正: importパスを './useWalkLogic' から './usWalkLogic' に変更 ★★★
-import { useWalkLogic } from './usWalkLogic';
+import { useWalkLogic } from './useWalkLogic.ts';
 // ★★★ エラー修正: importパスを './utils' から './uitls' に変更 ★★★
-import { getWalkMessage } from './uitls';
+import { getWalkMessage } from './utils';
 
 // ★リファクタリング: UI（ビュー）専用コンポーネント
 function WalkPageComponent() {

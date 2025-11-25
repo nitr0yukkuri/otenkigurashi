@@ -1,14 +1,15 @@
-// src/app/walk/usWalkLogic.ts
+// src/app/walk/useWalkLogic.ts
+// ★★★ 重要: ファイル名を usWalkLogic.ts から useWalkLogic.ts に修正しました ★★★
 
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-// ★★★ エラー修正: importパスを './utils' から './uitls' に変更 ★★★
-import { mapWeatherType, getBackgroundColorClass } from './uitls';
+// ★★★ 変更: importパスを './utils' (正しいファイル名) に修正 ★★★
+import { mapWeatherType, getBackgroundColorClass } from './utils';
 
-// 型定義 (page.tsxから移動)
+// 型定義
 type ObtainedItem = {
     id: number | null;
     name: string | null;
@@ -16,8 +17,6 @@ type ObtainedItem = {
     rarity: string | null;
 };
 
-// ★リファクタリング: ロジックをカスタムフックに分離
-// ★★★ ファイル名（タイポ）に合わせて export function useWalkLogic にします
 export function useWalkLogic() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -31,14 +30,12 @@ export function useWalkLogic() {
     const hasStartedProcessing = useRef(false);
 
     const dynamicBackgroundClass = useMemo(() => getBackgroundColorClass(weather || undefined), [weather]);
-    // ★★★ 変更点: isNight を useMemo で定義 ★★★
     const isNight = useMemo(() => weather === 'night', [weather]);
 
     useEffect(() => {
         if (hasStartedProcessing.current || isProcessing) return;
 
         const debugWeather = searchParams.get('weather');
-        // ★★★ 追加: URLから場所情報を取得 ★★★
         const paramLocation = searchParams.get('location');
 
         const obtainItem = (currentWeather: string) => {
@@ -108,18 +105,15 @@ export function useWalkLogic() {
             }, 3000); // 3秒
         };
 
-        // 位置情報取得 & 天気取得 & アイテム取得開始のロジック
         if (debugWeather) {
             setWeather(debugWeather);
 
-            // ★★★ 修正: URLパラメータに場所がない場合、現在地を取得して表示する ★★★
             if (paramLocation) {
                 setLocation(decodeURIComponent(paramLocation));
             } else if (navigator.geolocation) {
                 setLocation("現在地を確認中...");
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
-                        // 天気APIを使って地名だけ取得（天気はdebugWeatherを使用）
                         fetch(`/api/weather/forecast?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
                             .then(res => res.json())
                             .then(data => {
@@ -132,7 +126,6 @@ export function useWalkLogic() {
             } else {
                 setLocation("どこかの場所");
             }
-            // ★★★ 修正ここまで ★★★
 
             setLoading(false);
             obtainItem(debugWeather);
@@ -202,7 +195,6 @@ export function useWalkLogic() {
         router.push('/');
     };
 
-    // コンポーネントが必要とする値と関数を返す
     return {
         weather,
         location,
@@ -212,6 +204,6 @@ export function useWalkLogic() {
         isItemModalOpen,
         dynamicBackgroundClass,
         handleModalClose,
-        isNight, // ★★★ 変更点: isNight を返す ★★★
+        isNight,
     };
 }

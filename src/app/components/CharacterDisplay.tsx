@@ -9,8 +9,7 @@ import ItemIcon from './ItemIcon';
 type CharacterDisplayProps = {
     petName: string;
     petColor: string;
-    // ★★★ 追加: cheekColor ★★★
-    cheekColor?: string;
+    cheekColor?: string; // props定義に追加済み
     petEquipment: string | null;
     mood: "happy" | "neutral" | "sad";
     message: string | null;
@@ -21,7 +20,7 @@ type CharacterDisplayProps = {
 export default function CharacterDisplay({
     petName,
     petColor,
-    cheekColor = "#F8BBD0", // デフォルト値
+    cheekColor = "#F8BBD0",
     petEquipment,
     mood,
     message,
@@ -147,7 +146,6 @@ export default function CharacterDisplay({
                 </AnimatePresence>
 
                 <div className="w-full h-full rounded-full flex items-center justify-center">
-                    {/* ★★★ 変更: cheekColorを渡す ★★★ */}
                     <CharacterFace mood={mood} onClick={onCharacterClick} petColor={petColor} cheekColor={cheekColor} />
                 </div>
             </motion.div>

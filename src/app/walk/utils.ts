@@ -1,8 +1,6 @@
-// src/app/walk/uitls.ts
-// ★★★ エラー修正: page.tsx のコードを削除し、
-// ★★★ 本来のヘルパー関数（utils）のコードのみを記述します。
+// src/app/walk/utils.ts
+// ★★★ 重要: ファイル名を uitls.ts から utils.ts に修正しました ★★★
 
-// ★ 1. mapWeatherType
 export const mapWeatherType = (weatherData: any): string => {
     // Check if weatherData and necessary nested properties exist
     if (!weatherData || !weatherData.weather || weatherData.weather.length === 0 || !weatherData.wind) {
@@ -34,7 +32,6 @@ export const mapWeatherType = (weatherData: any): string => {
     return isNight ? "night" : "sunny";
 };
 
-// ★ 2. getBackgroundColorClass
 export const getBackgroundColorClass = (weatherType?: string): string => {
     switch (weatherType) {
         case 'clear': return 'bg-clear';
@@ -49,7 +46,6 @@ export const getBackgroundColorClass = (weatherType?: string): string => {
     }
 };
 
-// ★ 3. getWalkMessage
 export const getWalkMessage = (weatherType?: string): string => {
     switch (weatherType) {
         case 'sunny': return '太陽が気持ちいいね！何が見つかるかな？';
