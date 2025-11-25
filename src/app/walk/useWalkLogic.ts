@@ -1,12 +1,9 @@
 // src/app/walk/useWalkLogic.ts
-// ★★★ 重要: ファイル名を usWalkLogic.ts から useWalkLogic.ts に修正しました ★★★
 
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-
-// ★★★ 変更: importパスを './utils' (正しいファイル名) に修正 ★★★
 import { mapWeatherType, getBackgroundColorClass } from './utils';
 
 // 型定義
@@ -149,6 +146,8 @@ export function useWalkLogic() {
                     if (!data.list) throw new Error(data.message || '天気情報が取得できませんでした');
                     setLocation(data.city.name || "不明な場所");
                     const current = data.list[0];
+                    // mapWeatherTypeのインポート元(utils.ts)にある関数を使用
+                    // utils.ts側のmapWeatherTypeはstringを返すのでそのまま使用
                     const realWeather = mapWeatherType(current);
                     setWeather(realWeather);
                     obtainItem(realWeather);

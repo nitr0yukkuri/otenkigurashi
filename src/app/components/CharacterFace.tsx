@@ -4,12 +4,20 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ★ 変更点1: petColor を props に追加
-export default function CharacterFace({ mood = "happy", onClick, petColor = "white" }: {
-    mood?: "happy" | "neutral" | "sad",
-    onClick?: () => void,
-    petColor?: string // ★ 追加
-}) {
+// ★ Propsの型定義に cheekColor を追加
+type CharacterFaceProps = {
+    mood?: "happy" | "neutral" | "sad";
+    onClick?: () => void;
+    petColor?: string;
+    cheekColor?: string; // ★ 追加
+};
+
+export default function CharacterFace({
+    mood = "happy",
+    onClick,
+    petColor = "white",
+    cheekColor = "#F8BBD0" // ★ デフォルト値を設定
+}: CharacterFaceProps) {
 
     const getMouthPath = () => {
         switch (mood) {
@@ -22,6 +30,14 @@ export default function CharacterFace({ mood = "happy", onClick, petColor = "whi
             default:
                 return "M 45 75 Q 60 90 75 75";
         }
+    };
+
+    const isRainbow = petColor === 'rainbow';
+    const rainbowAnimation = {
+        fill: [
+            "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff", "#ff0000"
+        ],
+        transition: { duration: 4, repeat: Infinity, ease: "linear" }
     };
 
     return (
@@ -46,11 +62,18 @@ export default function CharacterFace({ mood = "happy", onClick, petColor = "whi
                     ease: "easeInOut"
                 }}
             >
-                {/* ★ 変更点2: fill="white" を fill={petColor} に変更 */}
-                <circle cx="60" cy="60" r="60" fill={petColor} />
+                {/* 顔のベース */}
+                <motion.circle
+                    cx="60" cy="60" r="60"
+                    fill={isRainbow ? '#ff0000' : petColor}
+                    animate={isRainbow ? rainbowAnimation : { fill: petColor }}
+                />
 
-                <circle cx="20" cy="70" r="12" fill="#F8BBD0" />
-                <circle cx="100" cy="70" r="12" fill="#F8BBD0" />
+                {/* ほっぺ (cheekColorを適用) */}
+                <circle cx="20" cy="70" r="12" fill={cheekColor} />
+                <circle cx="100" cy="70" r="12" fill={cheekColor} />
+
+                {/* 目 */}
                 <motion.g
                     animate={{ scaleY: [1, 0.1, 1, 1, 1] }}
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
@@ -58,6 +81,8 @@ export default function CharacterFace({ mood = "happy", onClick, petColor = "whi
                     <circle cx="40" cy="55" r="5" fill="#5D4037" />
                     <circle cx="80" cy="55" r="5" fill="#5D4037" />
                 </motion.g>
+
+                {/* 口 */}
                 <AnimatePresence mode="wait">
                     <motion.path
                         key={mood}
