@@ -65,7 +65,9 @@ export default function EquipmentSection() {
             const res = await fetch('/api/collection');
             const data: CollectionItem[] = await res.json();
             // 所持していて、かつ装備カテゴリがあるものだけ
-            setItems(data.filter(item => item.quantity > 0 && item.category));
+            // ★ 変更: 開発環境(NODE_ENV === 'development')の場合は未所持アイテムも表示する
+            const isDev = process.env.NODE_ENV === 'development';
+            setItems(data.filter(item => (item.quantity > 0 || isDev) && item.category));
         };
         fetchCollection();
     }, []);
@@ -141,6 +143,7 @@ export default function EquipmentSection() {
                     >
                         <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all
                             ${equipment[activeTab] === item.iconName ? 'border-sky-500 ring-2 ring-sky-200' : 'border-white'}
+                            ${item.quantity === 0 ? 'opacity-50' : ''}
                         `}>
                             <ItemIcon name={item.iconName} rarity={item.rarity} size={24} />
                         </div>
