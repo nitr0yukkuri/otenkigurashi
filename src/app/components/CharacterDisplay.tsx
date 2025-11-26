@@ -6,101 +6,74 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CharacterFace from './CharacterFace';
 import ItemIcon from './ItemIcon';
 
+// 装備の型定義
+export type EquipmentState = {
+    head: string | null;
+    hand: string | null;
+    floating: string | null;
+    // 将来的に 'background', 'neck' など増やせる
+};
+
 type CharacterDisplayProps = {
     petName: string;
     petColor: string;
-    cheekColor?: string; // props定義に追加済み
-    petEquipment: string | null;
+    cheekColor?: string;
+    // ★ 変更: 文字列ではなくオブジェクトで受け取る
+    equipment: EquipmentState | null;
     mood: "happy" | "neutral" | "sad";
     message: string | null;
     onCharacterClick: () => void;
     isNight?: boolean;
 };
 
+// ★ カテゴリーごとの表示スタイル定義 (ここをいじるだけで全アイテムの位置調整が可能)
+const SLOT_STYLES = {
+    head: {
+        className: "absolute -top-8 left-1/2 -translate-x-1/2 z-20 w-2/3", // 頭の上、中央揃え
+        animation: { y: [0, -3, 0], transition: { duration: 4, repeat: Infinity } } // ふわふわ
+    },
+    hand: {
+        className: "absolute bottom-0 -right-4 z-30 w-1/3", // 右手前
+        animation: { rotate: [0, 5, 0], transition: { duration: 2, repeat: Infinity } } // ゆらゆら
+    },
+    floating: {
+        className: "absolute -top-4 -right-8 z-10 w-1/3", // 右上、背後
+        animation: { y: [0, -10, 0], opacity: 0.9, transition: { duration: 3, repeat: Infinity, ease: "easeInOut" } } // 浮遊
+    }
+};
+
 export default function CharacterDisplay({
     petName,
     petColor,
     cheekColor = "#F8BBD0",
-    petEquipment,
+    equipment,
     mood,
     message,
     onCharacterClick,
     isNight = false
 }: CharacterDisplayProps) {
 
-    const renderEquipment = () => {
-        if (!petEquipment) return null;
+    // 装備レンダリング関数 (汎用化)
+    const renderSlot = (slot: keyof EquipmentState) => {
+        // equipmentがnullまたは未定義の場合は何もしない
+        if (!equipment) return null;
 
-        let styleClass = "";
-        let initial = {};
-        let animate = {};
-        let exit = {};
+        const itemName = equipment[slot];
+        if (!itemName) return null;
 
-        switch (petEquipment) {
-            case 'FaHatCowboy':
-            case 'GiAcorn':
-            case 'BsRecordCircle':
-            case 'FaLeaf':
-            case 'IoSunny':
-            case 'IoRainy':
-            case 'GiSnail':
-            case 'FaStar':
-            case 'FaFeather':
-            case 'GiClover':
-            case 'IoWaterOutline':
-            case 'GiNightSky':
-                styleClass = "absolute -top-6 w-1/2 z-10 left-1/4";
-                initial = { opacity: 0, y: -10, rotate: -10 };
-                animate = { opacity: 1, y: 0, rotate: 0 };
-                exit = { opacity: 0, y: -10, rotate: -10 };
-                break;
-
-            case 'GiWhirlwind':
-            case 'GiStickSplinter':
-            case 'FaKey':
-            case 'GiGrass':
-            case 'GiPaperLantern':
-                styleClass = "absolute bottom-0 -right-2 w-1/3 z-10";
-                initial = { opacity: 0, x: 10, rotate: 20 };
-                animate = { opacity: 1, x: 0, rotate: 0 };
-                exit = { opacity: 0, x: 10, rotate: 20 };
-                break;
-
-            case 'IoCloudy':
-            case 'IoSnow':
-            case 'FaFeatherAlt':
-            case 'GiButterfly':
-            case 'IoPaperPlaneOutline':
-            case 'BsMoonStarsFill':
-            case 'GiSparkles':
-                styleClass = "absolute top-0 -right-6 w-1/3 z-10";
-                initial = { opacity: 0, scale: 0 };
-                animate = {
-                    opacity: 1,
-                    scale: 1,
-                    y: [0, -5, 0]
-                };
-                exit = { opacity: 0, scale: 0 };
-                break;
-
-            default:
-                styleClass = "absolute -top-4 w-1/2 z-10 left-1/4";
-                initial = { opacity: 0, y: -5 };
-                animate = { opacity: 1, y: 0 };
-                exit = { opacity: 0, y: -5 };
-                break;
-        }
+        const style = SLOT_STYLES[slot];
 
         return (
             <motion.div
-                className={styleClass}
-                initial={initial}
-                animate={animate}
-                exit={exit}
-                transition={petEquipment.startsWith('IoCloudy') ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : { type: "spring", stiffness: 300, damping: 20 }}
+                key={slot}
+                className={style.className}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1, ...style.animation }}
+                exit={{ opacity: 0, scale: 0.8 }}
             >
                 <div className="w-full h-full flex items-center justify-center drop-shadow-md">
-                    <ItemIcon name={petEquipment} size={undefined} />
+                    {/* サイズは親divに合わせるため undefined */}
+                    <ItemIcon name={itemName} size={undefined} />
                 </div>
             </motion.div>
         );
@@ -141,11 +114,14 @@ export default function CharacterDisplay({
                 style={{ backgroundColor: isRainbow ? '#ff0000' : petColor }}
                 animate={isRainbow ? rainbowAnimation : { backgroundColor: petColor }}
             >
+                {/* ★ 複数装備をレンダリング */}
                 <AnimatePresence>
-                    {renderEquipment()}
+                    {renderSlot('floating')} {/* 背面 */}
+                    {renderSlot('head')}
+                    {renderSlot('hand')}
                 </AnimatePresence>
 
-                <div className="w-full h-full rounded-full flex items-center justify-center">
+                <div className="w-full h-full rounded-full flex items-center justify-center relative z-10">
                     <CharacterFace mood={mood} onClick={onCharacterClick} petColor={petColor} cheekColor={cheekColor} />
                 </div>
             </motion.div>

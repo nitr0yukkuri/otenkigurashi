@@ -6,11 +6,11 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Footer from './Footer';
 import WeatherDisplay from './WeatherDisplay';
-import CharacterDisplay from './CharacterDisplay';
+import CharacterDisplay, { EquipmentState } from './CharacterDisplay'; // ★ 型定義をインポート
 import ConfirmationModal from './ConfirmationModal';
 import ItemGetModal from './ItemGetModal';
-import HelpButton from './HelpButton'; // ★ 追加
-import HelpModal from './HelpModal';   // ★ 追加
+import HelpButton from './HelpButton';
+import HelpModal from './HelpModal';
 
 import {
     WeatherType,
@@ -44,7 +44,6 @@ const conversationMessages: { [key: string]: string[] } = {
 export default function TenChanHomeClient({ initialData }: { initialData: any }) {
     const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // ★ ヘルプモーダルの状態管理
     const [isHelpOpen, setIsHelpOpen] = useState(false);
 
     const [weather, setWeather] = useState<WeatherType | null>(null);
@@ -54,7 +53,9 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const [petName, setPetName] = useState("てんちゃん");
     const [petColor, setPetColor] = useState("white");
     const [petCheekColor, setPetCheekColor] = useState("#F8BBD0");
-    const [petEquipment, setPetEquipment] = useState<string | null>(null);
+
+    // ★ 変更: 文字列からオブジェクト型へ
+    const [petEquipment, setPetEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null });
 
     const [location, setLocation] = useState<string | null>("場所を取得中...");
     const [isClient, setIsClient] = useState(false);
@@ -116,8 +117,25 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             if (storedCheekColor) {
                 setPetCheekColor(storedCheekColor);
             }
+
+            // ★ 変更: 装備の読み込みと移行処理
             const storedEquipment = localStorage.getItem(PET_EQUIPMENT_KEY);
-            setPetEquipment(storedEquipment);
+            if (storedEquipment) {
+                try {
+                    const parsed = JSON.parse(storedEquipment);
+                    // もし古い文字列データならオブジェクトに変換 (Headに割り当て)
+                    if (typeof parsed === 'string') {
+                        setPetEquipment({ head: parsed, hand: null, floating: null });
+                    } else {
+                        setPetEquipment(parsed);
+                    }
+                } catch {
+                    // パースエラー時(純粋な文字列の場合など)は文字列として扱う
+                    setPetEquipment({ head: storedEquipment, hand: null, floating: null });
+                }
+            } else {
+                setPetEquipment({ head: null, hand: null, floating: null });
+            }
         };
 
         updatePetSettings();
@@ -247,7 +265,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 </h2>
             </ConfirmationModal>
 
-            {/* ★ ヘルプモーダルを追加 */}
             <HelpModal
                 isOpen={isHelpOpen}
                 onClose={() => setIsHelpOpen(false)}
@@ -258,7 +275,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             >
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl"></div>
 
-                {/* ★ ヘルプボタンを配置 (右上に) */}
                 <HelpButton onClick={() => setIsHelpOpen(true)} />
 
                 <WeatherDisplay
@@ -290,7 +306,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                         petName={petName}
                         petColor={petColor}
                         cheekColor={petCheekColor}
-                        petEquipment={petEquipment}
+                        equipment={petEquipment} // ★ props変更
                         mood={error ? "sad" : "happy"}
                         message={message}
                         onCharacterClick={handleCharacterClick}
