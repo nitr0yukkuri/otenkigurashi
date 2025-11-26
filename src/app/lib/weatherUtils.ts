@@ -1,11 +1,13 @@
 // src/app/lib/weatherUtils.ts
 'use client';
 
-// ★ 1. 型定義をエクスポート
+// 共通関数を移植・統合
+
 export type WeatherType = "sunny" | "clear" | "rainy" | "cloudy" | "snowy" | "thunderstorm" | "windy" | "night";
 
 /**
  * OpenWeatherMapのデータから天気タイプをマッピングします。
+ * (TenChanHomeClient.tsx, page.tsx, weather/page.tsx から共通化)
  */
 export const mapWeatherType = (weatherData: any): WeatherType => {
     if (!weatherData || !weatherData.weather || weatherData.weather.length === 0) {
@@ -14,8 +16,7 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     const main = weatherData.weather[0].main.toLowerCase();
     const windSpeed = weatherData.wind?.speed;
 
-    // ★ 修正: データ内の pod (Part of Day) を優先して昼夜判定
-    // APIデータに sys.pod があればそれを使用、なければ現在時刻で判定
+    // データ内の pod (Part of Day) を優先して昼夜判定
     let isNight = false;
     if (weatherData.sys?.pod) {
         isNight = weatherData.sys.pod === 'n';
@@ -34,7 +35,8 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     }
     if (main.includes("clouds")) {
         const cloudiness = weatherData.clouds?.all;
-        if (cloudiness !== undefined && cloudiness > 75) {
+        // ★★★ 修正: 閾値を 75 -> 50 に変更し、くもり判定を緩和 ★★★
+        if (cloudiness !== undefined && cloudiness > 50) {
             return isNight ? "night" : "cloudy";
         }
         return isNight ? "night" : "sunny"; // 雲が少ない場合は晴れ扱い
@@ -45,6 +47,7 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
 
 /**
  * 天気タイプに応じた背景グラデーションのCSSクラスを返します。
+ * (TenChanHomeClient.tsx, collection/page.tsx, settings/page.tsx から共通化)
  */
 export const getBackgroundGradientClass = (weather: WeatherType | null): string => {
     switch (weather) {
@@ -62,6 +65,7 @@ export const getBackgroundGradientClass = (weather: WeatherType | null): string 
 
 /**
  * 現在時刻から "morning", "afternoon", "evening", "night" を返します。
+ * (TenChanHomeClient.tsx, weather/page.tsx から共通化)
  */
 export const getTimeOfDay = (date: Date): "morning" | "afternoon" | "evening" | "night" => {
     const hour = date.getHours();

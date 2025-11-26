@@ -22,9 +22,19 @@ export function useWalkLogic() {
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const hasStartedProcessing = useRef(false);
+    // ★★★ 追加: マウント状態を管理するref ★★★
+    const isMounted = useRef(true);
 
     const dynamicBackgroundClass = useMemo(() => getBackgroundColorClass(weather || undefined), [weather]);
     const isNight = useMemo(() => weather === 'night', [weather]);
+
+    // ★★★ 追加: アンマウント時にフラグを下ろす ★★★
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
 
     useEffect(() => {
         if (hasStartedProcessing.current || isProcessing) return;
@@ -38,6 +48,9 @@ export function useWalkLogic() {
             setIsProcessing(true);
 
             setTimeout(async () => {
+                // ★★★ 追加: アンマウントされていたら処理を中断 ★★★
+                if (!isMounted.current) return;
+
                 try {
                     const itemResponse = await fetch('/api/items/obtain', {
                         method: 'POST',
@@ -50,8 +63,10 @@ export function useWalkLogic() {
                     }
                     const item = itemResult;
 
-                    setObtainedItem({ id: item.id, name: item.name, iconName: item.iconName, rarity: item.rarity });
-                    setIsItemModalOpen(true);
+                    if (isMounted.current) {
+                        setObtainedItem({ id: item.id, name: item.name, iconName: item.iconName, rarity: item.rarity });
+                        setIsItemModalOpen(true);
+                    }
 
                     const collectionResponse = await fetch('/api/collection', {
                         method: 'POST',
@@ -75,9 +90,11 @@ export function useWalkLogic() {
 
                 } catch (err: any) {
                     console.error("アイテム取得または記録処理中にエラー:", err);
-                    setError(err.message || 'アイテム処理中にエラーが発生しました');
-                    setObtainedItem({ id: null, name: 'ふしぎな石', iconName: 'IoHelpCircle', rarity: 'normal' });
-                    setIsItemModalOpen(true);
+                    if (isMounted.current) {
+                        setError(err.message || 'アイテム処理中にエラーが発生しました');
+                        setObtainedItem({ id: null, name: 'ふしぎな石', iconName: 'IoHelpCircle', rarity: 'normal' });
+                        setIsItemModalOpen(true);
+                    }
 
                     try {
                         await fetch('/api/walk/complete', {
@@ -90,7 +107,9 @@ export function useWalkLogic() {
                     }
 
                 } finally {
-                    setLoading(false);
+                    if (isMounted.current) {
+                        setLoading(false);
+                    }
                 }
             }, 2000);
         };
@@ -107,11 +126,15 @@ export function useWalkLogic() {
                         fetch(`/api/weather/forecast?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
                             .then(res => res.json())
                             .then(data => {
-                                setLocation(data.city?.name || "どこかの場所");
+                                if (isMounted.current) setLocation(data.city?.name || "どこかの場所");
                             })
-                            .catch(() => setLocation("どこかの場所"));
+                            .catch(() => {
+                                if (isMounted.current) setLocation("どこかの場所");
+                            });
                     },
-                    () => setLocation("どこかの場所")
+                    () => {
+                        if (isMounted.current) setLocation("どこかの場所");
+                    }
                 );
             } else {
                 setLocation("どこかの場所");
@@ -135,6 +158,7 @@ export function useWalkLogic() {
                     return res.json();
                 })
                 .then(data => {
+                    if (!isMounted.current) return; // 追加
                     if (hasStartedProcessing.current) return;
                     if (!data.list) throw new Error(data.message || '天気情報が取得できませんでした');
                     setLocation(data.city.name || "不明な場所");
@@ -144,6 +168,7 @@ export function useWalkLogic() {
                     obtainItem(realWeather);
                 })
                 .catch(err => {
+                    if (!isMounted.current) return; // 追加
                     if (hasStartedProcessing.current) return;
                     console.error("天気情報の取得に失敗:", err);
                     setError(err.message || "天気情報の取得に失敗しました。");
@@ -159,6 +184,7 @@ export function useWalkLogic() {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => fetchCurrentWeather(pos.coords.latitude, pos.coords.longitude),
                     (geoError) => {
+                        if (!isMounted.current) return; // 追加
                         if (hasStartedProcessing.current) return;
                         console.error("位置情報の取得に失敗:", geoError);
                         setError("位置情報の取得を許可してください。");
