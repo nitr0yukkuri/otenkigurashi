@@ -72,7 +72,8 @@ function WalkPageComponent() {
                             </div>
                         ) : error ? (
                             <div className="text-center">
-                                <div className="w-40 h-40 rounded-full bg-white p-2 mb-4 mx-auto">
+                                {/* ★ 修正: bg-white p-2 rounded-full を削除して顔の表示崩れを修正 */}
+                                <div className="w-40 h-40 mb-4 mx-auto">
                                     {/* ★ 変更: 色を渡す */}
                                     <CharacterFace mood={'sad'} petColor={petColor} cheekColor={cheekColor} />
                                 </div>
@@ -84,7 +85,8 @@ function WalkPageComponent() {
                         ) : (
                             <>
                                 <div className="mb-4"><WeatherIcon type={weather || 'sunny'} size={60} /></div>
-                                <div className="w-40 h-40 rounded-full bg-white p-2 mb-4">
+                                {/* ★ 修正: bg-white p-2 rounded-full を削除して顔の表示崩れを修正 */}
+                                <div className="w-40 h-40 mb-4">
                                     {/* ★ 変更: 色を渡す */}
                                     <CharacterFace mood={'happy'} petColor={petColor} cheekColor={cheekColor} />
                                 </div>

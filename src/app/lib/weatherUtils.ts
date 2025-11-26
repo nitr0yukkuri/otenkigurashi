@@ -1,4 +1,4 @@
-// src/app/lib/weatherUtils.ts (新規作成)
+// src/app/lib/weatherUtils.ts
 'use client';
 
 // ★ 1. 型定義をエクスポート
@@ -13,8 +13,16 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     }
     const main = weatherData.weather[0].main.toLowerCase();
     const windSpeed = weatherData.wind?.speed;
-    const hour = new Date().getHours();
-    const isNight = hour < 5 || hour >= 19;
+
+    // ★ 修正: データ内の pod (Part of Day) を優先して昼夜判定
+    // APIデータに sys.pod があればそれを使用、なければ現在時刻で判定
+    let isNight = false;
+    if (weatherData.sys?.pod) {
+        isNight = weatherData.sys.pod === 'n';
+    } else {
+        const hour = new Date().getHours();
+        isNight = hour < 5 || hour >= 19;
+    }
 
     if (windSpeed !== undefined && windSpeed >= 10) return "windy";
     if (main.includes("thunderstorm")) return "thunderstorm";
