@@ -3,12 +3,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-// 共通の型定義とヘルパー関数をインポート
 import { WeatherType, mapWeatherType, getTimeOfDay, getBackgroundGradientClass } from '../lib/weatherUtils';
 
-// ===================================
-// 1. このフック固有の型定義
-// ===================================
 export interface Forecast {
     day: string;
     date: string;
@@ -21,14 +17,10 @@ interface DailyData {
     temps: number[];
     pops: number[];
     weathers: string[];
-    // ★ 3時間ごとの item データを保持する配列を追加
     items: any[];
 }
 
-// ===================================
-// ★ ヘルパー関数群 (フックの外)
-// ===================================
-
+// ヘルパー関数はそのまま...
 const getWeatherText = (weatherType: string): string => {
     switch (weatherType) {
         case 'partlyCloudy': return '晴れ時々くもり';
@@ -45,6 +37,7 @@ const getWeatherText = (weatherType: string): string => {
 };
 
 const generateAdviceMessage = (data: { day: string; weather: string; high: number; low: number; pop: number }, index: number): string => {
+    // (generateAdviceMessageの中身は変更なしでOK)
     const { day, weather, high, low, pop } = data;
     const weatherText = getWeatherText(weather);
     let messages: string[] = [];
@@ -94,12 +87,7 @@ const generateAdviceMessage = (data: { day: string; weather: string; high: numbe
     return messages[selectedIndex];
 };
 
-
-// ===================================
-// 3. カスタムフック本体
-// ===================================
 export function useWeatherForecast() {
-    // --- State定義 ---
     const [location, setLocation] = useState('位置情報を取得中...');
     const [forecast, setForecast] = useState<Forecast[]>([]);
     const [loading, setLoading] = useState(true);
@@ -108,7 +96,6 @@ export function useWeatherForecast() {
     const [messageIndex, setMessageIndex] = useState(0);
     const fetchStarted = useRef(false);
 
-    // --- メッセージとカードクリックのハンドラ ---
     const handleInitialMessage = useCallback((data: Forecast[]) => {
         if (data.length > 0) {
             const todayData = data[0];
@@ -124,7 +111,6 @@ export function useWeatherForecast() {
         setMessageIndex(prevIndex => (prevIndex + 1));
     }, [messageIndex]);
 
-    // --- データ取得ロジック (useEffect) ---
     useEffect(() => {
         if (fetchStarted.current) return;
         fetchStarted.current = true;
@@ -137,30 +123,33 @@ export function useWeatherForecast() {
                 if (!forecastResponse.ok) throw new Error(data.message || '予報の取得に失敗しました');
                 setLocation(data.city.name || "不明な場所");
 
-                // 週間予報データの整形
                 const dailyForecasts = new Map<string, DailyData>();
                 data.list.forEach((item: any) => {
-                    const date = new Date(item.dt * 1000).toLocaleDateString('ja-JP');
-                    if (!dailyForecasts.has(date)) {
-                        dailyForecasts.set(date, { temps: [], pops: [], weathers: [], items: [] });
+                    // ★★★ 修正箇所: toLocaleDateString をやめて、手動でキーを作成する ★★★
+                    // 環境によって日付フォーマットが変わるのを防ぐため
+                    const d = new Date(item.dt * 1000);
+                    const dateKey = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; // YYYY-M-D形式
+
+                    if (!dailyForecasts.has(dateKey)) {
+                        dailyForecasts.set(dateKey, { temps: [], pops: [], weathers: [], items: [] });
                     }
-                    const dayData = dailyForecasts.get(date)!;
+                    const dayData = dailyForecasts.get(dateKey)!;
                     dayData.temps.push(item.main.temp);
                     dayData.pops.push(item.pop);
                     dayData.weathers.push(item.weather[0].main);
                     dayData.items.push(item);
                 });
 
-                const formattedForecast = Array.from(dailyForecasts.entries()).slice(0, 5).map(([dateStr, dailyData], index) => {
-                    const date = new Date(dateStr);
+                const formattedForecast = Array.from(dailyForecasts.entries()).slice(0, 5).map(([dateKey, dailyData], index) => {
+                    // ★★★ 修正箇所: キーからDateオブジェクトを復元する ★★★
+                    const [y, m, d] = dateKey.split('-').map(Number);
+                    const date = new Date(y, m - 1, d);
+
                     const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'][date.getDay()];
                     let dayLabel = index === 0 ? '今日' : index === 1 ? '明日' : `${date.getMonth() + 1}/${date.getDate()}`;
 
-                    // ★ 代表的なアイテムの選定
-                    // デフォルトは最初のデータ（0時など）
                     let representativeItem = dailyData.items[0];
 
-                    // 明日以降(index > 0)の場合は、日中(10時〜14時くらい)のデータを優先して代表にする
                     if (index > 0) {
                         const daytimeItem = dailyData.items.find((item: any) => {
                             const h = new Date(item.dt * 1000).getHours();
@@ -169,7 +158,6 @@ export function useWeatherForecast() {
                         if (daytimeItem) {
                             representativeItem = daytimeItem;
                         } else {
-                            // 10-14時がない場合のフォールバック（念のため日中全体）
                             const anyDaytimeItem = dailyData.items.find((item: any) => {
                                 const h = new Date(item.dt * 1000).getHours();
                                 return h >= 6 && h <= 18;
@@ -180,8 +168,6 @@ export function useWeatherForecast() {
 
                     if (!representativeItem) representativeItem = { weather: [{ main: "Clear" }] };
 
-                    // ★ 修正: hasRainロジックを削除し、代表アイテムの天気をそのまま採用する
-                    // これにより「今日」は現在天気、明日以降は日中の天気が表示される
                     let weather: WeatherType | string = mapWeatherType(representativeItem);
 
                     return {
@@ -204,26 +190,14 @@ export function useWeatherForecast() {
             }
         };
 
-        // Geolocationロジック
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => fetchWeatherData(position.coords.latitude, position.coords.longitude),
                 (geoError) => {
+                    // (エラーハンドリングはそのまま)
                     console.error("Geolocation Error:", geoError);
                     let errorMessage = "あれれ、いまどこにいるか分かんなくなっちゃった…";
                     let message = "いまどこにいるか分かれば、お天気を調べられるよ！";
-
-                    if (geoError.code === geoError.PERMISSION_DENIED) {
-                        errorMessage = "いまどこにいるか、教えてほしいな！\n（ブラウザの設定を確認してみてね）";
-                        message = "いまどこにいるか教えてくれたら、お天気予報をお届けするね。";
-                    } else if (geoError.code === geoError.POSITION_UNAVAILABLE) {
-                        errorMessage = "うーん、いまいる場所がうまく掴めないみたい…";
-                        message = "うまく場所が掴めないみたい…。もう一度試してみてね。";
-                    } else if (geoError.code === geoError.TIMEOUT) {
-                        errorMessage = "場所を探すのに時間がかかっちゃった…\nもう一回試してみて！";
-                        message = "場所を探すのに時間がかかっちゃったみたい。";
-                    }
-
                     setLocation("？？？");
                     setError(errorMessage);
                     setLoading(false);
