@@ -43,8 +43,6 @@
 | **フレームワーク** | Next.js (React)                    | UI構築、APIサーバー機能                         |
 | **スタイリング** | Tailwind CSS                       | 効率的で美しいUIデザイン                        |
 | **アニメーション** | Framer Motion                      | 心地よいユーザー体験のための演出                  |
-| **データ取得** | SWR                                | APIとの効率的な通信                             |
-| **認証** | NextAuth.js                        | ユーザー登録・ログイン機能                      |
 | **データベース** | Vercel Postgres + Prisma           | ユーザーデータやアイテムの保存                  |
 | **デプロイ** | Vercel                             | 高速なホスティング                              |
 | **外部API** | OpenWeatherMap API                 | 天気情報の取得                                  |
