@@ -11,7 +11,7 @@ import ConfirmationModal from './ConfirmationModal';
 import ItemGetModal from './ItemGetModal';
 import HelpButton from './HelpButton';
 import HelpModal from './HelpModal';
-import { getUserId } from '../lib/userId'; // ★追加
+import { getUserId } from '../lib/userId';
 
 import {
     WeatherType,
@@ -56,7 +56,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    // ★追加: 連続おさんぽ日数表示用
     const [consecutiveDays, setConsecutiveDays] = useState<number>(0);
 
     const timeOfDay = getTimeOfDay(currentTime);
@@ -120,7 +119,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
         updatePetSettings();
 
-        // ★追加: ユーザー進捗取得
         const fetchUserProgress = async () => {
             const userId = getUserId();
             if (!userId) return;
@@ -233,7 +231,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     onCycleWeather={cycleWeather}
                 />
 
-                {/* ★追加: 連続日数表示 */}
                 {consecutiveDays > 0 && !isLoading && (
                     <div className="absolute top-20 left-4 bg-white/40 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
                         連続 {consecutiveDays} 日目

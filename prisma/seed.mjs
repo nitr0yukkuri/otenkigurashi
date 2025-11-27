@@ -5,8 +5,6 @@ import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
 
 const initialItems = [
-    // --- 既存のアイテム ---
-    // ★★★ category を追加 ★★★
     { name: 'ひまわりのタネ', description: '太陽が好きな花のタネ。晴れた日に見つかる。', rarity: 'normal', iconName: 'IoSunny', weather: 'sunny', category: 'head' },
     { name: 'たいようのいし', description: '持っていると心がポカポカする不思議な石。', rarity: 'rare', iconName: 'BsSunFill', weather: 'clear', category: null },
     { name: 'あじさい', description: '雨の日にきれいに咲く花。', rarity: 'normal', iconName: 'IoRainy', weather: 'rainy', category: 'head' },
@@ -18,7 +16,6 @@ const initialItems = [
     { name: 'かぜぐるま', description: '風の力でくるくる回るおもちゃ。', rarity: 'normal', iconName: 'GiWhirlwind', weather: 'windy', category: 'hand' },
     { name: 'まいごのこけし', description: 'あれ？こんなところにこけしが…。持ち主を探しているのかな？', rarity: 'rare', iconName: 'IoBodyOutline', weather: null, category: null },
 
-    // --- 新しく追加するアイテム (30個) ---
     { name: 'きれいな小石', description: '道ばたで見つけた、すべすべしたきれいな石。', rarity: 'normal', iconName: 'GiStoneBlock', weather: null, category: null },
     { name: 'どんぐり', description: 'コロコロと丸い、木の実。帽子をかぶっているみたい。', rarity: 'normal', iconName: 'GiAcorn', weather: null, category: 'head' },
     { name: 'なくしたボタン', description: '誰かが落としていったのかな？ちょっと古そうなボタン。', rarity: 'normal', iconName: 'BsRecordCircle', weather: null, category: 'head' },
@@ -32,37 +29,28 @@ const initialItems = [
     { name: 'ちいさなカギ', description: 'とても小さい古いカギ。何を開けるんだろう？', rarity: 'rare', iconName: 'FaKey', weather: null, category: 'hand' },
     { name: '時のかけら', description: '時の流れを感じさせる、不思議な輝きを持つかけら。', rarity: 'legendary', iconName: 'GiSandsOfTime', weather: null, category: null },
 
-    // 【晴れ (sunny) の日】
     { name: '日向の石', description: 'おひさまを浴びてぽかぽか温かい石。', rarity: 'normal', iconName: 'GiStonePile', weather: 'sunny', category: null },
     { name: '蝶々の抜け殻', description: '蝶々が旅立った後の殻。', rarity: 'uncommon', iconName: 'GiButterfly', weather: 'sunny', category: 'floating' },
 
-    // 【快晴 (clear) の日】
     { name: '青空のかけら', description: '澄み切った空の色を映したような石。', rarity: 'uncommon', iconName: 'BsGem', weather: 'clear', category: null },
     { name: '飛行機雲のなごり', description: '空に残った飛行機雲の、ほんの一部。', rarity: 'rare', iconName: 'IoPaperPlaneOutline', weather: 'clear', category: 'floating' },
 
-    // 【雨 (rainy) の日】
     { name: '雨粒のしずく', description: '雨粒が固まってできたような、きれいなしずく。', rarity: 'uncommon', iconName: 'IoWaterOutline', weather: 'rainy', category: 'head' },
     { name: '虹のかけら', description: '雨上がりの空から落ちてきた虹の一部。', rarity: 'epic', iconName: 'GiRainbowStar', weather: 'rainy', category: null },
 
-    // 【くもり (cloudy) の日】
     { name: '曇りガラス', description: 'すりガラスのような、向こうがぼんやり見えるかけら。', rarity: 'normal', iconName: 'BsSquareHalf', weather: 'cloudy', category: null },
     { name: '霧吹き草', description: '霧のような細かい水滴をつけた草。', rarity: 'uncommon', iconName: 'GiGrass', weather: 'cloudy', category: 'hand' },
 
-    // 【雪 (snowy) の日】
     { name: '小さな雪うさぎ', description: '誰かが作ったのかな？手のひらサイズの雪うさぎ。', rarity: 'uncommon', iconName: 'FaSnowflake', weather: 'snowy', category: null },
     { name: '氷の欠片', description: 'キラキラと光る、氷の小さなかけら。', rarity: 'normal', iconName: 'FaRegSnowflake', weather: 'snowy', category: null },
     { name: 'つららドロップ', description: 'つららの先から落ちた、氷のしずく。', rarity: 'rare', iconName: 'GiIceCube', weather: 'snowy', category: null },
 
-    // 【雷雨 (thunderstorm) の日】
     { name: 'バリバリの実', description: '雷の日にだけなる、食べるとパチパチする不思議な実。', rarity: 'epic', iconName: 'GiElectric', weather: 'thunderstorm', category: null },
     { name: 'お天気お守り', description: '嵐から守ってくれるかもしれない、古びたお守り。', rarity: 'rare', iconName: 'GiPaperLantern', weather: 'thunderstorm', category: 'hand' },
 
-    // 【強風 (windy) の日】
     { name: '風の音', description: '風の音が閉じ込められたような、不思議な貝殻。', rarity: 'uncommon', iconName: 'GiSpiralShell', weather: 'windy', category: null },
-    // ★ category: 'head'
     { name: '飛ばされた帽子', description: '風で飛ばされてきた、誰かの小さな帽子。', rarity: 'normal', iconName: 'FaHatCowboy', weather: 'windy', category: 'head' },
 
-    // 【夜 (night) の日】
     { name: '月のしずく', description: '月の光が集まってできたような、優しい光の玉。', rarity: 'epic', iconName: 'BsMoonStarsFill', weather: 'night', category: 'floating' },
     { name: '真夜中の花', description: '夜にだけそっと咲く、珍しい花。', rarity: 'rare', iconName: 'GiNightSky', weather: 'night', category: 'head' },
     { name: '眠りの砂', description: '持っていると少し眠たくなる、キラキラした砂。', rarity: 'uncommon', iconName: 'GiSparkles', weather: 'night', category: 'floating' },
@@ -70,7 +58,6 @@ const initialItems = [
 
 async function main() {
     console.log('Seeding started...');
-    // upsertで更新
     for (const item of initialItems) {
         await prisma.item.upsert({
             where: { name: item.name },

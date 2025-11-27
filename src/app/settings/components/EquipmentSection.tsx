@@ -7,7 +7,7 @@ import { IoBan, IoShirt, IoHandRight, IoCloud } from 'react-icons/io5';
 import ItemIcon from '../../components/ItemIcon';
 import CharacterDisplay, { EquipmentState } from '../../components/CharacterDisplay';
 import { STORAGE_KEYS, EVENTS } from '../constants';
-import { getUserId } from '../../lib/userId'; // ★追加
+import { getUserId } from '../../lib/userId';
 
 interface CollectionItem {
     id: number;
@@ -56,8 +56,8 @@ export default function EquipmentSection() {
         window.addEventListener(EVENTS.PET_SETTINGS_CHANGED, loadSettings);
 
         const fetchCollection = async () => {
-            const userId = getUserId(); // ★取得
-            const res = await fetch(`/api/collection?userId=${userId}`); // ★送信
+            const userId = getUserId();
+            const res = await fetch(`/api/collection?userId=${userId}`);
             if (!res.ok) return;
 
             const data: CollectionItem[] = await res.json();

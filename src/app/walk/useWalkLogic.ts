@@ -7,7 +7,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { mapWeatherType, getBackgroundColorClass } from './utils';
 import { getUserId } from '../lib/userId';
 
-// ★ 修正
 interface Item {
     id: number;
     name: string;
@@ -15,7 +14,6 @@ interface Item {
     iconName: string | null;
 }
 
-// ObtainedItem 型も Item と合わせておきます（または統合）
 type ObtainedItem = {
     id: number | null;
     name: string | null;

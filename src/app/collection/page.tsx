@@ -29,7 +29,7 @@ interface CollectionItem {
     id: number;
     name: string;
     description: string;
-    iconName: string | null; // ★ 修正
+    iconName: string | null;
     quantity: number;
     rarity: string;
     weather: string | null;
@@ -115,7 +115,6 @@ export default function CollectionPage() {
                                     disabled={item.quantity === 0}
                                 >
                                     <div className={`relative transition-opacity ${item.quantity === 0 ? 'opacity-30' : ''}`}>
-                                        {/* ★ 修正: name, rarity, size を渡す */}
                                         <ItemIcon name={item.iconName} rarity={item.rarity} size={40} />
                                         {item.quantity > 0 && (
                                             <span className="absolute -top-1 -right-2 bg-slate-700 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">

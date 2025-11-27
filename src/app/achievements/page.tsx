@@ -7,9 +7,8 @@ import Link from 'next/link';
 import Footer from '../components/Footer';
 import { motion, AnimatePresence } from 'framer-motion';
 import React from 'react';
-import { getUserId } from '../lib/userId'; // ★追加
+import { getUserId } from '../lib/userId';
 
-// --- アイコン ---
 import {
     FaSeedling, FaTrophy, FaStar, FaMapMarkerAlt, FaRegSnowflake, FaCloudShowersHeavy, FaWind, FaMoon, FaBookOpen
 } from 'react-icons/fa';
@@ -70,9 +69,8 @@ const masterAchievements: Achievement[] = [
     { id: 2, title: 'おさんぽチャレンジャー', description: 'おさんぽに10回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 10, unit: 'かい' },
     { id: 3, title: 'おさんぽエキスパート', description: 'おさんぽに50回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 50, unit: 'かい' },
     { id: 10, title: 'おさんぽマスター', description: 'おさんぽに100回行った', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 100, unit: 'かい' },
-    // 他の実績定義は省略せずに元のコードを使用してください（ここではスペース省略のため割愛しますが、元の内容を維持してください）
     { id: 20, title: '太陽とともだち', description: '晴れの日にはじめておさんぽした', icon: <IoSunny size={24} />, isUnlocked: false, progressKey: 'sunnyWalkCount', goal: 1, unit: 'かい' },
-    // ... 他のすべての実績 ...
+    // 他の実績はスペースの都合上省略しますが、既存のコードを使用してください
 ];
 
 const calculateAchievements = (progress: UserProgress | null, achievements: Achievement[]) => {
@@ -93,7 +91,6 @@ const calculateAchievements = (progress: UserProgress | null, achievements: Achi
     });
 };
 
-// ... AchievementDetailModal ... (変更なし)
 type AchievementDetailModalProps = {
     isOpen: boolean;
     onClose: () => void;
@@ -156,8 +153,8 @@ export default function AchievementsPage() {
             setLoading(true);
             setError(null);
             try {
-                const userId = getUserId(); // ★取得
-                const progressResponse = await fetch(`/api/progress?userId=${userId}`); // ★送信
+                const userId = getUserId();
+                const progressResponse = await fetch(`/api/progress?userId=${userId}`);
                 if (!progressResponse.ok) {
                     const errorData = await progressResponse.json();
                     throw new Error(errorData.message || '進捗情報の取得に失敗しました');
@@ -177,7 +174,6 @@ export default function AchievementsPage() {
         fetchProgress();
     }, []);
 
-    // ... AchievementItem, return JSX ... (変更なし)
     const AchievementItem = ({ achievement }: { achievement: Achievement & { progress: number } }) => {
         const progressPercentage = achievement.goal > 0 ? Math.min((achievement.progress / achievement.goal) * 100, 100) : (achievement.isUnlocked ? 100 : 0);
         const progressBarColor = achievement.isUnlocked ? 'bg-green-600' : 'bg-yellow-500';
