@@ -71,7 +71,7 @@ export async function POST(request: Request) {
             }
         }
 
-        // --- ▼▼▼ 保存処理（ここを追加） ▼▼▼ ---
+        // --- ▼▼▼ 保存処理 ▼▼▼ ---
 
         // 1. 既に持っているか確認（新種判定のため）
         const existingInventory = await prisma.userInventory.findUnique({
@@ -112,17 +112,22 @@ export async function POST(request: Request) {
 
             const targetField = rarityKeyMap[selectedItem.rarity] || 'collectedNormalItemTypesCount';
 
+            // ★ TypeScriptエラー回避のため、オブジェクトをany型として構築
+            const updateData: any = {
+                collectedItemTypesCount: { increment: 1 },
+            };
+            updateData[targetField] = { increment: 1 };
+
+            const createData: any = {
+                userId: userId,
+                collectedItemTypesCount: 1,
+            };
+            createData[targetField] = 1;
+
             await prisma.userProgress.upsert({
                 where: { userId: userId },
-                update: {
-                    collectedItemTypesCount: { increment: 1 },
-                    [targetField]: { increment: 1 },
-                },
-                create: {
-                    userId: userId,
-                    collectedItemTypesCount: 1,
-                    [targetField]: 1,
-                },
+                update: updateData,
+                create: createData,
             });
         }
         // --- ▲▲▲ 保存処理ここまで ▲▲▲ ---
