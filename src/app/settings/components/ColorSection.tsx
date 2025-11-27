@@ -51,7 +51,7 @@ export default function ColorSection() {
     return (
         <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
             {/* --- 体の色 --- */}
-            <h2 className="text-lg font-semibold text-slate-600 mb-3">ペットのいろ</h2>
+            <h2 className="text-lg font-semibold text-slate-600 mb-3">はだのいろ</h2>
             <div className="flex justify-around items-center gap-2 flex-wrap mb-6">
                 {bodyColorOptions.map(color => (
                     <button

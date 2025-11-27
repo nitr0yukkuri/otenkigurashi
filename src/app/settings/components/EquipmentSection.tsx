@@ -31,26 +31,35 @@ export default function EquipmentSection() {
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
 
     useEffect(() => {
-        const storedEquipParams = localStorage.getItem(STORAGE_KEYS.PET_EQUIPMENT);
-        if (storedEquipParams) {
-            try {
-                const parsed = JSON.parse(storedEquipParams);
-                if (typeof parsed === 'object' && parsed !== null) {
-                    setEquipment(parsed);
-                } else {
+        // ★ 設定（色・装備）を読み込む関数を定義
+        const loadSettings = () => {
+            const storedEquipParams = localStorage.getItem(STORAGE_KEYS.PET_EQUIPMENT);
+            if (storedEquipParams) {
+                try {
+                    const parsed = JSON.parse(storedEquipParams);
+                    if (typeof parsed === 'object' && parsed !== null) {
+                        setEquipment(parsed);
+                    } else {
+                        setEquipment({ head: storedEquipParams, hand: null, floating: null });
+                    }
+                } catch (e) {
                     setEquipment({ head: storedEquipParams, hand: null, floating: null });
                 }
-            } catch (e) {
-                setEquipment({ head: storedEquipParams, hand: null, floating: null });
             }
-        }
 
-        const storedColor = localStorage.getItem(STORAGE_KEYS.PET_COLOR);
-        if (storedColor) setPetColor(storedColor);
-        const storedCheek = localStorage.getItem(STORAGE_KEYS.PET_CHEEK_COLOR);
-        if (storedCheek) setCheekColor(storedCheek);
+            const storedColor = localStorage.getItem(STORAGE_KEYS.PET_COLOR);
+            if (storedColor) setPetColor(storedColor);
+            const storedCheek = localStorage.getItem(STORAGE_KEYS.PET_CHEEK_COLOR);
+            if (storedCheek) setCheekColor(storedCheek);
+        };
 
-        // ★ ユーザーIDを取得または生成
+        // 初回読み込み
+        loadSettings();
+
+        // ★ 設定変更イベントを購読（他のコンポーネントでの変更を検知）
+        window.addEventListener(EVENTS.PET_SETTINGS_CHANGED, loadSettings);
+
+        // ユーザーIDを取得または生成
         const getUserId = () => {
             let userId = localStorage.getItem('otenki_user_id');
             if (!userId) {
@@ -75,6 +84,11 @@ export default function EquipmentSection() {
             setItems(data.filter(item => (item.quantity > 0 || isDev) && item.category));
         };
         fetchCollection();
+
+        // ★ クリーンアップ関数でイベントリスナーを解除
+        return () => {
+            window.removeEventListener(EVENTS.PET_SETTINGS_CHANGED, loadSettings);
+        };
     }, []);
 
     const handleEquip = (iconName: string | null) => {
@@ -91,8 +105,8 @@ export default function EquipmentSection() {
         <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
             <h2 className="text-lg font-semibold text-slate-600 mb-3">きせかえ</h2>
 
-            <div className="flex justify-center mb-6 bg-sky-100/50 rounded-xl py-4">
-                <div className="scale-75 transform origin-center">
+            <div className="flex justify-center mb-6 bg-sky-100/50 rounded-xl h-[180px] overflow-hidden relative items-center">
+                <div className="scale-[0.6] transform origin-center mt-12">
                     <CharacterDisplay
                         petName=""
                         petColor={petColor}
@@ -136,7 +150,7 @@ export default function EquipmentSection() {
                     <button
                         key={item.id}
                         onClick={() => handleEquip(item.iconName)}
-                        disabled={item.quantity === 0} // ★ 所持数0の場合は無効化
+                        disabled={item.quantity === 0}
                         className="flex flex-col items-center gap-1 disabled:cursor-not-allowed"
                     >
                         <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all
