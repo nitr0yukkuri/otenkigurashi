@@ -1,62 +1,54 @@
 // prisma/schema.prisma
 
-datasource db {
-  provider = "postgresql"
-  url      = env("PRISMA_DATABASE_URL")
-}
-
 generator client {
   provider = "prisma-client-js"
 }
 
-// アイテムのマスターデータ
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
 model Item {
-  id          Int             @id @default(autoincrement())
-  name        String          @unique
-  description String
-  rarity      String          @default("normal")
-  iconName    String?
-  weather     String?
-  stage       String?
-  category    String?
-  inventories UserInventory[]
+  id            Int             @id @default(autoincrement())
+  name          String          @unique
+  description   String
+  rarity        String          @default("normal")
+  iconName      String?         // ★ imagePath から iconName に戻しました
+  weather       String?
+  stage         String?
+  category      String?
+  inventories   UserInventory[]
 }
 
-// ユーザーの実績進捗 (シングルユーザーモード用に簡素化)
 model UserProgress {
-  id        Int @id @default(1) // 固定ID
-  walkCount Int @default(0)
-
-  // 天気別おさんぽ回数
-  sunnyWalkCount         Int @default(0)
-  clearWalkCount         Int @default(0)
-  rainyWalkCount         Int @default(0)
-  cloudyWalkCount        Int @default(0)
-  snowyWalkCount         Int @default(0)
-  thunderstormWalkCount  Int @default(0)
-  windyWalkCount         Int @default(0)
-  nightWalkCount         Int @default(0)
-
-  // アイテム収集関連
-  collectedItemTypesCount       Int @default(0)
-  collectedNormalItemTypesCount   Int @default(0)
-  collectedUncommonItemTypesCount Int @default(0)
-  collectedRareItemTypesCount     Int @default(0)
-  collectedEpicItemTypesCount     Int @default(0)
-  collectedLegendaryItemTypesCount Int @default(0)
-
-  // 連続おさんぽ記録
-  consecutiveWalkDays Int      @default(0)
-  lastWalkDate        DateTime?
+  id                             Int       @id @default(autoincrement())
+  userId                         String    @unique
+  walkCount                      Int       @default(0)
+  sunnyWalkCount                 Int       @default(0)
+  clearWalkCount                 Int       @default(0)
+  rainyWalkCount                 Int       @default(0)
+  cloudyWalkCount                Int       @default(0)
+  snowyWalkCount                 Int       @default(0)
+  thunderstormWalkCount          Int       @default(0)
+  windyWalkCount                 Int       @default(0)
+  nightWalkCount                 Int       @default(0)
+  collectedItemTypesCount        Int       @default(0)
+  collectedNormalItemTypesCount  Int       @default(0)
+  collectedUncommonItemTypesCount Int      @default(0)
+  collectedRareItemTypesCount    Int       @default(0)
+  collectedEpicItemTypesCount    Int       @default(0)
+  collectedLegendaryItemTypesCount Int     @default(0)
+  consecutiveWalkDays            Int       @default(0)
+  lastWalkDate                   DateTime?
 }
 
-// ユーザーのアイテム所持状況 (シングルユーザーモード)
 model UserInventory {
-  id       Int  @id @default(autoincrement())
+  id       Int    @id @default(autoincrement())
+  userId   String
   itemId   Int
-  quantity Int  @default(0)
-  item     Item @relation(fields: [itemId], references: [id])
+  quantity Int    @default(0)
+  item     Item   @relation(fields: [itemId], references: [id])
 
-  // itemIdだけでユニークにする（全ユーザー共通インベントリ）
-  @@unique([itemId])
+  @@unique([userId, itemId])
 }

@@ -1,3 +1,4 @@
+// src/app/collection/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -5,8 +6,8 @@ import Link from 'next/link';
 import ItemIcon from '../components/ItemIcon';
 import Footer from '../components/Footer';
 import ItemDetailModal from '../components/ItemDetailModal';
+import { getUserId } from '../lib/userId';
 
-// --- 背景ロジック ---
 type WeatherType = "sunny" | "clear" | "rainy" | "cloudy" | "snowy" | "thunderstorm" | "windy" | "night";
 const CURRENT_WEATHER_KEY = 'currentWeather';
 
@@ -28,7 +29,7 @@ interface CollectionItem {
     id: number;
     name: string;
     description: string;
-    iconName: string | null;
+    iconName: string | null; // ★ 修正
     quantity: number;
     rarity: string;
     weather: string | null;
@@ -49,25 +50,10 @@ export default function CollectionPage() {
     }, []);
 
     useEffect(() => {
-        // ★ ユーザーIDを取得または生成
-        const getUserId = () => {
-            let userId = localStorage.getItem('otenki_user_id');
-            if (!userId) {
-                userId = crypto.randomUUID();
-                localStorage.setItem('otenki_user_id', userId);
-            }
-            return userId;
-        };
-
         const fetchCollection = async () => {
             try {
                 const userId = getUserId();
-                // ★ ヘッダーにユーザーIDを含める
-                const response = await fetch('/api/collection', {
-                    headers: {
-                        'x-user-id': userId
-                    }
-                });
+                const response = await fetch(`/api/collection?userId=${userId}`);
                 if (!response.ok) {
                     throw new Error(`API error: ${response.status}`);
                 }
@@ -76,7 +62,6 @@ export default function CollectionPage() {
                 if (Array.isArray(data)) {
                     setCollection(data);
                 } else {
-                    console.error("予期しないデータ形式です:", data);
                     setCollection([]);
                 }
             } catch (error) {
@@ -130,6 +115,7 @@ export default function CollectionPage() {
                                     disabled={item.quantity === 0}
                                 >
                                     <div className={`relative transition-opacity ${item.quantity === 0 ? 'opacity-30' : ''}`}>
+                                        {/* ★ 修正: name, rarity, size を渡す */}
                                         <ItemIcon name={item.iconName} rarity={item.rarity} size={40} />
                                         {item.quantity > 0 && (
                                             <span className="absolute -top-1 -right-2 bg-slate-700 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">

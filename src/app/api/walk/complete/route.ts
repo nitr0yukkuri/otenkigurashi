@@ -22,20 +22,28 @@ const isSameDay = (lastWalk: Date, now: Date) => {
 
 export async function POST(request: Request) {
     let weather: string;
+    let userId: string;
+
     try {
         const body = await request.json();
         weather = body.weather || 'sunny';
+        userId = body.userId;
     } catch (error) {
-        weather = 'sunny';
+        return NextResponse.json({ message: 'リクエストが無効です。' }, { status: 400 });
+    }
+
+    if (!userId) {
+        return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
     }
 
     try {
         const currentProgress: UserProgress | null = await prisma.userProgress.findUnique({
-            where: { id: 1 },
+            where: { userId: userId },
         });
 
         const progressData: UserProgress = currentProgress || {
-            id: 1,
+            id: 0,
+            userId: userId,
             walkCount: 0,
             sunnyWalkCount: 0,
             clearWalkCount: 0,
@@ -62,7 +70,7 @@ export async function POST(request: Request) {
             const lastWalk = new Date(progressData.lastWalkDate);
             if (isSameDay(lastWalk, now)) {
                 const progress = await prisma.userProgress.update({
-                    where: { id: 1 },
+                    where: { userId: userId },
                     data: { walkCount: { increment: 1 } },
                 });
                 return NextResponse.json({ message: 'おさんぽ回数を更新しました（同日）。', progress });
@@ -87,10 +95,10 @@ export async function POST(request: Request) {
         }
 
         const progress = await prisma.userProgress.upsert({
-            where: { id: 1 },
+            where: { userId: userId },
             update: updateData,
             create: {
-                id: 1, // 固定ID
+                userId: userId,
                 walkCount: 1,
                 lastWalkDate: now,
                 consecutiveWalkDays: 1,

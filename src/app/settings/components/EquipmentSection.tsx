@@ -7,6 +7,7 @@ import { IoBan, IoShirt, IoHandRight, IoCloud } from 'react-icons/io5';
 import ItemIcon from '../../components/ItemIcon';
 import CharacterDisplay, { EquipmentState } from '../../components/CharacterDisplay';
 import { STORAGE_KEYS, EVENTS } from '../constants';
+import { getUserId } from '../../lib/userId'; // ★追加
 
 interface CollectionItem {
     id: number;
@@ -31,7 +32,6 @@ export default function EquipmentSection() {
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
 
     useEffect(() => {
-        // ★ 設定（色・装備）を読み込む関数を定義
         const loadSettings = () => {
             const storedEquipParams = localStorage.getItem(STORAGE_KEYS.PET_EQUIPMENT);
             if (storedEquipParams) {
@@ -46,37 +46,18 @@ export default function EquipmentSection() {
                     setEquipment({ head: storedEquipParams, hand: null, floating: null });
                 }
             }
-
             const storedColor = localStorage.getItem(STORAGE_KEYS.PET_COLOR);
             if (storedColor) setPetColor(storedColor);
             const storedCheek = localStorage.getItem(STORAGE_KEYS.PET_CHEEK_COLOR);
             if (storedCheek) setCheekColor(storedCheek);
         };
 
-        // 初回読み込み
         loadSettings();
-
-        // ★ 設定変更イベントを購読（他のコンポーネントでの変更を検知）
         window.addEventListener(EVENTS.PET_SETTINGS_CHANGED, loadSettings);
 
-        // ユーザーIDを取得または生成
-        const getUserId = () => {
-            let userId = localStorage.getItem('otenki_user_id');
-            if (!userId) {
-                userId = crypto.randomUUID();
-                localStorage.setItem('otenki_user_id', userId);
-            }
-            return userId;
-        };
-
         const fetchCollection = async () => {
-            const userId = getUserId();
-            // ★ ヘッダーにユーザーIDを含める
-            const res = await fetch('/api/collection', {
-                headers: {
-                    'x-user-id': userId
-                }
-            });
+            const userId = getUserId(); // ★取得
+            const res = await fetch(`/api/collection?userId=${userId}`); // ★送信
             if (!res.ok) return;
 
             const data: CollectionItem[] = await res.json();
@@ -85,7 +66,6 @@ export default function EquipmentSection() {
         };
         fetchCollection();
 
-        // ★ クリーンアップ関数でイベントリスナーを解除
         return () => {
             window.removeEventListener(EVENTS.PET_SETTINGS_CHANGED, loadSettings);
         };
@@ -94,7 +74,6 @@ export default function EquipmentSection() {
     const handleEquip = (iconName: string | null) => {
         const newEquipment = { ...equipment, [activeTab]: iconName };
         setEquipment(newEquipment);
-
         localStorage.setItem(STORAGE_KEYS.PET_EQUIPMENT, JSON.stringify(newEquipment));
         window.dispatchEvent(new CustomEvent(EVENTS.PET_SETTINGS_CHANGED));
     };
@@ -104,7 +83,6 @@ export default function EquipmentSection() {
     return (
         <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
             <h2 className="text-lg font-semibold text-slate-600 mb-3">きせかえ</h2>
-
             <div className="flex justify-center mb-6 bg-sky-100/50 rounded-xl h-[180px] overflow-hidden relative items-center">
                 <div className="scale-[0.6] transform origin-center mt-12">
                     <CharacterDisplay
@@ -118,57 +96,34 @@ export default function EquipmentSection() {
                     />
                 </div>
             </div>
-
             <div className="flex gap-2 mb-4 border-b border-slate-200 pb-2">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-bold transition-colors
-                            ${activeTab === tab.id ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-100'}
-                        `}
+                        className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-bold transition-colors ${activeTab === tab.id ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-100'}`}
                     >
                         {tab.icon} {tab.label}
                     </button>
                 ))}
             </div>
-
             <div className="grid grid-cols-4 gap-2 min-h-[100px]">
-                <button
-                    onClick={() => handleEquip(null)}
-                    className="flex flex-col items-center gap-1"
-                >
-                    <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all
-                        ${equipment[activeTab] === null ? 'border-sky-500 ring-2 ring-sky-200' : 'border-transparent'}
-                    `}>
+                <button onClick={() => handleEquip(null)} className="flex flex-col items-center gap-1">
+                    <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all ${equipment[activeTab] === null ? 'border-sky-500 ring-2 ring-sky-200' : 'border-transparent'}`}>
                         <IoBan className="text-slate-400" size={24} />
                     </div>
                     <span className="text-[10px] font-medium text-slate-600">はずす</span>
                 </button>
-
                 {displayItems.map(item => (
-                    <button
-                        key={item.id}
-                        onClick={() => handleEquip(item.iconName)}
-                        disabled={item.quantity === 0}
-                        className="flex flex-col items-center gap-1 disabled:cursor-not-allowed"
-                    >
-                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all
-                            ${equipment[activeTab] === item.iconName ? 'border-sky-500 ring-2 ring-sky-200' : 'border-white'}
-                            ${item.quantity === 0 ? 'opacity-50' : ''}
-                        `}>
+                    <button key={item.id} onClick={() => handleEquip(item.iconName)} disabled={item.quantity === 0} className="flex flex-col items-center gap-1 disabled:cursor-not-allowed">
+                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all ${equipment[activeTab] === item.iconName ? 'border-sky-500 ring-2 ring-sky-200' : 'border-white'} ${item.quantity === 0 ? 'opacity-50' : ''}`}>
                             <ItemIcon name={item.iconName} rarity={item.rarity} size={24} />
                         </div>
-                        <span className="text-[10px] font-medium text-slate-600 truncate w-full text-center">
-                            {item.name}
-                        </span>
+                        <span className="text-[10px] font-medium text-slate-600 truncate w-full text-center">{item.name}</span>
                     </button>
                 ))}
             </div>
-
-            {displayItems.length === 0 && (
-                <p className="text-center text-xs text-slate-400 py-4">この部位のアイテムを持っていません</p>
-            )}
+            {displayItems.length === 0 && <p className="text-center text-xs text-slate-400 py-4">この部位のアイテムを持っていません</p>}
         </section>
     );
 }

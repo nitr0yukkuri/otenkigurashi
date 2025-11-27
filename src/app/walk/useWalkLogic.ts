@@ -1,9 +1,21 @@
+// src/app/walk/useWalkLogic.ts
+
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { mapWeatherType, getBackgroundColorClass } from './utils';
+import { getUserId } from '../lib/userId';
 
+// ★ 修正
+interface Item {
+    id: number;
+    name: string;
+    rarity: string;
+    iconName: string | null;
+}
+
+// ObtainedItem 型も Item と合わせておきます（または統合）
 type ObtainedItem = {
     id: number | null;
     name: string | null;
@@ -40,16 +52,6 @@ export function useWalkLogic() {
         const debugWeather = searchParams.get('weather');
         const paramLocation = searchParams.get('location');
 
-        // ★ ユーザーIDを取得または生成
-        const getUserId = () => {
-            let userId = localStorage.getItem('otenki_user_id');
-            if (!userId) {
-                userId = crypto.randomUUID();
-                localStorage.setItem('otenki_user_id', userId);
-            }
-            return userId;
-        };
-
         const obtainItem = (currentWeather: string) => {
             if (hasStartedProcessing.current) return;
             hasStartedProcessing.current = true;
@@ -59,16 +61,15 @@ export function useWalkLogic() {
                 if (!isMounted.current) return;
 
                 try {
-                    const userId = getUserId(); // ★ 修正: ここで取得
+                    const userId = getUserId();
 
                     // アイテム抽選
                     const itemResponse = await fetch('/api/items/obtain', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'x-user-id': userId // ★ ヘッダーに追加
                         },
-                        body: JSON.stringify({ weather: currentWeather }),
+                        body: JSON.stringify({ weather: currentWeather, userId }),
                     });
                     const itemResult = await itemResponse.json();
                     if (!itemResponse.ok) {
@@ -81,18 +82,13 @@ export function useWalkLogic() {
                         setIsItemModalOpen(true);
                     }
 
-                    // アイテム所持記録 (API側で保存するようになったため、念のため呼ぶがエラーでも無視)
-                    /* obtain API内で保存するため、ここの呼び出しは冗長ですが、既存ロジック維持のため残すか、削除してもOK。
-                       ここでは安全のため残しつつ、エラーログのみにします */
-
-                    // おさんぽ完了記録 (★ヘッダーにユーザーID追加)
+                    // おさんぽ完了記録
                     const walkCompleteResponse = await fetch('/api/walk/complete', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'x-user-id': userId
                         },
-                        body: JSON.stringify({ weather: currentWeather }),
+                        body: JSON.stringify({ weather: currentWeather, userId }),
                     });
                     if (!walkCompleteResponse.ok) {
                         console.error("おさんぽ回数記録失敗");
@@ -105,22 +101,6 @@ export function useWalkLogic() {
                         setObtainedItem({ id: null, name: 'ふしぎな石', iconName: 'IoHelpCircle', rarity: 'normal' });
                         setIsItemModalOpen(true);
                     }
-
-                    // エラー時のフォールバックでもユーザーIDを送信
-                    try {
-                        const userId = getUserId();
-                        await fetch('/api/walk/complete', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'x-user-id': userId
-                            },
-                            body: JSON.stringify({ weather: currentWeather }),
-                        });
-                    } catch (e) {
-                        console.error('フォールバックのおさんぽ回数記録にも失敗', e);
-                    }
-
                 } finally {
                     if (isMounted.current) {
                         setLoading(false);
@@ -131,30 +111,7 @@ export function useWalkLogic() {
 
         if (debugWeather) {
             setWeather(debugWeather);
-
-            if (paramLocation) {
-                setLocation(decodeURIComponent(paramLocation));
-            } else if (navigator.geolocation) {
-                setLocation("現在地を確認中...");
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        fetch(`/api/weather/forecast?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
-                            .then(res => res.json())
-                            .then(data => {
-                                if (isMounted.current) setLocation(data.city?.name || "どこかの場所");
-                            })
-                            .catch(() => {
-                                if (isMounted.current) setLocation("どこかの場所");
-                            });
-                    },
-                    () => {
-                        if (isMounted.current) setLocation("どこかの場所");
-                    }
-                );
-            } else {
-                setLocation("どこかの場所");
-            }
-
+            if (paramLocation) setLocation(decodeURIComponent(paramLocation));
             setLoading(false);
             obtainItem(debugWeather);
             return;
@@ -162,20 +119,12 @@ export function useWalkLogic() {
 
         const fetchCurrentWeather = (lat: number, lon: number) => {
             if (hasStartedProcessing.current) return;
-
             fetch(`/api/weather/forecast?lat=${lat}&lon=${lon}`)
-                .then(res => {
-                    if (!res.ok) {
-                        return res.json().then(errData => {
-                            throw new Error(errData.message || `HTTP error! status: ${res.status}`);
-                        });
-                    }
-                    return res.json();
-                })
+                .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
                 .then(data => {
                     if (!isMounted.current) return;
                     if (hasStartedProcessing.current) return;
-                    if (!data.list) throw new Error(data.message || '天気情報が取得できませんでした');
+                    if (!data.list) throw new Error('天気情報が取得できませんでした');
                     setLocation(data.city.name || "不明な場所");
                     const current = data.list[0];
                     const realWeather = mapWeatherType(current);
@@ -185,9 +134,8 @@ export function useWalkLogic() {
                 .catch(err => {
                     if (!isMounted.current) return;
                     if (hasStartedProcessing.current) return;
-                    console.error("天気情報の取得に失敗:", err);
-                    setError(err.message || "天気情報の取得に失敗しました。");
-                    setLocation("天気取得失敗");
+                    console.error(err);
+                    setError("天気情報の取得に失敗しました。");
                     setLoading(false);
                     hasStartedProcessing.current = true;
                     setIsProcessing(false);
@@ -198,12 +146,11 @@ export function useWalkLogic() {
             if (!hasStartedProcessing.current) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => fetchCurrentWeather(pos.coords.latitude, pos.coords.longitude),
-                    (geoError) => {
+                    (err) => {
                         if (!isMounted.current) return;
                         if (hasStartedProcessing.current) return;
-                        console.error("位置情報の取得に失敗:", geoError);
+                        console.error(err);
                         setError("位置情報の取得を許可してください。");
-                        setLocation("位置情報取得失敗");
                         setLoading(false);
                         hasStartedProcessing.current = true;
                         setIsProcessing(false);
@@ -213,7 +160,6 @@ export function useWalkLogic() {
         } else {
             if (!hasStartedProcessing.current) {
                 setError("このブラウザでは位置情報機能が利用できません。");
-                setLocation("位置情報取得不可");
                 setLoading(false);
                 hasStartedProcessing.current = true;
                 setIsProcessing(false);

@@ -7,11 +7,21 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get('userId');
+
+        if (!userId) {
+            return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
+        }
+
         const allItems = await prisma.item.findMany({
             orderBy: { id: 'asc' },
         });
 
-        const inventory = await prisma.userInventory.findMany();
+        // ユーザーIDでフィルタリング
+        const inventory = await prisma.userInventory.findMany({
+            where: { userId: userId }
+        });
 
         const collection = allItems.map(item => {
             const inventoryItem = inventory.find(inv => inv.itemId === item.id);
@@ -27,11 +37,15 @@ export async function GET(request: Request) {
     }
 }
 
+// アイテムの手動更新用（開発用など）
 export async function POST(request: Request) {
     try {
-        const { itemId } = await request.json();
+        const { itemId, userId } = await request.json(); // userIdを受け取る
         const numericItemId = Number(itemId);
 
+        if (!userId) {
+            return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
+        }
         if (isNaN(numericItemId)) {
             return NextResponse.json({ message: '無効なアイテムIDです。' }, { status: 400 });
         }
@@ -41,24 +55,30 @@ export async function POST(request: Request) {
 
         const existingItem = await prisma.userInventory.findUnique({
             where: {
-                itemId: numericItemId
+                userId_itemId: {
+                    userId: userId,
+                    itemId: numericItemId
+                }
             },
         });
 
         if (existingItem) {
             await prisma.userInventory.update({
                 where: {
-                    itemId: numericItemId
+                    userId_itemId: {
+                        userId: userId,
+                        itemId: numericItemId
+                    }
                 },
                 data: { quantity: { increment: 1 } },
             });
         } else {
-            // ★ as any で型エラー回避しつつ、connectを使用
             await prisma.userInventory.create({
                 data: {
+                    userId: userId,
                     item: { connect: { id: numericItemId } },
                     quantity: 1,
-                } as any,
+                },
             });
         }
         return NextResponse.json({ message: 'コレクションを更新しました。' });

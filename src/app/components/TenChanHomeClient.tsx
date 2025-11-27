@@ -6,11 +6,12 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Footer from './Footer';
 import WeatherDisplay from './WeatherDisplay';
-import CharacterDisplay, { EquipmentState } from './CharacterDisplay'; // ★ 型定義をインポート
+import CharacterDisplay, { EquipmentState } from './CharacterDisplay';
 import ConfirmationModal from './ConfirmationModal';
 import ItemGetModal from './ItemGetModal';
 import HelpButton from './HelpButton';
 import HelpModal from './HelpModal';
+import { getUserId } from '../lib/userId'; // ★追加
 
 import {
     WeatherType,
@@ -19,7 +20,6 @@ import {
     getBackgroundGradientClass
 } from '../lib/weatherUtils';
 
-// --- キー定義 ---
 const PET_NAME_STORAGE_KEY = 'otenki-gurashi-petName';
 const PET_COLOR_STORAGE_KEY = 'otenki-gurashi-petColor';
 const PET_CHEEK_COLOR_STORAGE_KEY = 'otenki-gurashi-petCheekColor';
@@ -27,45 +27,37 @@ const PET_EQUIPMENT_KEY = 'otenki-gurashi-petEquipment';
 const CURRENT_WEATHER_KEY = 'currentWeather';
 const PET_SETTINGS_CHANGED_EVENT = 'petSettingsChanged';
 
-// --- 会話メッセージ ---
 const conversationMessages: { [key: string]: string[] } = {
-    sunny: ["おひさまが気持ちいいね！", "こんな日はおさんぽしたくなるな〜", "あったかいね〜！", "ぽかぽかするね", "おせんたくびよりだ！", "まぶしいな〜！"],
-    clear: ["雲ひとつないね！", "空がとっても青いよ！", "どこまでも見えそう！", "すがすがしい気分！", "飛行機雲が見えるかも？", "深呼吸したくなるね〜"],
-    cloudy: ["今日は過ごしやすいね！", "雲の形をずっと見ていられるなあ…", "おひさまはどこかな？", "雨、降らないといいな〜", "雲がゆっくり動いてるよ", "日焼けの心配がなくていいね！"],
-    rainy: ["雨の音が聞こえるね", "傘は持った？", "あめ、あめ、ふれ、ふれ♪", "かたつむりさん、いるかな？", "しっとりするね", "雨宿りしよっか！"],
-    thunderstorm: ["ゴロゴロって音がする…！", "ちょっとだけこわいかも…", "おへそ隠さなきゃ！", "ひゃっ！光った！", "はやくおさまるといいね", "嵐が来てるみたい…！"],
-    snowy: ["わー！雪だ！", "雪だるま、作れるかな？", "ふわふわしてるね", "まっしろだね！", "さむいけど、きれい！", "こんこんっ"],
-    windy: ["風がびゅーびゅー言ってる！", "帽子が飛ばされそうだ〜", "わわっ！とばされちゃう〜！", "色んなものが飛んでる！", "髪がぐちゃぐちゃだよ〜！", "風ぐるまがよく回りそう！"],
-    night: ["今日もおつかれさま", "星が見えるかな？", "そろそろ眠いかも…", "いい夢みてね", "静かだね…", "おやすみなさい…"],
-    default: ["こんにちは！", "なになに？", "えへへっ", "今日も元気だよ！", "何か用かな？", "わーい！", "やっほー！", "（なでなでして！）", "今日はどんな日？", "るんるん♪"]
+    sunny: ["おひさまが気持ちいいね！", "こんな日はおさんぽしたくなるな〜", "あったかいね〜！", "ぽかぽかするね"],
+    clear: ["雲ひとつないね！", "空がとっても青いよ！", "どこまでも見えそう！", "すがすがしい気分！"],
+    cloudy: ["今日は過ごしやすいね！", "雲の形をずっと見ていられるなあ…", "おひさまはどこかな？"],
+    rainy: ["雨の音が聞こえるね", "傘は持った？", "あめ、あめ、ふれ、ふれ♪", "しっとりするね"],
+    thunderstorm: ["ゴロゴロって音がする…！", "ちょっとだけこわいかも…", "おへそ隠さなきゃ！"],
+    snowy: ["わー！雪だ！", "雪だるま、作れるかな？", "ふわふわしてるね", "まっしろだね！"],
+    windy: ["風がびゅーびゅー言ってる！", "帽子が飛ばされそうだ〜", "わわっ！とばされちゃう〜！"],
+    night: ["今日もおつかれさま", "星が見えるかな？", "そろそろ眠いかも…", "いい夢みてね"],
+    default: ["こんにちは！", "なになに？", "えへへっ", "今日も元気だよ！", "何か用かな？"]
 };
 
-// --- メインコンポーネント ---
 export default function TenChanHomeClient({ initialData }: { initialData: any }) {
     const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
-
     const [weather, setWeather] = useState<WeatherType | null>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [temperature, setTemperature] = useState<number | null>(null);
-
     const [petName, setPetName] = useState("てんちゃん");
     const [petColor, setPetColor] = useState("white");
     const [petCheekColor, setPetCheekColor] = useState("#F8BBD0");
-
-    // ★ 変更: 文字列からオブジェクト型へ
     const [petEquipment, setPetEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null });
-
     const [location, setLocation] = useState<string | null>("場所を取得中...");
     const [isClient, setIsClient] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
     const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const [isItemGetModalOpen, setIsItemGetModalOpen] = useState(false);
-    const [newItem, setNewItem] = useState<{ id: number | null; name: string; iconName: string | null; rarity: string | null } | null>(null);
+    // ★追加: 連続おさんぽ日数表示用
+    const [consecutiveDays, setConsecutiveDays] = useState<number>(0);
 
     const timeOfDay = getTimeOfDay(currentTime);
 
@@ -88,12 +80,10 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     };
 
     const cycleWeather = () => {
-        console.log("Cycling weather");
         setWeather(prev => {
             const weathers: WeatherType[] = ["sunny", "clear", "cloudy", "rainy", "thunderstorm", "snowy", "windy", "night"];
             const currentIndex = prev ? weathers.indexOf(prev) : -1;
             const nextWeather = weathers[(currentIndex + 1) % weathers.length];
-            console.log("Current weather:", prev, "Next weather:", nextWeather);
             setWeatherAndNotify(nextWeather);
             return nextWeather;
         });
@@ -106,31 +96,21 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
         const updatePetSettings = () => {
             const storedName = localStorage.getItem(PET_NAME_STORAGE_KEY);
-            if (storedName) {
-                setPetName(storedName);
-            }
+            if (storedName) setPetName(storedName);
             const storedColor = localStorage.getItem(PET_COLOR_STORAGE_KEY);
-            if (storedColor) {
-                setPetColor(storedColor);
-            }
+            if (storedColor) setPetColor(storedColor);
             const storedCheekColor = localStorage.getItem(PET_CHEEK_COLOR_STORAGE_KEY);
-            if (storedCheekColor) {
-                setPetCheekColor(storedCheekColor);
-            }
-
-            // ★ 変更: 装備の読み込みと移行処理
+            if (storedCheekColor) setPetCheekColor(storedCheekColor);
             const storedEquipment = localStorage.getItem(PET_EQUIPMENT_KEY);
             if (storedEquipment) {
                 try {
                     const parsed = JSON.parse(storedEquipment);
-                    // もし古い文字列データならオブジェクトに変換 (Headに割り当て)
                     if (typeof parsed === 'string') {
                         setPetEquipment({ head: parsed, hand: null, floating: null });
                     } else {
                         setPetEquipment(parsed);
                     }
                 } catch {
-                    // パースエラー時(純粋な文字列の場合など)は文字列として扱う
                     setPetEquipment({ head: storedEquipment, hand: null, floating: null });
                 }
             } else {
@@ -140,9 +120,23 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
         updatePetSettings();
 
-        const handleSettingsChanged = () => {
-            updatePetSettings();
+        // ★追加: ユーザー進捗取得
+        const fetchUserProgress = async () => {
+            const userId = getUserId();
+            if (!userId) return;
+            try {
+                const res = await fetch(`/api/progress?userId=${userId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setConsecutiveDays(data.consecutiveWalkDays || 0);
+                }
+            } catch (e) {
+                console.error("Failed to fetch progress", e);
+            }
         };
+        fetchUserProgress();
+
+        const handleSettingsChanged = () => updatePetSettings();
         window.addEventListener(PET_SETTINGS_CHANGED_EVENT, handleSettingsChanged);
         window.addEventListener('storage', handleSettingsChanged);
 
@@ -150,19 +144,11 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             setError(null);
             fetch(`/api/weather/forecast?lat=${latitude}&lon=${longitude}`)
                 .then(res => {
-                    if (!res.ok) {
-                        return res.json().then(errData => {
-                            throw new Error(errData.message || `HTTP error! status: ${res.status}`);
-                        }).catch(() => {
-                            throw new Error(`HTTP error! status: ${res.status}`);
-                        });
-                    }
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                     return res.json();
                 })
                 .then(data => {
-                    if (!data?.list?.[0]?.weather?.[0]?.main || typeof data.list[0].main?.temp !== 'number') {
-                        throw new Error('天気データの形式が正しくありません。');
-                    }
+                    if (!data?.list?.[0]) throw new Error('天気データの形式が正しくありません。');
                     const currentWeather = data.list[0];
                     const newWeather = mapWeatherType(currentWeather);
                     setLocation(data.city?.name || "不明な場所");
@@ -176,9 +162,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     setTemperature(null);
                     setWeatherAndNotify(null);
                 })
-                .finally(() => {
-                    setIsLoading(false);
-                });
+                .finally(() => setIsLoading(false));
         };
 
         if (initialData && initialData.weather) {
@@ -189,38 +173,23 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         } else {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        fetchWeatherDataByLocation(position.coords.latitude, position.coords.longitude);
-                    },
+                    (position) => fetchWeatherDataByLocation(position.coords.latitude, position.coords.longitude),
                     (geoError) => {
                         console.error("Geolocation Error:", geoError);
-                        let errorMessage = "あれれ、いまどこにいるか分かんなくなっちゃった…";
-                        if (geoError.code === geoError.PERMISSION_DENIED) {
-                            errorMessage = "いまどこにいるか、教えてほしいな！\n（ブラウザの設定を確認してみてね）";
-                        } else if (geoError.code === geoError.POSITION_UNAVAILABLE) {
-                            errorMessage = "うーん、いまいる場所がうまく掴めないみたい…";
-                        } else if (geoError.code === geoError.TIMEOUT) {
-                            errorMessage = "場所を探すのに時間がかかっちゃった…\nもう一回試してみて！";
-                        }
-                        setError(errorMessage);
+                        setError("位置情報の取得に失敗しました。");
                         setLocation("？？？");
-                        setTemperature(null);
-                        setWeatherAndNotify(null);
                         setIsLoading(false);
                     },
                     { timeout: 10000 }
                 );
             } else {
-                setError("ごめんね、このアプリだと\nいまどこにいるかの機能が使えないみたい…");
+                setError("このブラウザでは位置情報が使えません。");
                 setLocation("？？？");
-                setTemperature(null);
-                setWeatherAndNotify(null);
                 setIsLoading(false);
             }
         }
 
         const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-
         return () => {
             clearInterval(timer);
             if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
@@ -232,11 +201,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const handleConfirmWalk = () => {
         setIsModalOpen(false);
         const walkWeather = weather || 'sunny';
-
-        const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗"
-            ? location
-            : "どこかの場所";
-
+        const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗" ? location : "どこかの場所";
         router.push(`/walk?weather=${walkWeather}&location=${encodeURIComponent(walkLocation)}`);
     };
 
@@ -246,35 +211,16 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
     return (
         <div className="w-full min-h-screen bg-gray-200 flex items-center justify-center p-4">
-            <ItemGetModal
-                isOpen={isItemGetModalOpen}
-                onClose={() => setIsItemGetModalOpen(false)}
-                itemName={newItem?.name || null}
-                iconName={newItem?.iconName || null}
-                rarity={newItem?.rarity || null}
-            />
-
-            <ConfirmationModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onConfirm={handleConfirmWalk}
-                type="walk"
-            >
+            <ItemGetModal isOpen={false} onClose={() => { }} itemName={null} iconName={null} rarity={null} />
+            <ConfirmationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={handleConfirmWalk} type="walk">
                 <h2 className="text-2xl font-bold text-gray-800 whitespace-pre-line">
                     {"おさんぽは1日\n3回しかできません\n大丈夫ですか？"}
                 </h2>
             </ConfirmationModal>
+            <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
-            <HelpModal
-                isOpen={isHelpOpen}
-                onClose={() => setIsHelpOpen(false)}
-            />
-
-            <main
-                className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}
-            >
+            <main className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl"></div>
-
                 <HelpButton onClick={() => setIsHelpOpen(true)} />
 
                 <WeatherDisplay
@@ -287,33 +233,32 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     onCycleWeather={cycleWeather}
                 />
 
-                {error && (
-                    <p className="text-center text-sm text-red-600 bg-red-100 p-2 mx-4 rounded -mt-4 mb-2 shadow-sm whitespace-pre-line">
-                        {error}
-                    </p>
+                {/* ★追加: 連続日数表示 */}
+                {consecutiveDays > 0 && !isLoading && (
+                    <div className="absolute top-20 left-4 bg-white/40 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
+                        連続 {consecutiveDays} 日目
+                    </div>
                 )}
+
+                {error && <p className="text-center text-sm text-red-600 bg-red-100 p-2 mx-4 rounded mb-2">{error}</p>}
 
                 {isLoading ? (
                     <div className="flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center pb-20">
-                        <div className="w-40 h-40 flex items-center justify-center">
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-medium text-slate-500 animate-pulse" suppressHydrationWarning>{petName} じゅんびちゅう...</h1>
-                        </div>
+                        <div className="w-40 h-40 flex items-center justify-center"></div>
+                        <div><h1 className="text-xl font-medium text-slate-500 animate-pulse">{petName} じゅんびちゅう...</h1></div>
                     </div>
                 ) : (
                     <CharacterDisplay
                         petName={petName}
                         petColor={petColor}
                         cheekColor={petCheekColor}
-                        equipment={petEquipment} // ★ props変更
+                        equipment={petEquipment}
                         mood={error ? "sad" : "happy"}
                         message={message}
                         onCharacterClick={handleCharacterClick}
                         isNight={isNight}
                     />
                 )}
-
                 <Footer onWalkClick={() => setIsModalOpen(true)} />
             </main>
         </div>

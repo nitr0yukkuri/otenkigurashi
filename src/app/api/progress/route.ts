@@ -7,11 +7,18 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const userId = searchParams.get('userId');
+
+        if (!userId) {
+            return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
+        }
+
         const progress = await prisma.userProgress.upsert({
-            where: { id: 1 }, // userId -> id: 1 に変更
+            where: { userId: userId },
             update: {},
             create: {
-                id: 1, // 固定ID
+                userId: userId,
                 walkCount: 0
             },
         });

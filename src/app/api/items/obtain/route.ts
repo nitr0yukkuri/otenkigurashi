@@ -13,8 +13,11 @@ const RarityWeight = {
 
 export async function POST(request: Request) {
     try {
-        const { weather } = await request.json();
+        const { weather, userId } = await request.json();
 
+        if (!userId) {
+            return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
+        }
         if (!weather) {
             return NextResponse.json({ message: '天候情報が必要です。' }, { status: 400 });
         }
@@ -52,27 +55,30 @@ export async function POST(request: Request) {
             }
         }
 
-        // 1. 所持確認
-        // ★ 型定義のキャッシュ不整合を回避するために as any を使用
+        // 1. 所持確認 (userId と itemId で複合検索)
         const existingInventory = await prisma.userInventory.findUnique({
             where: {
-                itemId: selectedItem.id,
-            } as any,
+                userId_itemId: {
+                    userId: userId,
+                    itemId: selectedItem.id
+                }
+            },
         });
 
         // 2. インベントリ更新
-        // ★ 型定義のキャッシュ不整合を回避するために as any を使用
         await prisma.userInventory.upsert({
             where: {
-                itemId: selectedItem.id,
-            } as any,
+                userId_itemId: {
+                    userId: userId,
+                    itemId: selectedItem.id
+                }
+            },
             update: { quantity: { increment: 1 } },
             create: {
-                item: {
-                    connect: { id: selectedItem.id }
-                },
+                userId: userId,
+                item: { connect: { id: selectedItem.id } },
                 quantity: 1,
-            } as any,
+            },
         });
 
         // 3. 実績更新
@@ -93,16 +99,15 @@ export async function POST(request: Request) {
             updateData[targetField] = { increment: 1 };
 
             const createData: any = {
-                id: 1, // 固定ID
+                userId: userId,
                 collectedItemTypesCount: 1,
             };
             createData[targetField] = 1;
 
-            // ★ 型定義のキャッシュ不整合を回避するために as any を使用
             await prisma.userProgress.upsert({
-                where: { id: 1 } as any,
+                where: { userId: userId },
                 update: updateData,
-                create: createData as any,
+                create: createData,
             });
         }
 
