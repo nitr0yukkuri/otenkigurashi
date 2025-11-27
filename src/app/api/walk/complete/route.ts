@@ -21,8 +21,6 @@ const isSameDay = (lastWalk: Date, now: Date) => {
 };
 
 export async function POST(request: Request) {
-    const FIXED_USER_ID = "default_user"; // ★ 復活
-
     let weather: string;
     try {
         const body = await request.json();
@@ -38,7 +36,6 @@ export async function POST(request: Request) {
 
         const progressData: UserProgress = currentProgress || {
             id: 1,
-            userId: FIXED_USER_ID, // ★ 型定義エラー回避のため復活
             walkCount: 0,
             sunnyWalkCount: 0,
             clearWalkCount: 0,
@@ -93,7 +90,6 @@ export async function POST(request: Request) {
             where: { id: 1 },
             update: updateData,
             create: {
-                userId: FIXED_USER_ID, // ★ 型定義エラー回避のため復活
                 id: 1, // 固定ID
                 walkCount: 1,
                 lastWalkDate: now,

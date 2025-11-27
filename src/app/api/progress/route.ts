@@ -6,14 +6,12 @@ import prisma from '../../lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-    const FIXED_USER_ID = "default_user";
-
     try {
         const progress = await prisma.userProgress.upsert({
-            where: { userId: FIXED_USER_ID },
+            where: { id: 1 }, // userId -> id: 1 に変更
             update: {},
             create: {
-                userId: FIXED_USER_ID,
+                id: 1, // 固定ID
                 walkCount: 0
             },
         });

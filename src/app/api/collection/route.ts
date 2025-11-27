@@ -1,17 +1,16 @@
+// src/app/api/collection/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma from '../../lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-    // userIdチェックを削除
-
     try {
         const allItems = await prisma.item.findMany({
             orderBy: { id: 'asc' },
         });
 
-        // userIdフィルタを削除し、全インベントリを取得
         const inventory = await prisma.userInventory.findMany();
 
         const collection = allItems.map(item => {
@@ -29,8 +28,6 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-    // userIdチェックを削除
-
     try {
         const { itemId } = await request.json();
         const numericItemId = Number(itemId);
@@ -42,7 +39,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'アイテムIDが必要です。' }, { status: 400 });
         }
 
-        // itemIdのみで検索
         const existingItem = await prisma.userInventory.findUnique({
             where: {
                 itemId: numericItemId
@@ -57,11 +53,12 @@ export async function POST(request: Request) {
                 data: { quantity: { increment: 1 } },
             });
         } else {
+            // ★ as any で型エラー回避しつつ、connectを使用
             await prisma.userInventory.create({
                 data: {
-                    itemId: numericItemId,
+                    item: { connect: { id: numericItemId } },
                     quantity: 1,
-                },
+                } as any,
             });
         }
         return NextResponse.json({ message: 'コレクションを更新しました。' });
