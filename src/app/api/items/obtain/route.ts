@@ -56,7 +56,7 @@ export async function POST(request: Request) {
         const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
         if (totalWeight <= 0) {
-            console.error("Total weight is zero or negative.");
+            // フォールバック
             return NextResponse.json(allItems[0]);
         }
 
@@ -71,7 +71,7 @@ export async function POST(request: Request) {
             }
         }
 
-        // --- ▼▼▼ 保存処理 ▼▼▼ ---
+        // --- ▼▼▼ 保存処理（ここを修正・追加） ▼▼▼ ---
 
         // 1. 既に持っているか確認（新種判定のため）
         const existingInventory = await prisma.userInventory.findUnique({
@@ -112,7 +112,7 @@ export async function POST(request: Request) {
 
             const targetField = rarityKeyMap[selectedItem.rarity] || 'collectedNormalItemTypesCount';
 
-            // ★ TypeScriptエラー回避のため、オブジェクトをany型として構築
+            // ★ TypeScriptエラーを回避するため、any型としてオブジェクトを作成
             const updateData: any = {
                 collectedItemTypesCount: { increment: 1 },
             };
@@ -132,11 +132,9 @@ export async function POST(request: Request) {
         }
         // --- ▲▲▲ 保存処理ここまで ▲▲▲ ---
 
-        console.log(`Selected item (Weather: ${weather}):`, selectedItem.name, `(Rarity: ${selectedItem.rarity})`);
-
         return NextResponse.json(selectedItem);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to obtain item:", error);
         return NextResponse.json({ message: 'アイテムの獲得に失敗しました。' }, { status: 500 });
     }
