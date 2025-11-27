@@ -1,3 +1,5 @@
+// src/app/api/items/obtain/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 
@@ -12,6 +14,7 @@ const RarityWeight = {
 export async function POST(request: Request) {
     try {
         const { weather } = await request.json();
+        const FIXED_USER_ID = "default_user"; // 固定ID定義
 
         if (!weather) {
             return NextResponse.json({ message: '天候情報が必要です。' }, { status: 400 });
@@ -50,23 +53,33 @@ export async function POST(request: Request) {
             }
         }
 
+        // 1. 所持確認 (複合キーを使用)
         const existingInventory = await prisma.userInventory.findUnique({
             where: {
-                itemId: selectedItem.id,
+                userId_itemId: {
+                    userId: FIXED_USER_ID,
+                    itemId: selectedItem.id,
+                },
             },
         });
 
+        // 2. インベントリ更新
         await prisma.userInventory.upsert({
             where: {
-                itemId: selectedItem.id,
+                userId_itemId: {
+                    userId: FIXED_USER_ID,
+                    itemId: selectedItem.id,
+                },
             },
             update: { quantity: { increment: 1 } },
             create: {
+                userId: FIXED_USER_ID,
                 itemId: selectedItem.id,
                 quantity: 1,
             },
         });
 
+        // 3. 実績更新
         if (!existingInventory) {
             const rarityKeyMap: Record<string, string> = {
                 normal: 'collectedNormalItemTypesCount',
@@ -84,13 +97,13 @@ export async function POST(request: Request) {
             updateData[targetField] = { increment: 1 };
 
             const createData: any = {
-                // ★修正: id: 1 を削除
+                userId: FIXED_USER_ID,
                 collectedItemTypesCount: 1,
             };
             createData[targetField] = 1;
 
             await prisma.userProgress.upsert({
-                where: { id: 1 },
+                where: { userId: FIXED_USER_ID },
                 update: updateData,
                 create: createData,
             });

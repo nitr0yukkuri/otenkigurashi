@@ -1,16 +1,21 @@
+// src/app/api/progress/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma from '../../lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+    const FIXED_USER_ID = "default_user";
+
     try {
-        // 固定ID: 1 でupsert
         const progress = await prisma.userProgress.upsert({
-            where: { id: 1 },
+            where: { userId: FIXED_USER_ID },
             update: {},
-            // ★修正: id: 1 を削除
-            create: { walkCount: 0 },
+            create: {
+                userId: FIXED_USER_ID,
+                walkCount: 0
+            },
         });
 
         return NextResponse.json(progress);

@@ -1,3 +1,5 @@
+// src/app/api/walk/complete/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
 import type { UserProgress } from '@prisma/client';
@@ -19,6 +21,8 @@ const isSameDay = (lastWalk: Date, now: Date) => {
 };
 
 export async function POST(request: Request) {
+    const FIXED_USER_ID = "default_user"; // 固定ID
+
     let weather: string;
     try {
         const body = await request.json();
@@ -29,11 +33,12 @@ export async function POST(request: Request) {
 
     try {
         const currentProgress: UserProgress | null = await prisma.userProgress.findUnique({
-            where: { id: 1 },
+            where: { userId: FIXED_USER_ID },
         });
 
         const progressData: UserProgress = currentProgress || {
-            id: 1,
+            id: 0, // ダミー
+            userId: FIXED_USER_ID,
             walkCount: 0,
             sunnyWalkCount: 0,
             clearWalkCount: 0,
@@ -60,7 +65,7 @@ export async function POST(request: Request) {
             const lastWalk = new Date(progressData.lastWalkDate);
             if (isSameDay(lastWalk, now)) {
                 const progress = await prisma.userProgress.update({
-                    where: { id: 1 },
+                    where: { userId: FIXED_USER_ID },
                     data: { walkCount: { increment: 1 } },
                 });
                 return NextResponse.json({ message: 'おさんぽ回数を更新しました（同日）。', progress });
@@ -85,10 +90,10 @@ export async function POST(request: Request) {
         }
 
         const progress = await prisma.userProgress.upsert({
-            where: { id: 1 },
+            where: { userId: FIXED_USER_ID },
             update: updateData,
             create: {
-                // ★修正: id: 1 を削除
+                userId: FIXED_USER_ID,
                 walkCount: 1,
                 lastWalkDate: now,
                 consecutiveWalkDays: 1,
