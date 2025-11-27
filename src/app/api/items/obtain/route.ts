@@ -14,6 +14,12 @@ const RarityWeight = {
 
 export async function POST(request: Request) {
     try {
+        // ★ ユーザーIDを取得
+        const userId = request.headers.get('x-user-id');
+        if (!userId) {
+            return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
+        }
+
         const { weather } = await request.json();
 
         if (!weather) {
@@ -26,42 +32,36 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'アイテムが見つかりません。' }, { status: 404 });
         }
 
-        // --- ▼▼▼ 抽選ロジックを更新 ▼▼▼ ---
+        // --- ▼▼▼ 抽選ロジック ▼▼▼ ---
 
         const weights = allItems.map(item => {
-            // 1. 基本の重みを取得 (定義外のレア度の場合は normal 扱い)
+            // 1. 基本の重みを取得
             let weight = RarityWeight[item.rarity as keyof typeof RarityWeight] ?? RarityWeight.normal;
 
-            // 2. 天候ボーナス！
+            // 2. 天候ボーナス
             if (item.weather === weather) {
-                // レア度が高いほどボーナスの倍率を上げる（例）
-                if (item.rarity === 'legendary') weight *= 5; // Legendaryは5倍
-                else if (item.rarity === 'epic') weight *= 4; // Epicは4倍
-                else if (item.rarity === 'rare') weight *= 3; // Rareは3倍
-                else weight *= 2; // Normal/Uncommonは2倍
+                if (item.rarity === 'legendary') weight *= 5;
+                else if (item.rarity === 'epic') weight *= 4;
+                else if (item.rarity === 'rare') weight *= 3;
+                else weight *= 2;
             }
-            // 3. 天気が null (いつでも出る) アイテムの重みを少し下げる (天候限定アイテムを優先させるため)
+            // 3. 天候不一致（いつでも出るアイテム）の調整
             else if (item.weather === null && weather !== null) {
-                weight *= 0.8; // 例えば 80% に
+                weight *= 0.8;
             }
 
-
-            // 重みが0以下にならないように保証
-            return Math.max(weight, 0.1); // 最低でも0.1の確率を持たせる
+            return Math.max(weight, 0.1);
         });
 
         const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
 
-        // totalWeightが0の場合（ありえないはずだが念のため）
         if (totalWeight <= 0) {
-            console.error("Total weight is zero or negative. Cannot select item.");
-            // フォールバックとして最初のアイテムを返すなど
+            console.error("Total weight is zero or negative.");
             return NextResponse.json(allItems[0]);
         }
 
-
         let randomValue = Math.random() * totalWeight;
-        let selectedItem = allItems[allItems.length - 1]; // デフォルト
+        let selectedItem = allItems[allItems.length - 1];
 
         for (let i = 0; i < allItems.length; i++) {
             randomValue -= weights[i];
@@ -70,7 +70,62 @@ export async function POST(request: Request) {
                 break;
             }
         }
-        // --- ▲▲▲ 更新ここまで ▲▲▲ ---
+
+        // --- ▼▼▼ 保存処理（ここを追加） ▼▼▼ ---
+
+        // 1. 既に持っているか確認（新種判定のため）
+        const existingInventory = await prisma.userInventory.findUnique({
+            where: {
+                userId_itemId: {
+                    userId: userId,
+                    itemId: selectedItem.id,
+                },
+            },
+        });
+
+        // 2. インベントリを更新（所持数を増やす）
+        await prisma.userInventory.upsert({
+            where: {
+                userId_itemId: {
+                    userId: userId,
+                    itemId: selectedItem.id,
+                },
+            },
+            update: { quantity: { increment: 1 } },
+            create: {
+                userId: userId,
+                itemId: selectedItem.id,
+                quantity: 1,
+            },
+        });
+
+        // 3. 初めて入手したアイテムなら実績（Progress）を更新
+        if (!existingInventory) {
+            // レアリティごとのフィールド名をマッピング
+            const rarityKeyMap: Record<string, string> = {
+                normal: 'collectedNormalItemTypesCount',
+                uncommon: 'collectedUncommonItemTypesCount',
+                rare: 'collectedRareItemTypesCount',
+                epic: 'collectedEpicItemTypesCount',
+                legendary: 'collectedLegendaryItemTypesCount',
+            };
+
+            const targetField = rarityKeyMap[selectedItem.rarity] || 'collectedNormalItemTypesCount';
+
+            await prisma.userProgress.upsert({
+                where: { userId: userId },
+                update: {
+                    collectedItemTypesCount: { increment: 1 },
+                    [targetField]: { increment: 1 },
+                },
+                create: {
+                    userId: userId,
+                    collectedItemTypesCount: 1,
+                    [targetField]: 1,
+                },
+            });
+        }
+        // --- ▲▲▲ 保存処理ここまで ▲▲▲ ---
 
         console.log(`Selected item (Weather: ${weather}):`, selectedItem.name, `(Rarity: ${selectedItem.rarity})`);
 
