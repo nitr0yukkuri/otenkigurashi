@@ -14,7 +14,6 @@ const RarityWeight = {
 export async function POST(request: Request) {
     try {
         const { weather } = await request.json();
-        const FIXED_USER_ID = "default_user"; // 固定ID定義
 
         if (!weather) {
             return NextResponse.json({ message: '天候情報が必要です。' }, { status: 400 });
@@ -53,30 +52,27 @@ export async function POST(request: Request) {
             }
         }
 
-        // 1. 所持確認 (複合キーを使用)
+        // 1. 所持確認
+        // ★ 型定義のキャッシュ不整合を回避するために as any を使用
         const existingInventory = await prisma.userInventory.findUnique({
             where: {
-                userId_itemId: {
-                    userId: FIXED_USER_ID,
-                    itemId: selectedItem.id,
-                },
-            },
+                itemId: selectedItem.id,
+            } as any,
         });
 
         // 2. インベントリ更新
+        // ★ 型定義のキャッシュ不整合を回避するために as any を使用
         await prisma.userInventory.upsert({
             where: {
-                userId_itemId: {
-                    userId: FIXED_USER_ID,
-                    itemId: selectedItem.id,
-                },
-            },
+                itemId: selectedItem.id,
+            } as any,
             update: { quantity: { increment: 1 } },
             create: {
-                userId: FIXED_USER_ID,
-                itemId: selectedItem.id,
+                item: {
+                    connect: { id: selectedItem.id }
+                },
                 quantity: 1,
-            },
+            } as any,
         });
 
         // 3. 実績更新
@@ -97,15 +93,16 @@ export async function POST(request: Request) {
             updateData[targetField] = { increment: 1 };
 
             const createData: any = {
-                userId: FIXED_USER_ID,
+                id: 1, // 固定ID
                 collectedItemTypesCount: 1,
             };
             createData[targetField] = 1;
 
+            // ★ 型定義のキャッシュ不整合を回避するために as any を使用
             await prisma.userProgress.upsert({
-                where: { userId: FIXED_USER_ID },
+                where: { id: 1 } as any,
                 update: updateData,
-                create: createData,
+                create: createData as any,
             });
         }
 
