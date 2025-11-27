@@ -5,10 +5,9 @@
 import { useState, useEffect } from 'react';
 import { IoBan, IoShirt, IoHandRight, IoCloud } from 'react-icons/io5';
 import ItemIcon from '../../components/ItemIcon';
-import CharacterDisplay, { EquipmentState } from '../../components/CharacterDisplay'; // ★ プレビュー用
+import CharacterDisplay, { EquipmentState } from '../../components/CharacterDisplay';
 import { STORAGE_KEYS, EVENTS } from '../constants';
 
-// 型定義
 interface CollectionItem {
     id: number;
     name: string;
@@ -25,79 +24,80 @@ const TABS = [
 ];
 
 export default function EquipmentSection() {
-    // 現在の装備状態
     const [equipment, setEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null });
-    // 所持アイテムリスト
     const [items, setItems] = useState<CollectionItem[]>([]);
-    // 現在選択中のタブ
     const [activeTab, setActiveTab] = useState<'head' | 'hand' | 'floating'>('head');
-    // プレビュー用のペット情報
     const [petColor, setPetColor] = useState('white');
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
 
     useEffect(() => {
-        // 1. 装備の読み込み
         const storedEquipParams = localStorage.getItem(STORAGE_KEYS.PET_EQUIPMENT);
         if (storedEquipParams) {
             try {
                 const parsed = JSON.parse(storedEquipParams);
-                // オブジェクトかチェック
                 if (typeof parsed === 'object' && parsed !== null) {
                     setEquipment(parsed);
                 } else {
-                    // 旧データ形式(文字列)の場合は、とりあえず head に割り当てる
                     setEquipment({ head: storedEquipParams, hand: null, floating: null });
                 }
             } catch (e) {
-                // パースエラー（旧データ）
                 setEquipment({ head: storedEquipParams, hand: null, floating: null });
             }
         }
 
-        // ペットの色読み込み（プレビュー用）
         const storedColor = localStorage.getItem(STORAGE_KEYS.PET_COLOR);
         if (storedColor) setPetColor(storedColor);
         const storedCheek = localStorage.getItem(STORAGE_KEYS.PET_CHEEK_COLOR);
         if (storedCheek) setCheekColor(storedCheek);
 
-        // 2. アイテムデータの取得
+        // ★ ユーザーIDを取得または生成
+        const getUserId = () => {
+            let userId = localStorage.getItem('otenki_user_id');
+            if (!userId) {
+                userId = crypto.randomUUID();
+                localStorage.setItem('otenki_user_id', userId);
+            }
+            return userId;
+        };
+
         const fetchCollection = async () => {
-            const res = await fetch('/api/collection');
+            const userId = getUserId();
+            // ★ ヘッダーにユーザーIDを含める
+            const res = await fetch('/api/collection', {
+                headers: {
+                    'x-user-id': userId
+                }
+            });
+            if (!res.ok) return;
+
             const data: CollectionItem[] = await res.json();
-            // 所持していて、かつ装備カテゴリがあるものだけ
-            // ★ 変更: 開発環境(NODE_ENV === 'development')の場合は未所持アイテムも表示する
             const isDev = process.env.NODE_ENV === 'development';
             setItems(data.filter(item => (item.quantity > 0 || isDev) && item.category));
         };
         fetchCollection();
     }, []);
 
-    // 装備変更ハンドラ
     const handleEquip = (iconName: string | null) => {
         const newEquipment = { ...equipment, [activeTab]: iconName };
         setEquipment(newEquipment);
 
-        // 保存時はJSON文字列にする
         localStorage.setItem(STORAGE_KEYS.PET_EQUIPMENT, JSON.stringify(newEquipment));
         window.dispatchEvent(new CustomEvent(EVENTS.PET_SETTINGS_CHANGED));
     };
 
-    // 現在のタブに表示すべきアイテム
     const displayItems = items.filter(item => item.category === activeTab);
 
     return (
         <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
             <h2 className="text-lg font-semibold text-slate-600 mb-3">きせかえ</h2>
 
-            {/* ★ プレビューエリア (小さく表示) */}
             <div className="flex justify-center mb-6 bg-sky-100/50 rounded-xl py-4">
                 <div className="scale-75 transform origin-center">
-                    {/* CharacterDisplayのpropsをオブジェクト対応版に修正して使う */}
                     <CharacterDisplay
-                        petName="" // プレビューなので名前不要
+                        petName=""
                         petColor={petColor}
                         cheekColor={cheekColor}
-                        equipment={equipment} // オブジェクトを渡す
+                        equipment={equipment}
                         mood="happy"
                         message={null}
                         onCharacterClick={() => { }}
@@ -105,7 +105,6 @@ export default function EquipmentSection() {
                 </div>
             </div>
 
-            {/* ★ タブ切り替え */}
             <div className="flex gap-2 mb-4 border-b border-slate-200 pb-2">
                 {TABS.map(tab => (
                     <button
@@ -120,9 +119,7 @@ export default function EquipmentSection() {
                 ))}
             </div>
 
-            {/* ★ アイテムグリッド */}
             <div className="grid grid-cols-4 gap-2 min-h-[100px]">
-                {/* 外すボタン */}
                 <button
                     onClick={() => handleEquip(null)}
                     className="flex flex-col items-center gap-1"

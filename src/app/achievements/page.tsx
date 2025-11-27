@@ -1,24 +1,20 @@
-// src/app/achievements/page.tsx
-
 'use client';
 
-// ★ 1. motion と AnimatePresence をインポート
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Footer from '../components/Footer';
-import { motion, AnimatePresence } from 'framer-motion'; // ★ 追加
-import React from 'react'; // ★★★ 「React is not defined」エラー解消のため追加 ★★★
+import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
 
-// --- ▼▼▼ 必要なアイコンを import ▼▼▼ ---
+// --- アイコン ---
 import {
     FaSeedling, FaTrophy, FaStar, FaMapMarkerAlt, FaRegSnowflake, FaCloudShowersHeavy, FaWind, FaMoon, FaBookOpen
 } from 'react-icons/fa';
 import { IoSunny, IoRainy, IoThunderstorm, IoSettingsSharp, IoCalendarClearOutline } from 'react-icons/io5';
 import { BsSunFill, BsCloudFill, BsFillCloudLightningRainFill } from 'react-icons/bs';
 import { GiSnail, GiAcorn, GiStoneBlock } from 'react-icons/gi';
-// --- ▲▲▲ アイコンここまで ▲▲▲ ---
 
-// --- (背景ロジックはそのまま) ---
+// --- 背景 ---
 type WeatherType = "sunny" | "clear" | "rainy" | "cloudy" | "snowy" | "thunderstorm" | "windy" | "night";
 const CURRENT_WEATHER_KEY = 'currentWeather';
 
@@ -35,15 +31,13 @@ const getBackgroundGradientClass = (weather: WeatherType | null): string => {
         default: return 'bg-sunny';
     }
 };
-// --- ▲▲▲ 背景ここまで ▲▲▲ ---
 
-
-// --- (型定義もそのまま) ---
+// --- 型定義 ---
 interface Achievement {
     id: number;
     title: string;
     description: string;
-    icon: JSX.Element; // ★ JSX.Element を受け取る
+    icon: JSX.Element;
     isUnlocked: boolean;
     progressKey: keyof UserProgress;
     goal: number;
@@ -69,17 +63,13 @@ interface UserProgress {
     lastWalkDate?: string | Date;
 }
 
-
-// --- (masterAchievements もそのまま) ---
 const masterAchievements: Achievement[] = [
-    // ... (既存の実績データ) ...
     { id: 1, title: 'はじめてのおさんぽ', description: 'はじめておさんぽに出かけた', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 1, unit: 'かい' },
     { id: 2, title: 'おさんぽチャレンジャー', description: 'おさんぽに10回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 10, unit: 'かい' },
     { id: 3, title: 'おさんぽエキスパート', description: 'おさんぽに50回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 50, unit: 'かい' },
     { id: 10, title: 'おさんぽマスター', description: 'おさんぽに100回行った', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 100, unit: 'かい' },
-    { id: 11, title: '伝説のおさんぽ職人', description: 'おさんぽに500回行った', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 500, unit: 'かい' }, // さらに追加も可能
+    { id: 11, title: '伝説のおさんぽ職人', description: 'おさんぽに500回行った', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 500, unit: 'かい' },
 
-    // --- 天気体験系 ---
     { id: 20, title: '太陽とともだち', description: '晴れの日にはじめておさんぽした', icon: <IoSunny size={24} />, isUnlocked: false, progressKey: 'sunnyWalkCount', goal: 1, unit: 'かい' },
     { id: 21, title: '快晴ハンター', description: '快晴の日にはじめておさんぽした', icon: <BsSunFill size={24} />, isUnlocked: false, progressKey: 'clearWalkCount', goal: 1, unit: 'かい' },
     { id: 22, title: '雨の日メロディ', description: '雨の日にはじめておさんぽした', icon: <IoRainy size={24} />, isUnlocked: false, progressKey: 'rainyWalkCount', goal: 1, unit: 'かい' },
@@ -88,11 +78,10 @@ const masterAchievements: Achievement[] = [
     { id: 25, title: '雷雨サバイバー', description: '雷雨の日にはじめておさんぽした', icon: <IoThunderstorm size={24} />, isUnlocked: false, progressKey: 'thunderstormWalkCount', goal: 1, unit: 'かい' },
     { id: 26, title: '風の旅人', description: '風の強い日にはじめておさんぽした', icon: <FaWind size={24} />, isUnlocked: false, progressKey: 'windyWalkCount', goal: 1, unit: 'かい' },
     { id: 27, title: '夜のおともだち', description: '夜にはじめておさんぽした', icon: <FaMoon size={24} />, isUnlocked: false, progressKey: 'nightWalkCount', goal: 1, unit: 'かい' },
-    // --- 天気別回数系 (例) ---
+
     { id: 30, title: '雨マスター', description: '雨の日のおさんぽを10回達成', icon: <FaCloudShowersHeavy size={24} />, isUnlocked: false, progressKey: 'rainyWalkCount', goal: 10, unit: 'かい' },
     { id: 31, title: '雷雨マスター', description: '雷雨の日のおさんぽを5回達成', icon: <BsFillCloudLightningRainFill size={24} />, isUnlocked: false, progressKey: 'thunderstormWalkCount', goal: 5, unit: 'かい' },
 
-    // --- アイテム収集系 (種類) ---
     { id: 50, title: 'コレクションはじめました', description: 'はじめてアイテムをゲットした (種類)', icon: <GiStoneBlock size={24} />, isUnlocked: false, progressKey: 'collectedItemTypesCount', goal: 1, unit: 'しゅるい' },
     { id: 51, title: 'かけだしコレクター', description: 'アイテムを10種類集めた', icon: <GiAcorn size={24} />, isUnlocked: false, progressKey: 'collectedItemTypesCount', goal: 10, unit: 'しゅるい' },
     { id: 52, title: 'ノーマルマスター', description: 'ノーマルアイテムを5種類集めた', icon: <FaSeedling size={24} />, isUnlocked: false, progressKey: 'collectedNormalItemTypesCount', goal: 5, unit: 'しゅるい' },
@@ -100,16 +89,13 @@ const masterAchievements: Achievement[] = [
     { id: 54, title: 'レアハンター', description: 'レアアイテムを3種類集めた', icon: <FaStar size={24} />, isUnlocked: false, progressKey: 'collectedRareItemTypesCount', goal: 3, unit: 'しゅるい' },
     { id: 55, title: 'エピックゲッター', description: 'エピックアイテムをはじめてゲットした', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'collectedEpicItemTypesCount', goal: 1, unit: 'しゅるい' },
     { id: 56, title: 'レジェンドとの遭遇', description: 'レジェンダリーアイテムをはじめてゲットした', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'collectedLegendaryItemTypesCount', goal: 1, unit: 'しゅるい' },
-    { id: 60, title: 'ずかんコンプリート！', description: 'すべてのアイテムを集めた！', icon: <FaBookOpen size={24} />, isUnlocked: false, progressKey: 'collectedItemTypesCount', goal: 40, unit: 'しゅるい' }, // ★ goal は全アイテム数に合わせて変更
+    { id: 60, title: 'ずかんコンプリート！', description: 'すべてのアイテムを集めた！', icon: <FaBookOpen size={24} />, isUnlocked: false, progressKey: 'collectedItemTypesCount', goal: 40, unit: 'しゅるい' },
 
-    // --- 継続系 ---
     { id: 70, title: '三日坊主じゃない！', description: '3日連続でおさんぽした', icon: <IoCalendarClearOutline size={24} />, isUnlocked: false, progressKey: 'consecutiveWalkDays', goal: 3, unit: 'にち' },
     { id: 71, title: '一週間チャレンジ', description: '7日連続でおさんぽした', icon: <IoCalendarClearOutline size={24} />, isUnlocked: false, progressKey: 'consecutiveWalkDays', goal: 7, unit: 'にち' },
     { id: 72, title: '継続は力なり', description: '30日連続でおさんぽした', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'consecutiveWalkDays', goal: 30, unit: 'にち' },
 ];
-// --- ▲▲▲ 実績マスターデータここまで ▲▲▲ ---
 
-// --- (calculateAchievements もそのまま) ---
 const calculateAchievements = (progress: UserProgress | null, achievements: Achievement[]) => {
     if (!progress) {
         return achievements.map(ach => ({
@@ -139,17 +125,11 @@ const calculateAchievements = (progress: UserProgress | null, achievements: Achi
         return a.id - b.id;
     });
 };
-// --- ▲▲▲ calculateAchievements ここまで ▲▲▲ ---
 
-
-// --- ▼▼▼ 2. 実績詳細モーダルコンポーネントを新しく定義 ▼▼▼ ---
-// (ItemDetailModal.tsx を参考に、実績用にカスタマイズ)
-
-// モーダル用のProps型
 type AchievementDetailModalProps = {
     isOpen: boolean;
     onClose: () => void;
-    achievement: (Achievement & { progress: number }) | null; // ★ Achievement 型を受け取る
+    achievement: (Achievement & { progress: number }) | null;
 };
 
 function AchievementDetailModal({ isOpen, onClose, achievement }: AchievementDetailModalProps) {
@@ -173,21 +153,16 @@ function AchievementDetailModal({ isOpen, onClose, achievement }: AchievementDet
                         className="bg-white rounded-2xl p-8 w-full max-w-xs text-center shadow-xl flex flex-col items-center gap-y-4"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* アイコン (Achievement オブジェクトから直接JSX要素を表示) */}
                         <div className="relative mb-2 text-green-600 text-6xl">
-                            {/* 達成済みなので色は固定 (例: text-green-600) */}
-                            {/* アイコンのサイズを大きくするため、propsを上書き */}
                             {React.cloneElement(achievement.icon, { size: 60 })}
                         </div>
 
                         <p className="text-2xl font-bold text-slate-800">{achievement.title}</p>
 
-                        {/* 説明 */}
                         <div className="text-sm text-slate-600 space-y-1">
                             <p className="text-center">{achievement.description}</p>
                         </div>
 
-                        {/* OKボタン */}
                         <button
                             onClick={onClose}
                             className="w-full bg-gray-900 text-white font-bold py-3 rounded-full text-lg hover:bg-gray-700 transition-colors active:scale-95 mt-4"
@@ -200,37 +175,46 @@ function AchievementDetailModal({ isOpen, onClose, achievement }: AchievementDet
         </AnimatePresence>
     );
 }
-// --- ▲▲▲ 2. モーダル定義ここまで ▲▲▲ ---
-
 
 export default function AchievementsPage() {
     const [dynamicBackgroundClass, setDynamicBackgroundClass] = useState('bg-sunny');
-    // ★★★ 変更点: isNight State を追加 ★★★
     const [isNight, setIsNight] = useState(false);
     const [userProgress, setUserProgress] = useState<UserProgress | null>(null);
     const [achievements, setAchievements] = useState<(Achievement & { progress: number })[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // --- ▼▼▼ 3. モーダル用の State を追加 ▼▼▼ ---
     const [selectedAchievement, setSelectedAchievement] = useState<(Achievement & { progress: number }) | null>(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-    // --- ▲▲▲ 3. モーダル用の State ここまで ▲▲▲ ---
 
-    // (useEffectフックたちはそのまま)
     useEffect(() => {
         const storedWeather = localStorage.getItem(CURRENT_WEATHER_KEY) as WeatherType | null;
         setDynamicBackgroundClass(getBackgroundGradientClass(storedWeather));
-        // ★★★ 変更点: isNight をセット ★★★
         setIsNight(storedWeather === 'night');
     }, []);
 
     useEffect(() => {
+        // ★ ユーザーIDを取得または生成
+        const getUserId = () => {
+            let userId = localStorage.getItem('otenki_user_id');
+            if (!userId) {
+                userId = crypto.randomUUID();
+                localStorage.setItem('otenki_user_id', userId);
+            }
+            return userId;
+        };
+
         const fetchProgress = async () => {
             setLoading(true);
             setError(null);
             try {
-                const progressResponse = await fetch('/api/progress');
+                const userId = getUserId();
+                // ★ ヘッダーにユーザーIDを含める
+                const progressResponse = await fetch('/api/progress', {
+                    headers: {
+                        'x-user-id': userId
+                    }
+                });
                 if (!progressResponse.ok) {
                     const errorData = await progressResponse.json();
                     throw new Error(errorData.message || '進捗情報の取得に失敗しました');
@@ -252,15 +236,11 @@ export default function AchievementsPage() {
 
         fetchProgress();
     }, []);
-    // --- ▲▲▲ useEffect ここまで ▲▲▲ ---
 
-
-    // --- ▼▼▼ 4. AchievementItem コンポーネントを修正 ▼▼▼ ---
     const AchievementItem = ({ achievement }: { achievement: Achievement & { progress: number } }) => {
         const progressPercentage = achievement.goal > 0 ? Math.min((achievement.progress / achievement.goal) * 100, 100) : (achievement.isUnlocked ? 100 : 0);
         const progressBarColor = achievement.isUnlocked ? 'bg-green-600' : 'bg-yellow-500';
 
-        // ★ クリックハンドラを追加
         const handleAchievementClick = () => {
             if (achievement.isUnlocked) {
                 setSelectedAchievement(achievement);
@@ -269,16 +249,13 @@ export default function AchievementsPage() {
         };
 
         return (
-            // ★★★ 変更点: パネル内の文字色は変更しない (白背景のため) ★★★
             <div className={`p-4 rounded-2xl shadow-lg transition-all
                 ${achievement.isUnlocked ? 'bg-white' : 'bg-white/80 opacity-90'}`}
             >
                 <div className="flex items-start gap-4">
-                    {/* アイコン部分 */}
                     <div className={`flex-shrink-0 w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center p-1 border border-gray-300
                         ${achievement.isUnlocked ? 'text-green-600' : 'text-gray-400 opacity-70'}
                     `}>
-                        {/* ★ アイコンのサイズを調整 (text-3xl -> text-4xl) */}
                         <div className="text-4xl">
                             {achievement.icon}
                         </div>
@@ -292,11 +269,8 @@ export default function AchievementsPage() {
                             {achievement.description}
                         </p>
 
-                        {/* 達成状況表示 */}
                         <div className="mt-3">
                             {achievement.isUnlocked ? (
-                                // 達成済み
-                                // ★ button に onClick を追加し、cursor-pointer に変更
                                 <button
                                     onClick={handleAchievementClick}
                                     className="w-full bg-black text-white font-bold py-2 rounded-lg text-sm shadow-md transition-colors hover:bg-gray-700 active:scale-95 cursor-pointer"
@@ -304,7 +278,6 @@ export default function AchievementsPage() {
                                     完了！
                                 </button>
                             ) : (
-                                // 未達成 (変更なし)
                                 <div className="space-y-1">
                                     <div className="flex justify-between items-end">
                                         <p className="text-xs text-slate-500 font-bold">
@@ -328,48 +301,35 @@ export default function AchievementsPage() {
             </div>
         );
     };
-    // --- ▲▲▲ 4. AchievementItem 修正ここまで ▲▲▲ ---
 
-    // ★★★ 変更点: 夜間用のリンクとサブタイトル色 ★★★
     const linkColor = isNight ? 'text-gray-300 hover:text-white' : 'text-slate-500 hover:text-slate-700';
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
-    // ★★★ 変更点: 夜間用のタイトルとアイコン色 ★★★
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
     const titleIconColor = isNight ? 'text-gray-300' : 'text-slate-500';
 
     return (
         <div className="w-full min-h-screen bg-gray-200 flex items-center justify-center p-4">
 
-            {/* --- ▼▼▼ 5. モーダルをレンダリング ▼▼▼ --- */}
             <AchievementDetailModal
                 isOpen={isDetailModalOpen}
                 onClose={() => setIsDetailModalOpen(false)}
                 achievement={selectedAchievement}
             />
-            {/* --- ▲▲▲ 5. モーダルレンダリングここまで ▲▲▲ --- */}
 
-            {/* ★★★ 変更点: main の文字色を動的に ★★★ */}
             <main className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-slate-700'} ${dynamicBackgroundClass}`}>
 
-                {/* (ヘッダーなどは変更なし) */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
                 <div className="flex-grow overflow-y-auto p-6">
                     <header className="mb-8">
-                        {/* ★★★ 変更点: linkColor を適用 ★★★ */}
                         <Link href="/" className={`mb-6 inline-block text-sm ${linkColor} transition-colors`}>← もどる</Link>
-                        {/* ★★★ 変更点: titleColor を適用 ★★★ */}
                         <h1 className={`text-4xl font-extrabold ${titleColor} tracking-wider flex items-center gap-2 backdrop-blur-sm bg-white/30 rounded-lg px-4 py-1`}>
                             実績
-                            {/* ★★★ 変更点: titleIconColor を適用 ★★★ */}
                             <FaTrophy size={28} className={titleIconColor} />
                         </h1>
-                        {/* ★★★ 変更点: subTitleColor を適用 ★★★ */}
                         <p className={`${subTitleColor} mt-1`}>てんちゃんとの思い出を見てみよう</p>
                     </header>
 
-                    {/* (ローディング・エラー表示も変更なし) */}
                     {loading ? (
-                        // ★★★ 変更点: ローディングテキストの色を動的に ★★★
                         <p className={`text-center animate-pulse ${subTitleColor}`}>実績を読み込み中...</p>
                     ) : error ? (
                         <p className="text-center text-red-600 bg-red-100 p-3 rounded-lg shadow-sm">{error}</p>
@@ -380,7 +340,6 @@ export default function AchievementsPage() {
                             ))}
                         </div>
                     ) : (
-                        // ★★★ 変更点: テキストの色を動的に ★★★
                         <p className={`text-center ${subTitleColor}`}>まだ実績がありません。</p>
                     )}
                 </div>

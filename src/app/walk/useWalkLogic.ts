@@ -22,13 +22,11 @@ export function useWalkLogic() {
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const hasStartedProcessing = useRef(false);
-    // ★★★ 追加: マウント状態を管理するref ★★★
     const isMounted = useRef(true);
 
     const dynamicBackgroundClass = useMemo(() => getBackgroundColorClass(weather || undefined), [weather]);
     const isNight = useMemo(() => weather === 'night', [weather]);
 
-    // ★★★ 追加: アンマウント時にフラグを下ろす ★★★
     useEffect(() => {
         isMounted.current = true;
         return () => {
@@ -42,16 +40,26 @@ export function useWalkLogic() {
         const debugWeather = searchParams.get('weather');
         const paramLocation = searchParams.get('location');
 
+        // ★ ユーザーIDを取得または生成
+        const getUserId = () => {
+            let userId = localStorage.getItem('otenki_user_id');
+            if (!userId) {
+                userId = crypto.randomUUID();
+                localStorage.setItem('otenki_user_id', userId);
+            }
+            return userId;
+        };
+
         const obtainItem = (currentWeather: string) => {
             if (hasStartedProcessing.current) return;
             hasStartedProcessing.current = true;
             setIsProcessing(true);
 
             setTimeout(async () => {
-                // ★★★ 追加: アンマウントされていたら処理を中断 ★★★
                 if (!isMounted.current) return;
 
                 try {
+                    // アイテム抽選 (ユーザーID不要)
                     const itemResponse = await fetch('/api/items/obtain', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -68,9 +76,15 @@ export function useWalkLogic() {
                         setIsItemModalOpen(true);
                     }
 
+                    const userId = getUserId();
+
+                    // アイテム所持記録 (★ヘッダーにユーザーID追加)
                     const collectionResponse = await fetch('/api/collection', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-user-id': userId
+                        },
                         body: JSON.stringify({ itemId: item.id }),
                     });
                     if (!collectionResponse.ok) {
@@ -78,9 +92,13 @@ export function useWalkLogic() {
                         console.error("コレクション記録失敗:", collectionError.message);
                     }
 
+                    // おさんぽ完了記録 (★ヘッダーにユーザーID追加)
                     const walkCompleteResponse = await fetch('/api/walk/complete', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-user-id': userId
+                        },
                         body: JSON.stringify({ weather: currentWeather }),
                     });
                     if (!walkCompleteResponse.ok) {
@@ -97,9 +115,13 @@ export function useWalkLogic() {
                     }
 
                     try {
+                        const userId = getUserId();
                         await fetch('/api/walk/complete', {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'x-user-id': userId
+                            },
                             body: JSON.stringify({ weather: currentWeather }),
                         });
                     } catch (e) {
@@ -158,7 +180,7 @@ export function useWalkLogic() {
                     return res.json();
                 })
                 .then(data => {
-                    if (!isMounted.current) return; // 追加
+                    if (!isMounted.current) return;
                     if (hasStartedProcessing.current) return;
                     if (!data.list) throw new Error(data.message || '天気情報が取得できませんでした');
                     setLocation(data.city.name || "不明な場所");
@@ -168,7 +190,7 @@ export function useWalkLogic() {
                     obtainItem(realWeather);
                 })
                 .catch(err => {
-                    if (!isMounted.current) return; // 追加
+                    if (!isMounted.current) return;
                     if (hasStartedProcessing.current) return;
                     console.error("天気情報の取得に失敗:", err);
                     setError(err.message || "天気情報の取得に失敗しました。");
@@ -184,7 +206,7 @@ export function useWalkLogic() {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => fetchCurrentWeather(pos.coords.latitude, pos.coords.longitude),
                     (geoError) => {
-                        if (!isMounted.current) return; // 追加
+                        if (!isMounted.current) return;
                         if (hasStartedProcessing.current) return;
                         console.error("位置情報の取得に失敗:", geoError);
                         setError("位置情報の取得を許可してください。");

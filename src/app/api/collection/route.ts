@@ -1,17 +1,26 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../lib/prisma';
-// import { getCurrentUser } from '@/app/lib/session'; // ★ 削除
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
-    // ★ ユーザー取得処理を削除
+export async function GET(request: Request) {
+    // ★ ヘッダーからユーザーIDを取得
+    const userId = request.headers.get('x-user-id');
+
+    if (!userId) {
+        return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
+    }
+
     try {
         const allItems = await prisma.item.findMany({
             orderBy: { id: 'asc' },
         });
-        // ★ 取得条件 (where) を削除し、全インベントリを取得
-        const inventory = await prisma.userInventory.findMany();
+
+        // ★ ユーザーIDでフィルタリング
+        const inventory = await prisma.userInventory.findMany({
+            where: { userId: userId }
+        });
+
         const collection = allItems.map(item => {
             const inventoryItem = inventory.find(inv => inv.itemId === item.id);
             return {
@@ -27,32 +36,48 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-    // ★ ユーザー取得処理を削除
+    // ★ ヘッダーからユーザーIDを取得
+    const userId = request.headers.get('x-user-id');
+
+    if (!userId) {
+        return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
+    }
+
     try {
         const { itemId } = await request.json();
-        const numericItemId = Number(itemId); // ★念のためNumber型に変換
+        const numericItemId = Number(itemId);
 
-        if (isNaN(numericItemId)) { // ★ 型チェックを追加
+        if (isNaN(numericItemId)) {
             return NextResponse.json({ message: '無効なアイテムIDです。' }, { status: 400 });
         }
         if (!itemId) {
             return NextResponse.json({ message: 'アイテムIDが必要です。' }, { status: 400 });
         }
 
-        // ★ where句を itemId のみに戻す
+        // ★ 複合ユニークキーを使用して検索
         const existingItem = await prisma.userInventory.findUnique({
-            where: { itemId: numericItemId },
+            where: {
+                userId_itemId: {
+                    userId: userId,
+                    itemId: numericItemId
+                }
+            },
         });
 
         if (existingItem) {
             await prisma.userInventory.update({
-                where: { itemId: numericItemId }, // ★ where句を itemId のみに戻す
+                where: {
+                    userId_itemId: {
+                        userId: userId,
+                        itemId: numericItemId
+                    }
+                },
                 data: { quantity: { increment: 1 } },
             });
         } else {
             await prisma.userInventory.create({
                 data: {
-                    // ★ userId を削除
+                    userId: userId, // ★ ユーザーIDを保存
                     itemId: numericItemId,
                     quantity: 1,
                 },

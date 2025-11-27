@@ -23,9 +23,10 @@ model Item {
   inventories UserInventory[]
 }
 
-// ユーザーの実績進捗 (元の単一ユーザー形式に戻す)
+// ユーザーの実績進捗
 model UserProgress {
-  id        Int @id @default(1) // ★ id: 1 で固定
+  id        Int @id @default(autoincrement())
+  userId    String @unique // ★ ユーザーIDを追加してユニーク制約を設定
   walkCount Int @default(0) // 既存: 総おさんぽ回数
 
   // --- ▼▼▼ ここから追加 ▼▼▼ ---
@@ -35,6 +36,7 @@ model UserProgress {
   rainyWalkCount         Int @default(0)
   cloudyWalkCount        Int @default(0)
   snowyWalkCount         Int @default(0)
+  
   thunderstormWalkCount  Int @default(0)
   windyWalkCount         Int @default(0)
   nightWalkCount         Int @default(0)
@@ -49,14 +51,19 @@ model UserProgress {
 
   // 連続おさんぽ記録
   consecutiveWalkDays Int      @default(0)
-  lastWalkDate        DateTime? // 最後におさんぽした日時
+  lastWalkDate        DateTime?
+  // 最後におさんぽした日時
   // --- ▲▲▲ 追加ここまで ▲▲▲ ---
 }
 
-// ユーザーのアイテム所持状況 (元の単一ユーザー形式に戻す)
+// ユーザーのアイテム所持状況
 model UserInventory {
   id       Int  @id @default(autoincrement())
-  itemId   Int  @unique // ★ itemId を unique に戻す
+  userId   String // ★ ユーザーIDを追加
+  itemId   Int
   quantity Int  @default(0)
   item     Item @relation(fields: [itemId], references: [id])
+
+  // ★ userId と itemId の組み合わせでユニークにする
+  @@unique([userId, itemId])
 }
