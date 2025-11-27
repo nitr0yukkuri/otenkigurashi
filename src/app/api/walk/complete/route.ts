@@ -4,7 +4,6 @@ import type { UserProgress } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
-// 日付計算のヘルパー関数
 const isConsecutiveDay = (lastWalk: Date, now: Date) => {
     const last = new Date(lastWalk.getFullYear(), lastWalk.getMonth(), lastWalk.getDate());
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -20,13 +19,6 @@ const isSameDay = (lastWalk: Date, now: Date) => {
 };
 
 export async function POST(request: Request) {
-    // ★ ユーザーIDを取得
-    const userId = request.headers.get('x-user-id');
-
-    if (!userId) {
-        return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
-    }
-
     let weather: string;
     try {
         const body = await request.json();
@@ -36,14 +28,12 @@ export async function POST(request: Request) {
     }
 
     try {
-        // ★ ユーザーIDで検索
         const currentProgress: UserProgress | null = await prisma.userProgress.findUnique({
-            where: { userId: userId },
+            where: { id: 1 },
         });
 
         const progressData: UserProgress = currentProgress || {
-            id: 0,
-            userId: userId,
+            id: 1,
             walkCount: 0,
             sunnyWalkCount: 0,
             clearWalkCount: 0,
@@ -70,7 +60,7 @@ export async function POST(request: Request) {
             const lastWalk = new Date(progressData.lastWalkDate);
             if (isSameDay(lastWalk, now)) {
                 const progress = await prisma.userProgress.update({
-                    where: { userId: userId },
+                    where: { id: 1 },
                     data: { walkCount: { increment: 1 } },
                 });
                 return NextResponse.json({ message: 'おさんぽ回数を更新しました（同日）。', progress });
@@ -94,12 +84,11 @@ export async function POST(request: Request) {
             updateData[weatherKey] = { increment: 1 };
         }
 
-        // ★ ユーザーIDで upsert
         const progress = await prisma.userProgress.upsert({
-            where: { userId: userId },
+            where: { id: 1 },
             update: updateData,
             create: {
-                userId: userId,
+                // ★修正: id: 1 を削除
                 walkCount: 1,
                 lastWalkDate: now,
                 consecutiveWalkDays: 1,

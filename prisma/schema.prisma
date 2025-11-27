@@ -18,31 +18,27 @@ model Item {
   iconName    String?
   weather     String?
   stage       String?
-  // ★★★ 追加: 装備カテゴリ (nullなら装備不可, 'head', 'hand' など) ★★★
   category    String?
   inventories UserInventory[]
 }
 
-// ユーザーの実績進捗
+// ユーザーの実績進捗 (シングルユーザーモード用に簡素化)
 model UserProgress {
-  id        Int @id @default(autoincrement())
-  userId    String @unique // ★ ユーザーIDを追加してユニーク制約を設定
-  walkCount Int @default(0) // 既存: 総おさんぽ回数
+  id        Int @id @default(1) // 固定ID
+  walkCount Int @default(0)
 
-  // --- ▼▼▼ ここから追加 ▼▼▼ ---
   // 天気別おさんぽ回数
   sunnyWalkCount         Int @default(0)
   clearWalkCount         Int @default(0)
   rainyWalkCount         Int @default(0)
   cloudyWalkCount        Int @default(0)
   snowyWalkCount         Int @default(0)
-  
   thunderstormWalkCount  Int @default(0)
   windyWalkCount         Int @default(0)
   nightWalkCount         Int @default(0)
 
-  // アイテム収集関連 (種類数)
-  collectedItemTypesCount       Int @default(0) // 集めたアイテムの種類数
+  // アイテム収集関連
+  collectedItemTypesCount       Int @default(0)
   collectedNormalItemTypesCount   Int @default(0)
   collectedUncommonItemTypesCount Int @default(0)
   collectedRareItemTypesCount     Int @default(0)
@@ -52,18 +48,15 @@ model UserProgress {
   // 連続おさんぽ記録
   consecutiveWalkDays Int      @default(0)
   lastWalkDate        DateTime?
-  // 最後におさんぽした日時
-  // --- ▲▲▲ 追加ここまで ▲▲▲ ---
 }
 
-// ユーザーのアイテム所持状況
+// ユーザーのアイテム所持状況 (シングルユーザーモード)
 model UserInventory {
   id       Int  @id @default(autoincrement())
-  userId   String // ★ ユーザーIDを追加
   itemId   Int
   quantity Int  @default(0)
   item     Item @relation(fields: [itemId], references: [id])
 
-  // ★ userId と itemId の組み合わせでユニークにする
-  @@unique([userId, itemId])
+  // itemIdだけでユニークにする（全ユーザー共通インベントリ）
+  @@unique([itemId])
 }

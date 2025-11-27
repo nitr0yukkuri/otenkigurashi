@@ -4,22 +4,15 @@ import prisma from '../../lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-    // ★ ヘッダーからユーザーIDを取得
-    const userId = request.headers.get('x-user-id');
-
-    if (!userId) {
-        return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
-    }
+    // userIdチェックを削除
 
     try {
         const allItems = await prisma.item.findMany({
             orderBy: { id: 'asc' },
         });
 
-        // ★ ユーザーIDでフィルタリング
-        const inventory = await prisma.userInventory.findMany({
-            where: { userId: userId }
-        });
+        // userIdフィルタを削除し、全インベントリを取得
+        const inventory = await prisma.userInventory.findMany();
 
         const collection = allItems.map(item => {
             const inventoryItem = inventory.find(inv => inv.itemId === item.id);
@@ -36,12 +29,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-    // ★ ヘッダーからユーザーIDを取得
-    const userId = request.headers.get('x-user-id');
-
-    if (!userId) {
-        return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
-    }
+    // userIdチェックを削除
 
     try {
         const { itemId } = await request.json();
@@ -54,30 +42,23 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: 'アイテムIDが必要です。' }, { status: 400 });
         }
 
-        // ★ 複合ユニークキーを使用して検索
+        // itemIdのみで検索
         const existingItem = await prisma.userInventory.findUnique({
             where: {
-                userId_itemId: {
-                    userId: userId,
-                    itemId: numericItemId
-                }
+                itemId: numericItemId
             },
         });
 
         if (existingItem) {
             await prisma.userInventory.update({
                 where: {
-                    userId_itemId: {
-                        userId: userId,
-                        itemId: numericItemId
-                    }
+                    itemId: numericItemId
                 },
                 data: { quantity: { increment: 1 } },
             });
         } else {
             await prisma.userInventory.create({
                 data: {
-                    userId: userId, // ★ ユーザーIDを保存
                     itemId: numericItemId,
                     quantity: 1,
                 },
