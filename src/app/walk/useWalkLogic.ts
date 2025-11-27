@@ -5,7 +5,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { mapWeatherType, getBackgroundColorClass } from './utils';
-import { getUserId } from '../lib/userId';
+import { getUserId } from '../lib/userId'; // ★ 修正: userId -> userID
 
 interface Item {
     id: number;
