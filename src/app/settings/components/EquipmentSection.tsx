@@ -136,7 +136,8 @@ export default function EquipmentSection() {
                     <button
                         key={item.id}
                         onClick={() => handleEquip(item.iconName)}
-                        className="flex flex-col items-center gap-1"
+                        disabled={item.quantity === 0} // ★ 所持数0の場合は無効化
+                        className="flex flex-col items-center gap-1 disabled:cursor-not-allowed"
                     >
                         <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all
                             ${equipment[activeTab] === item.iconName ? 'border-sky-500 ring-2 ring-sky-200' : 'border-white'}

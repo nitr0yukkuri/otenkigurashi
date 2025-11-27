@@ -48,7 +48,7 @@ const generateAdviceMessage = (data: { day: string; weather: string; high: numbe
             `${day}もおつかれさま！ゆっくり休んでね。`,
             `もう夜だね。${day}の気温は最高${high}°C、最低${low}°Cだったよ。`,
         ];
-    } else if (pop >= 50) {
+    } else if (weather === 'rainy') {
         messages = [
             `☔ ${day}は雨が降るみたい！傘を忘れないでね。`,
             `💧 降水確率は${pop}%だよ。今日はお気に入りのレイングッズを用意しよう！`,
