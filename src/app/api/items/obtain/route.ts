@@ -71,7 +71,7 @@ export async function POST(request: Request) {
             }
         }
 
-        // --- ▼▼▼ 保存処理（ここを修正・追加） ▼▼▼ ---
+        // --- ▼▼▼ 保存処理（修正版） ▼▼▼ ---
 
         // 1. 既に持っているか確認（新種判定のため）
         const existingInventory = await prisma.userInventory.findUnique({

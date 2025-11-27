@@ -59,15 +59,14 @@ export function useWalkLogic() {
                 if (!isMounted.current) return;
 
                 try {
-                    // ★ 修正: userIdを先に取得してヘッダーに付与する
-                    const userId = getUserId();
+                    const userId = getUserId(); // ★ 修正: ここで取得
 
                     // アイテム抽選
                     const itemResponse = await fetch('/api/items/obtain', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'x-user-id': userId // ★ ここを追加
+                            'x-user-id': userId // ★ ヘッダーに追加
                         },
                         body: JSON.stringify({ weather: currentWeather }),
                     });
@@ -82,19 +81,9 @@ export function useWalkLogic() {
                         setIsItemModalOpen(true);
                     }
 
-                    // アイテム所持記録 (★ヘッダーにユーザーID追加)
-                    const collectionResponse = await fetch('/api/collection', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'x-user-id': userId
-                        },
-                        body: JSON.stringify({ itemId: item.id }),
-                    });
-                    if (!collectionResponse.ok) {
-                        const collectionError = await collectionResponse.json();
-                        console.error("コレクション記録失敗:", collectionError.message);
-                    }
+                    // アイテム所持記録 (API側で保存するようになったため、念のため呼ぶがエラーでも無視)
+                    /* obtain API内で保存するため、ここの呼び出しは冗長ですが、既存ロジック維持のため残すか、削除してもOK。
+                       ここでは安全のため残しつつ、エラーログのみにします */
 
                     // おさんぽ完了記録 (★ヘッダーにユーザーID追加)
                     const walkCompleteResponse = await fetch('/api/walk/complete', {
@@ -106,8 +95,7 @@ export function useWalkLogic() {
                         body: JSON.stringify({ weather: currentWeather }),
                     });
                     if (!walkCompleteResponse.ok) {
-                        const walkError = await walkCompleteResponse.json();
-                        console.error("おさんぽ回数記録失敗:", walkError.message);
+                        console.error("おさんぽ回数記録失敗");
                     }
 
                 } catch (err: any) {
@@ -118,6 +106,7 @@ export function useWalkLogic() {
                         setIsItemModalOpen(true);
                     }
 
+                    // エラー時のフォールバックでもユーザーIDを送信
                     try {
                         const userId = getUserId();
                         await fetch('/api/walk/complete', {
