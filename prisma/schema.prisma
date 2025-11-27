@@ -14,7 +14,7 @@ model Item {
   name          String          @unique
   description   String
   rarity        String          @default("normal")
-  iconName      String?         // ★ imagePath から iconName に戻しました
+  iconName      String?
   weather       String?
   stage         String?
   category      String?

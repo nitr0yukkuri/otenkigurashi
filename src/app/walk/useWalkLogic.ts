@@ -61,7 +61,6 @@ export function useWalkLogic() {
                 try {
                     const userId = getUserId();
 
-                    // アイテム抽選
                     const itemResponse = await fetch('/api/items/obtain', {
                         method: 'POST',
                         headers: {
@@ -80,7 +79,6 @@ export function useWalkLogic() {
                         setIsItemModalOpen(true);
                     }
 
-                    // おさんぽ完了記録
                     const walkCompleteResponse = await fetch('/api/walk/complete', {
                         method: 'POST',
                         headers: {
