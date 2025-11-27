@@ -59,10 +59,16 @@ export function useWalkLogic() {
                 if (!isMounted.current) return;
 
                 try {
-                    // アイテム抽選 (ユーザーID不要)
+                    // ★ 修正: userIdを先に取得してヘッダーに付与する
+                    const userId = getUserId();
+
+                    // アイテム抽選
                     const itemResponse = await fetch('/api/items/obtain', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-user-id': userId // ★ ここを追加
+                        },
                         body: JSON.stringify({ weather: currentWeather }),
                     });
                     const itemResult = await itemResponse.json();
@@ -75,8 +81,6 @@ export function useWalkLogic() {
                         setObtainedItem({ id: item.id, name: item.name, iconName: item.iconName, rarity: item.rarity });
                         setIsItemModalOpen(true);
                     }
-
-                    const userId = getUserId();
 
                     // アイテム所持記録 (★ヘッダーにユーザーID追加)
                     const collectionResponse = await fetch('/api/collection', {
