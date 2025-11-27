@@ -25,7 +25,7 @@ export const viewport = {
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
-    viewportFit: "cover", // iPhoneのノッチまで広げる設定
+    viewportFit: "cover", // iPhaoneのノッチまで広げる設定
 };
 
 export default function RootLayout({
