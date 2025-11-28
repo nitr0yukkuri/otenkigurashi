@@ -69,8 +69,25 @@ const masterAchievements: Achievement[] = [
     { id: 2, title: 'おさんぽチャレンジャー', description: 'おさんぽに10回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 10, unit: 'かい' },
     { id: 3, title: 'おさんぽエキスパート', description: 'おさんぽに50回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 50, unit: 'かい' },
     { id: 10, title: 'おさんぽマスター', description: 'おさんぽに100回行った', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 100, unit: 'かい' },
+
+    // 天気関連
     { id: 20, title: '太陽とともだち', description: '晴れの日にはじめておさんぽした', icon: <IoSunny size={24} />, isUnlocked: false, progressKey: 'sunnyWalkCount', goal: 1, unit: 'かい' },
-    // 他の実績はスペースの都合上省略しますが、既存のコードを使用してください
+    { id: 21, title: '青空大好き', description: '快晴の日にはじめておさんぽした', icon: <BsSunFill size={24} />, isUnlocked: false, progressKey: 'clearWalkCount', goal: 1, unit: 'かい' },
+    { id: 22, title: '雨の日も楽しい', description: '雨の日にはじめておさんぽした', icon: <IoRainy size={24} />, isUnlocked: false, progressKey: 'rainyWalkCount', goal: 1, unit: 'かい' },
+    { id: 23, title: '雲を追いかけて', description: 'くもりの日にはじめておさんぽした', icon: <BsCloudFill size={24} />, isUnlocked: false, progressKey: 'cloudyWalkCount', goal: 1, unit: 'かい' },
+    { id: 24, title: '雪あそび', description: '雪の日にはじめておさんぽした', icon: <FaRegSnowflake size={24} />, isUnlocked: false, progressKey: 'snowyWalkCount', goal: 1, unit: 'かい' },
+    { id: 25, title: 'カミナリ注意', description: '雷雨の日にはじめておさんぽした', icon: <IoThunderstorm size={24} />, isUnlocked: false, progressKey: 'thunderstormWalkCount', goal: 1, unit: 'かい' },
+    { id: 26, title: '風に吹かれて', description: '強風の日にはじめておさんぽした', icon: <FaWind size={24} />, isUnlocked: false, progressKey: 'windyWalkCount', goal: 1, unit: 'かい' },
+    { id: 27, title: '夜更かしさん', description: '夜にはじめておさんぽした', icon: <FaMoon size={24} />, isUnlocked: false, progressKey: 'nightWalkCount', goal: 1, unit: 'かい' },
+
+    // アイテム収集関連
+    { id: 30, title: 'はじめての拾い物', description: 'はじめてアイテムを拾った', icon: <FaBookOpen size={24} />, isUnlocked: false, progressKey: 'collectedItemTypesCount', goal: 1, unit: 'しゅるい' },
+    { id: 31, title: 'アイテムコレクター', description: 'アイテムを10種類集めた', icon: <FaBookOpen size={24} />, isUnlocked: false, progressKey: 'collectedItemTypesCount', goal: 10, unit: 'しゅるい' },
+    { id: 32, title: 'きらきらコレクション', description: 'アイテムを30種類集めた', icon: <FaBookOpen size={24} />, isUnlocked: false, progressKey: 'collectedItemTypesCount', goal: 30, unit: 'しゅるい' },
+
+    // 連続日数関連
+    { id: 40, title: '明日もあえるかな', description: '3日連続でおさんぽした', icon: <IoCalendarClearOutline size={24} />, isUnlocked: false, progressKey: 'consecutiveWalkDays', goal: 3, unit: 'にち' },
+    { id: 41, title: 'おさんぽ習慣', description: '7日連続でおさんぽした', icon: <IoCalendarClearOutline size={24} />, isUnlocked: false, progressKey: 'consecutiveWalkDays', goal: 7, unit: 'にち' },
 ];
 
 const calculateAchievements = (progress: UserProgress | null, achievements: Achievement[]) => {
