@@ -83,13 +83,17 @@ export default function ItemIcon({ name, rarity = 'normal', size = 24 }: { name:
         : rarityColorMap[rarity] ?? rarityColorMap.normal;
 
 
-    if (!iconName || !AllIcons[iconName as keyof typeof AllIcons]) {
+    // ★ 修正: アイコンが存在しない、または明示的にIoHelpCircleの場合は?アイコン扱いにする
+    // (IoHelpCircleが直接指定された場合もここでキャッチしてサイズを大きくする)
+    if (!iconName || !AllIcons[iconName as keyof typeof AllIcons] || iconName === 'IoHelpCircle') {
         // 不明なアイテムは既存のデフォルト色を使用
         iconColor = iconColorMap['IoHelpCircle'];
-        return <Io5.IoHelpCircle size={size} color={iconColor} />;
+        // ★ 修正: ?アイコンの場合はサイズを2倍にする (1.5倍だと気づきにくいため)
+        return <Io5.IoHelpCircle size={size * 2} color={iconColor} className="hand-drawn-style" />;
     }
 
     const IconComponent = AllIcons[iconName as keyof typeof AllIcons];
 
-    return <IconComponent size={size} color={iconColor} />;
+    // ★ 修正: className="hand-drawn-style" を適用（ステッカー風は削除）
+    return <IconComponent size={size} color={iconColor} className="hand-drawn-style" />;
 }

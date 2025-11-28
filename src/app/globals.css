@@ -1,3 +1,5 @@
+/* src/app/globals.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -73,6 +75,26 @@ body {
 
 .colorful-gradient-background {
     background-image: linear-gradient(160deg, #fce4ec 0%, #f8bbd0 100%);
+}
+
+/* ★追加: ステッカー風＆手書き風スタイル */
+.sticker-style {
+    /* 1. 手書き風フィルター適用 */
+    filter: url(#hand-drawn-filter)
+            /* 2. 白フチ (上下左右にずらして重ねることでアウトラインを作る) */
+            drop-shadow(1.5px 1.5px 0px white)
+            drop-shadow(-1.5px -1.5px 0px white)
+            drop-shadow(1.5px -1.5px 0px white)
+            drop-shadow(-1.5px 1.5px 0px white)
+            /* 3. 影 */
+            drop-shadow(2px 3px 3px rgba(0, 0, 0, 0.25));
+    
+    /* 4. 角度をつける (Tilt) */
+    transform: rotate(-10deg);
+    /* 少しマットな質感に */
+    opacity: 0.95;
+    /* クリックイベントなどを阻害しないように */
+    pointer-events: none; 
 }
 
 /* ★変更点: PWA (Standalone) モード時の iPhone 15 フルスクリーン対応 */
