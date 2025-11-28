@@ -195,7 +195,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const isNight = displayWeatherType === 'night';
 
     return (
-        <div className="w-full min-h-screen bg-gray-200 flex items-center justify-center p-4">
+        <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
             <ItemGetModal isOpen={false} onClose={() => { }} itemName={null} iconName={null} rarity={null} />
             <ConfirmationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={handleConfirmWalk} type="walk">
                 <h2 className="text-2xl font-bold text-gray-800 whitespace-pre-line">
@@ -216,8 +216,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 backgroundClass={dynamicBackgroundClass}
             />
 
-            <main className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl"></div>
+            <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}>
+                <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl"></div>
 
                 <ShareButton onClick={() => setIsShareOpen(true)} />
                 <HelpButton onClick={() => setIsHelpOpen(true)} />

@@ -52,7 +52,8 @@ export default function ShareModal({
         const canvas = await html2canvas(cardRef.current, {
             useCORS: true,
             backgroundColor: null,
-            scale: 2
+            scale: 2, // 高画質設定
+            logging: false,
         });
 
         return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
@@ -80,40 +81,38 @@ export default function ShareModal({
         const text = `今の ${petName} はこんな感じ！\n天気: ${weather || '晴れ'} 🌤️\n\n#おてんきぐらし #癒やし`;
 
         try {
-            // Web Share API が使える環境かチェック
-            if (navigator.share) {
-                const blob = await generateImageBlob();
-                if (blob) {
-                    const file = new File([blob], "otenki_gurashi.png", { type: "image/png" });
-                    const shareData = {
-                        files: [file],
-                        text: text,
-                    };
+            // 1. 画像を生成
+            const blob = await generateImageBlob();
+            if (!blob) throw new Error('画像の生成に失敗しました');
 
-                    // canShareチェックをスキップして直接shareを試みる（互換性向上のため）
-                    try {
-                        await navigator.share(shareData);
-                        return; // シェア成功（またはシートが開いた）ならここで終了
-                    } catch (shareError: any) {
-                        // ユーザーによるキャンセル以外のエラーならログを出す
-                        if (shareError.name !== 'AbortError') {
-                            console.warn('画像付きシェアに失敗しました。テキストのみで試みます。', shareError);
-                        } else {
-                            return; // キャンセルの場合は何もしない
-                        }
-                    }
+            // 2. Web Share API (モバイル等のネイティブ共有機能) を試みる
+            if (navigator.share) {
+                const file = new File([blob], "image.png", { type: "image/png" });
+                const shareData = {
+                    files: [file],
+                    text: text,
+                };
+
+                // ファイル共有がサポートされているか確認してから実行
+                if (navigator.canShare && navigator.canShare(shareData)) {
+                    await navigator.share(shareData);
+                    return; // シェア成功（またはシート起動）なら終了
                 }
             }
 
-            // フォールバック: 画像共有ができない環境ではテキストのみツイート画面を開く
+            // 3. Web Share API非対応環境（PC等）の場合のフォールバック
+            // 画像は添付できないため、テキストのみでツイート画面を開く
             const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
             window.open(url, '_blank');
 
-        } catch (e) {
-            console.error('予期せぬエラーが発生しました', e);
-            // 最終手段としてのフォールバック
-            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank');
+        } catch (e: any) {
+            // シェアキャンセルの場合は何もしない
+            if (e.name !== 'AbortError') {
+                console.error('シェアエラー:', e);
+                // エラー時はテキストのみでフォールバック
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+                window.open(url, '_blank');
+            }
         } finally {
             setIsGenerating(false);
         }
