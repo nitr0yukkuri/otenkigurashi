@@ -9,14 +9,30 @@ import ItemIcon from '../components/ItemIcon';
 import Link from 'next/link';
 import Footer from '../components/Footer';
 import { useWeatherForecast } from './useWeatherForecast';
-// ★★★ 修正: requireをやめて通常通りimportする ★★★
 import ForecastCard from '../components/ForecastCard';
+import { EquipmentState } from '../components/CharacterDisplay';
 
 // 設定読み込み用のキー
 const STORAGE_KEYS = {
     PET_COLOR: 'otenki-gurashi-petColor',
     PET_CHEEK_COLOR: 'otenki-gurashi-petCheekColor',
     PET_EQUIPMENT: 'otenki-gurashi-petEquipment',
+};
+
+// 装備品の表示スタイル定義 (CharacterDisplayと同じもの)
+const SLOT_STYLES = {
+    head: {
+        className: "absolute -top-8 left-1/2 -translate-x-1/2 z-20 w-2/3",
+        animation: { y: [0, -3, 0], transition: { duration: 4, repeat: Infinity } }
+    },
+    hand: {
+        className: "absolute bottom-0 -right-4 z-30 w-1/3",
+        animation: { rotate: [0, 5, 0], transition: { duration: 2, repeat: Infinity } }
+    },
+    floating: {
+        className: "absolute -top-4 -right-8 z-10 w-1/3",
+        animation: { y: [0, -10, 0], opacity: 0.9, transition: { duration: 3, repeat: Infinity, ease: "easeInOut" } }
+    }
 };
 
 function WeatherPageContent() {
@@ -33,7 +49,8 @@ function WeatherPageContent() {
 
     const [petColor, setPetColor] = useState("white");
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
-    const [petEquipment, setPetEquipment] = useState<string | null>(null);
+    // ★ 修正: 装備をオブジェクトとして管理
+    const [petEquipment, setPetEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null });
 
     useEffect(() => {
         const storedColor = localStorage.getItem(STORAGE_KEYS.PET_COLOR);
@@ -43,39 +60,49 @@ function WeatherPageContent() {
         if (storedCheek) setCheekColor(storedCheek);
 
         const storedEquip = localStorage.getItem(STORAGE_KEYS.PET_EQUIPMENT);
-        if (storedEquip) setPetEquipment(storedEquip);
+        if (storedEquip) {
+            try {
+                // ★ 修正: JSONとしてパースし、古い形式(文字列)と新しい形式(オブジェクト)両方に対応
+                const parsed = JSON.parse(storedEquip);
+                if (typeof parsed === 'string') {
+                    setPetEquipment({ head: parsed, hand: null, floating: null });
+                } else if (typeof parsed === 'object' && parsed !== null) {
+                    setPetEquipment(parsed);
+                }
+            } catch (e) {
+                // JSONでない場合は古い形式(ただの文字列)として扱う
+                setPetEquipment({ head: storedEquip, hand: null, floating: null });
+            }
+        }
     }, []);
 
-    // 装備表示ロジック (中略、そのまま)
+    // ★ 修正: 装備レンダリング関数を各部位対応に更新
     const renderEquipment = () => {
-        // ... (元のコードと同じ)
-        if (!petEquipment) return null;
-        // 省略... 元のswitch文やJSX
-        // 実際のコードにはswitch文の中身を含めてください
-        let styleClass = "";
-        let initial = {};
-        let animate = {};
-        let exit = {};
-
-        // ... (元のswitch文をここに) ...
-        // 仮実装としてデフォルトだけ書いておきますが、元のコードを使ってください
-        styleClass = "absolute -top-4 w-1/2 z-10 left-1/4";
-        // ... 
-
         return (
-            <motion.div
-                className={styleClass} // 注: 実際はswitch文の結果を使ってください
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-            >
-                <div className="w-full h-full flex items-center justify-center drop-shadow-md">
-                    <ItemIcon name={petEquipment} size={undefined} />
-                </div>
-            </motion.div>
+            <>
+                {(['floating', 'head', 'hand'] as const).map((slot) => {
+                    const itemName = petEquipment[slot];
+                    if (!itemName) return null;
+
+                    const style = SLOT_STYLES[slot];
+
+                    return (
+                        <motion.div
+                            key={slot}
+                            className={style.className}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1, ...style.animation }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <div className="w-full h-full flex items-center justify-center drop-shadow-md">
+                                <ItemIcon name={itemName} size={undefined} />
+                            </div>
+                        </motion.div>
+                    );
+                })}
+            </>
         );
     };
-    // (renderEquipment関数は元のファイルのままでOKですが、簡略化して書いています)
 
     const mainTextColor = isNight ? 'text-white' : 'text-slate-700';
     const linkColor = isNight ? 'text-gray-300 hover:text-white' : 'text-slate-500 hover:text-slate-700';
@@ -100,12 +127,7 @@ function WeatherPageContent() {
                             <div className="w-16 h-16 flex-shrink-0 relative">
                                 <div style={{ width: '160px', height: '160px', transform: 'scale(0.4)', transformOrigin: 'top left' }} className="relative">
                                     <AnimatePresence>
-                                        {/* ここは元の renderEquipment() を呼び出し */}
-                                        {petEquipment && (
-                                            <motion.div className="absolute -top-6 w-1/2 z-10 left-1/4">
-                                                <ItemIcon name={petEquipment} size={undefined} />
-                                            </motion.div>
-                                        )}
+                                        {renderEquipment()}
                                     </AnimatePresence>
                                     <CharacterFace
                                         mood={error ? 'sad' : 'happy'}
@@ -127,7 +149,6 @@ function WeatherPageContent() {
                                 <p className="w-full text-center text-red-500 bg-red-100 p-3 rounded-lg">{error}</p>
                             ) : (
                                 forecast.map((data: any, index: number) => {
-                                    // ★★★ 修正: 通常のコンポーネントとして使用 ★★★
                                     return (
                                         <ForecastCard
                                             key={index}
