@@ -28,9 +28,9 @@ export default function SettingsPage() {
     const titleIconColor = isNight ? 'text-gray-300' : 'text-slate-500';
 
     return (
-        <div className="w-full min-h-screen bg-gray-200 flex items-center justify-center p-4">
-            <main className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : ''} ${bgClass}`}>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
+        <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
+            <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : ''} ${bgClass} transition-all duration-500`}>
+                <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
                 <div className="flex-grow overflow-y-auto p-6">
                     <Link href="/" className={`mb-6 inline-block text-sm font-semibold ${linkColor} transition-colors`}>← もどる</Link>
 

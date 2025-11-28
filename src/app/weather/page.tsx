@@ -49,7 +49,6 @@ function WeatherPageContent() {
 
     const [petColor, setPetColor] = useState("white");
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
-    // ★ 修正: 装備をオブジェクトとして管理
     const [petEquipment, setPetEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null });
 
     useEffect(() => {
@@ -62,7 +61,6 @@ function WeatherPageContent() {
         const storedEquip = localStorage.getItem(STORAGE_KEYS.PET_EQUIPMENT);
         if (storedEquip) {
             try {
-                // ★ 修正: JSONとしてパースし、古い形式(文字列)と新しい形式(オブジェクト)両方に対応
                 const parsed = JSON.parse(storedEquip);
                 if (typeof parsed === 'string') {
                     setPetEquipment({ head: parsed, hand: null, floating: null });
@@ -70,13 +68,11 @@ function WeatherPageContent() {
                     setPetEquipment(parsed);
                 }
             } catch (e) {
-                // JSONでない場合は古い形式(ただの文字列)として扱う
                 setPetEquipment({ head: storedEquip, hand: null, floating: null });
             }
         }
     }, []);
 
-    // ★ 修正: 装備レンダリング関数を各部位対応に更新
     const renderEquipment = () => {
         return (
             <>
@@ -110,9 +106,9 @@ function WeatherPageContent() {
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
 
     return (
-        <div className="w-full min-h-screen bg-gray-200 flex items-center justify-center p-4">
-            <main className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${mainTextColor} transition-colors duration-500 ${dynamicBackgroundClass}`}>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
+        <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
+            <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${mainTextColor} transition-colors duration-500 ${dynamicBackgroundClass}`}>
+                <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
 
                 <div className="flex-grow overflow-y-auto p-6">
                     <div className="max-w-md mx-auto">

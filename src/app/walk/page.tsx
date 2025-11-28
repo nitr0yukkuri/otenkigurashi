@@ -25,7 +25,6 @@ function WalkPageComponent() {
     } = useWalkLogic();
 
     const [petName, setPetName] = useState("てんちゃん");
-    // ★ 追加: 色のステート
     const [petColor, setPetColor] = useState("white");
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
 
@@ -35,7 +34,6 @@ function WalkPageComponent() {
             setPetName(storedName);
         }
 
-        // ★ 追加: 色の設定を読み込む
         const storedColor = localStorage.getItem('otenki-gurashi-petColor');
         if (storedColor) setPetColor(storedColor);
 
@@ -48,15 +46,13 @@ function WalkPageComponent() {
     const panelTextColor = isNight ? 'text-white' : 'text-slate-700';
 
     return (
-        <div className="w-full min-h-screen bg-gray-200 flex items-center justify-center p-4">
+        <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
             <ItemGetModal isOpen={isItemModalOpen} onClose={handleModalClose} itemName={obtainedItem.name} iconName={obtainedItem.iconName} rarity={obtainedItem.rarity} />
 
-            <main className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-slate-700'} transition-colors duration-500 ${dynamicBackgroundClass}`}>
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
+            <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-slate-700'} transition-colors duration-500 ${dynamicBackgroundClass}`}>
+                <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
                 <div className="flex-grow flex flex-col p-6 items-center justify-between">
-                    <div className="w-full mt-8"> {/* ★ mt-8を追加してレイアウト調整 */}
-                        {/* ★ 変更: ここにあった「← ホーム」リンクを削除しました */}
-
+                    <div className="w-full mt-8">
                         <header className="mb-8 text-center">
                             <h1 className={`text-3xl font-extrabold ${titleColor} tracking-wider`}>
                                 {loading ? 'おさんぽ準備中...' : error ? 'おさんぽ失敗...' : 'おさんぽ中...'}
@@ -72,9 +68,7 @@ function WalkPageComponent() {
                             </div>
                         ) : error ? (
                             <div className="text-center">
-                                {/* ★ 修正: bg-white p-2 rounded-full を削除して顔の表示崩れを修正 */}
                                 <div className="w-40 h-40 mb-4 mx-auto">
-                                    {/* ★ 変更: 色を渡す */}
                                     <CharacterFace mood={'sad'} petColor={petColor} cheekColor={cheekColor} />
                                 </div>
                                 <p className="text-red-600 bg-red-100 p-3 rounded-lg shadow-sm">{error}</p>
@@ -85,9 +79,7 @@ function WalkPageComponent() {
                         ) : (
                             <>
                                 <div className="mb-4"><WeatherIcon type={weather || 'sunny'} size={60} /></div>
-                                {/* ★ 修正: bg-white p-2 rounded-full を削除して顔の表示崩れを修正 */}
                                 <div className="w-40 h-40 mb-4">
-                                    {/* ★ 変更: 色を渡す */}
                                     <CharacterFace mood={'happy'} petColor={petColor} cheekColor={cheekColor} />
                                 </div>
                                 <div className="p-3 bg-white/70 backdrop-blur-sm rounded-xl shadow-md max-w-xs text-center">
@@ -97,7 +89,6 @@ function WalkPageComponent() {
                         )}
                     </div>
                 </div>
-                {/* ★ 変更: Footerコンポーネントの表示を削除しました */}
             </main>
         </div>
     );
