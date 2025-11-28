@@ -2,7 +2,7 @@
 
 'use client';
 
-// import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import CharacterFace from './CharacterFace';
 import ItemIcon from './ItemIcon';
 
@@ -21,7 +21,7 @@ type CharacterDisplayProps = {
     message: string | null;
     onCharacterClick: () => void;
     isNight?: boolean;
-    isStatic?: boolean; // ★ 追加
+    isStatic?: boolean;
 };
 
 const SLOT_STYLES = {
@@ -45,7 +45,7 @@ export default function CharacterDisplay({
     message,
     onCharacterClick,
     isNight = false,
-    isStatic = false // ★ 追加
+    isStatic = false
 }: CharacterDisplayProps) {
 
     const renderSlot = (slot: keyof EquipmentState) => {
@@ -76,16 +76,20 @@ export default function CharacterDisplay({
     const isRainbow = petColor === 'rainbow';
 
     return (
-        // ★ 変更: isStaticがtrueなら pb-20 を削除して中央配置にする
         <div className={`flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center ${isStatic ? '' : 'pb-20'} relative`}>
-            {message && (
-                <div
-                    className={`absolute top-8 ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
-                >
-                    <p className={`${messageText} text-[15px] font-medium`}>{message}</p>
-                    <div className={`absolute left-1/2 -translate-x-1/2 bottom-[-8px] w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 ${messageArrow}`}></div>
-                </div>
-            )}
+            <AnimatePresence>
+                {message && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                        className={`absolute top-8 ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
+                    >
+                        <p className={`${messageText} text-[15px] font-medium`}>{message}</p>
+                        <div className={`absolute left-1/2 -translate-x-1/2 bottom-[-8px] w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 ${messageArrow}`}></div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div
                 className="w-40 h-40 rounded-full relative"
@@ -96,7 +100,6 @@ export default function CharacterDisplay({
                 {renderSlot('hand')}
 
                 <div className="w-full h-full rounded-full flex items-center justify-center relative z-10">
-                    {/* ★ 変更: isStaticを渡す */}
                     <CharacterFace mood={mood} onClick={onCharacterClick} petColor={petColor} cheekColor={cheekColor} isStatic={isStatic} />
                 </div>
             </div>
