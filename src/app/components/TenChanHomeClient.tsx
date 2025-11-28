@@ -11,7 +11,6 @@ import ConfirmationModal from './ConfirmationModal';
 import ItemGetModal from './ItemGetModal';
 import HelpButton from './HelpButton';
 import HelpModal from './HelpModal';
-import { getUserId } from '../lib/userId';
 
 import {
     WeatherType,
@@ -56,7 +55,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const messageTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [consecutiveDays, setConsecutiveDays] = useState<number>(0);
 
     const timeOfDay = getTimeOfDay(currentTime);
 
@@ -118,21 +116,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         };
 
         updatePetSettings();
-
-        const fetchUserProgress = async () => {
-            const userId = getUserId();
-            if (!userId) return;
-            try {
-                const res = await fetch(`/api/progress?userId=${userId}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setConsecutiveDays(data.consecutiveWalkDays || 0);
-                }
-            } catch (e) {
-                console.error("Failed to fetch progress", e);
-            }
-        };
-        fetchUserProgress();
 
         const handleSettingsChanged = () => updatePetSettings();
         window.addEventListener(PET_SETTINGS_CHANGED_EVENT, handleSettingsChanged);
@@ -230,12 +213,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     location={isLoading ? "取得中..." : (error ? "？？？" : location)}
                     onCycleWeather={cycleWeather}
                 />
-
-                {consecutiveDays > 0 && !isLoading && (
-                    <div className="absolute top-20 left-4 bg-white/40 backdrop-blur-sm rounded-full px-3 py-1 text-xs font-bold text-slate-700 shadow-sm">
-                        連続 {consecutiveDays} 日目
-                    </div>
-                )}
 
                 {error && <p className="text-center text-sm text-red-600 bg-red-100 p-2 mx-4 rounded mb-2">{error}</p>}
 
