@@ -7,8 +7,13 @@ import * as Gi from "react-icons/gi";
 
 const AllIcons = { ...Io5, ...Bs, ...Fa, ...Gi };
 
+// ★ 日本語名をReactアイコン名に変換するマップ (必要に応じて追加)
+const jpToIconName: { [key: string]: string } = {
+    // 修正: GiTwigs -> GiStickSplinter (正しいアイコン名に変更)
+    '小枝': 'GiStickSplinter',
+};
+
 // ★ 各アイコンのデフォルト色定義
-// (レア度情報が渡されない場合でも、ここで定義されていればこの色が優先されます)
 const iconColorMap: { [key: string]: string } = {
     // --- 天候・既存の設定 ---
     'IoSunny': '#FFC700',
@@ -21,6 +26,10 @@ const iconColorMap: { [key: string]: string } = {
     'FaStar': '#FFD700',
     'GiWhirlwind': '#34d399',
     'IoHelpCircle': '#808080',
+
+    // --- 小枝 (Twig) ---
+    // 修正: キーを GiStickSplinter に変更
+    'GiStickSplinter': '#8B4513',
 
     // --- アンコモン (Uncommon: #34d399) ---
     'BsRecordCircleFill': '#34d399',
@@ -35,7 +44,6 @@ const iconColorMap: { [key: string]: string } = {
     'GiSparkles': '#34d399',
 
     // --- レア (Rare: #60a5fa) ---
-    // 'ちいさなカギ' など
     'FaKey': '#60a5fa',
     'IoBodyOutline': '#60a5fa',
     'GiClover': '#60a5fa',
@@ -64,20 +72,23 @@ const rarityColorMap: { [key: string]: string } = {
 
 
 export default function ItemIcon({ name, rarity = 'normal', size = 24 }: { name: string | null; rarity?: string; size?: number }) {
-    // 1. アイコン名に固有の色が設定されているか確認
-    let iconColor = (name && iconColorMap[name])
-        ? iconColorMap[name]
-        // 2. 設定されていない場合はレア度に応じて色を決定
+    // ★ 1. 日本語名ならアイコン名に変換、そうでなければそのまま使用
+    const iconName = (name && jpToIconName[name]) ? jpToIconName[name] : name;
+
+    // 2. アイコン名に固有の色が設定されているか確認
+    let iconColor = (iconName && iconColorMap[iconName])
+        ? iconColorMap[iconName]
+        // 3. 設定されていない場合はレア度に応じて色を決定
         : rarityColorMap[rarity] ?? rarityColorMap.normal;
 
 
-    if (!name || !AllIcons[name as keyof typeof AllIcons]) {
+    if (!iconName || !AllIcons[iconName as keyof typeof AllIcons]) {
         // 不明なアイテムは既存のデフォルト色を使用
         iconColor = iconColorMap['IoHelpCircle'];
         return <Io5.IoHelpCircle size={size} color={iconColor} />;
     }
 
-    const IconComponent = AllIcons[name as keyof typeof AllIcons];
+    const IconComponent = AllIcons[iconName as keyof typeof AllIcons];
 
     return <IconComponent size={size} color={iconColor} />;
 }
