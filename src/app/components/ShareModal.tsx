@@ -34,29 +34,38 @@ export default function ShareModal({
     const cardRef = useRef<HTMLDivElement>(null);
     const [isGenerating, setIsGenerating] = useState(false);
 
+    // 画像生成ロジック
+    const generateImageBlob = async (): Promise<Blob | null> => {
+        if (!cardRef.current) return null;
+
+        if (!(window as any).html2canvas) {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+                script.onload = resolve;
+                script.onerror = reject;
+                document.body.appendChild(script);
+            });
+        }
+        const html2canvas = (window as any).html2canvas;
+
+        const canvas = await html2canvas(cardRef.current, {
+            useCORS: true,
+            backgroundColor: null,
+            scale: 2
+        });
+
+        return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+    };
+
     const handleDownload = async () => {
-        if (!cardRef.current) return;
         setIsGenerating(true);
         try {
-            if (!(window as any).html2canvas) {
-                await new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-                    script.onload = resolve;
-                    script.onerror = reject;
-                    document.body.appendChild(script);
-                });
-            }
-            const html2canvas = (window as any).html2canvas;
-
-            const canvas = await html2canvas(cardRef.current, {
-                useCORS: true,
-                backgroundColor: null,
-                scale: 2
-            });
+            const blob = await generateImageBlob();
+            if (!blob) return;
             const link = document.createElement('a');
             link.download = `otenki_gurashi_${new Date().getTime()}.png`;
-            link.href = canvas.toDataURL('image/png');
+            link.href = URL.createObjectURL(blob);
             link.click();
         } catch (e) {
             console.error('画像生成に失敗しました', e);
@@ -66,10 +75,48 @@ export default function ShareModal({
         }
     };
 
-    const handleTweet = () => {
+    const handleShare = async () => {
+        setIsGenerating(true);
         const text = `今の ${petName} はこんな感じ！\n天気: ${weather || '晴れ'} 🌤️\n\n#おてんきぐらし #癒やし`;
-        const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
-        window.open(url, '_blank');
+
+        try {
+            // Web Share API が使える環境かチェック
+            if (navigator.share) {
+                const blob = await generateImageBlob();
+                if (blob) {
+                    const file = new File([blob], "otenki_gurashi.png", { type: "image/png" });
+                    const shareData = {
+                        files: [file],
+                        text: text,
+                    };
+
+                    // canShareチェックをスキップして直接shareを試みる（互換性向上のため）
+                    try {
+                        await navigator.share(shareData);
+                        return; // シェア成功（またはシートが開いた）ならここで終了
+                    } catch (shareError: any) {
+                        // ユーザーによるキャンセル以外のエラーならログを出す
+                        if (shareError.name !== 'AbortError') {
+                            console.warn('画像付きシェアに失敗しました。テキストのみで試みます。', shareError);
+                        } else {
+                            return; // キャンセルの場合は何もしない
+                        }
+                    }
+                }
+            }
+
+            // フォールバック: 画像共有ができない環境ではテキストのみツイート画面を開く
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+
+        } catch (e) {
+            console.error('予期せぬエラーが発生しました', e);
+            // 最終手段としてのフォールバック
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     const textColor = isNight ? 'text-white' : 'text-slate-800';
@@ -112,7 +159,6 @@ export default function ShareModal({
                                 <h3 className={`text-2xl font-extrabold ${textColor} tracking-widest`}>{petName}</h3>
                             </div>
 
-                            {/* ★ 変更: mt-4を削除、isStatic=true を渡して静止＆中央揃え */}
                             <div className="scale-90">
                                 <CharacterDisplay
                                     petName=""
@@ -123,11 +169,9 @@ export default function ShareModal({
                                     message={null}
                                     onCharacterClick={() => { }}
                                     isNight={isNight}
-                                    isStatic={true} // ★ 静止モード有効
+                                    isStatic={true}
                                 />
                             </div>
-
-                            {/* ★ 変更: 下部の「おてんきぐらし」のバーを削除しました */}
                         </div>
 
                         <div className="space-y-3">
@@ -140,11 +184,12 @@ export default function ShareModal({
                                     disabled={isGenerating}
                                     className="flex-1 bg-sky-500 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-sky-600 transition-colors active:scale-95 disabled:opacity-50"
                                 >
-                                    {isGenerating ? '保存中...' : <><IoDownload size={20} /> 画像保存</>}
+                                    {isGenerating ? '作成中...' : <><IoDownload size={20} /> 画像保存</>}
                                 </button>
                                 <button
-                                    onClick={handleTweet}
-                                    className="flex-1 bg-black text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors active:scale-95"
+                                    onClick={handleShare}
+                                    disabled={isGenerating}
+                                    className="flex-1 bg-black text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors active:scale-95 disabled:opacity-50"
                                 >
                                     <FaTwitter size={20} /> ポスト
                                 </button>
