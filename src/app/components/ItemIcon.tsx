@@ -9,8 +9,9 @@ const AllIcons = { ...Io5, ...Bs, ...Fa, ...Gi };
 
 // ★ 日本語名をReactアイコン名に変換するマップ (必要に応じて追加)
 const jpToIconName: { [key: string]: string } = {
-    // 修正: GiTwigs -> GiStickSplinter (正しいアイコン名に変更)
-    '小枝': 'GiStickSplinter',
+    // 修正: 表示されない可能性があるため GiTreeBranch (木の枝) に変更
+    '小枝': 'GiTreeBranch',
+    'GiStickSplinter': 'GiTreeBranch', // DB上の既存データもこちらにマッピング
 };
 
 // ★ 各アイコンのデフォルト色定義
@@ -28,8 +29,8 @@ const iconColorMap: { [key: string]: string } = {
     'IoHelpCircle': '#808080',
 
     // --- 小枝 (Twig) ---
-    // 修正: キーを GiStickSplinter に変更
-    'GiStickSplinter': '#8B4513',
+    // 修正: キーを GiTreeBranch に変更
+    'GiTreeBranch': '#8B4513',
 
     // --- アンコモン (Uncommon: #34d399) ---
     'BsRecordCircleFill': '#34d399',
@@ -72,7 +73,7 @@ const rarityColorMap: { [key: string]: string } = {
 
 
 export default function ItemIcon({ name, rarity = 'normal', size = 24 }: { name: string | null; rarity?: string; size?: number }) {
-    // ★ 1. 日本語名ならアイコン名に変換、そうでなければそのまま使用
+    // ★ 1. 日本語名または旧アイコン名なら新アイコン名に変換、そうでなければそのまま使用
     const iconName = (name && jpToIconName[name]) ? jpToIconName[name] : name;
 
     // 2. アイコン名に固有の色が設定されているか確認
