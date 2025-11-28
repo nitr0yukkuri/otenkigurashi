@@ -11,6 +11,8 @@ import ConfirmationModal from './ConfirmationModal';
 import ItemGetModal from './ItemGetModal';
 import HelpButton from './HelpButton';
 import HelpModal from './HelpModal';
+import ShareButton from './ShareButton';
+import ShareModal from './ShareModal';
 
 import {
     WeatherType,
@@ -42,6 +44,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const router = useRouter();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
+    const [isShareOpen, setIsShareOpen] = useState(false);
+
     const [weather, setWeather] = useState<WeatherType | null>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
     const [temperature, setTemperature] = useState<number | null>(null);
@@ -200,8 +204,22 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             </ConfirmationModal>
             <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
+            <ShareModal
+                isOpen={isShareOpen}
+                onClose={() => setIsShareOpen(false)}
+                petName={petName}
+                petColor={petColor}
+                cheekColor={petCheekColor}
+                equipment={petEquipment}
+                weather={displayWeatherType}
+                isNight={isNight}
+                backgroundClass={dynamicBackgroundClass}
+            />
+
             <main className={`w-full max-w-sm h-[640px] rounded-3xl shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}>
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl"></div>
+
+                <ShareButton onClick={() => setIsShareOpen(true)} />
                 <HelpButton onClick={() => setIsHelpOpen(true)} />
 
                 <WeatherDisplay
