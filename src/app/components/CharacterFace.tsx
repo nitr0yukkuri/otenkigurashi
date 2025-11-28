@@ -4,19 +4,20 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 
-// ★ Propsの型定義に cheekColor を追加
 type CharacterFaceProps = {
     mood?: "happy" | "neutral" | "sad";
     onClick?: () => void;
     petColor?: string;
-    cheekColor?: string; // ★ 追加
+    cheekColor?: string;
+    isStatic?: boolean; // ★ 追加: 静止モードフラグ
 };
 
 export default function CharacterFace({
     mood = "happy",
     onClick,
     petColor = "white",
-    cheekColor = "#F8BBD0" // ★ デフォルト値を設定
+    cheekColor = "#F8BBD0",
+    isStatic = false // ★ 追加
 }: CharacterFaceProps) {
 
     const getMouthPath = () => {
@@ -43,7 +44,7 @@ export default function CharacterFace({
     return (
         <motion.div
             style={{ width: '100%', height: '100%', cursor: 'pointer' }}
-            whileTap={{ scale: 0.9 }}
+            whileTap={isStatic ? undefined : { scale: 0.9 }} // ★ 変更: 静止時はタップアニメなし
             transition={{ type: "spring", stiffness: 400, damping: 15 }}
             onClick={onClick}
         >
@@ -51,7 +52,7 @@ export default function CharacterFace({
                 viewBox="0 0 120 120"
                 width="100%"
                 height="100%"
-                animate={{
+                animate={isStatic ? undefined : { // ★ 変更: 静止時は動きなし
                     y: ["-3%", "3%"],
                     rotate: [-2, 2, -2]
                 }}
@@ -66,16 +67,16 @@ export default function CharacterFace({
                 <motion.circle
                     cx="60" cy="60" r="60"
                     fill={isRainbow ? '#ff0000' : petColor}
-                    animate={isRainbow ? rainbowAnimation : { fill: petColor }}
+                    animate={isStatic ? undefined : (isRainbow ? rainbowAnimation : { fill: petColor })} // ★ 変更
                 />
 
-                {/* ほっぺ (cheekColorを適用) */}
+                {/* ほっぺ */}
                 <circle cx="20" cy="70" r="12" fill={cheekColor} />
                 <circle cx="100" cy="70" r="12" fill={cheekColor} />
 
                 {/* 目 */}
                 <motion.g
-                    animate={{ scaleY: [1, 0.1, 1, 1, 1] }}
+                    animate={isStatic ? undefined : { scaleY: [1, 0.1, 1, 1, 1] }} // ★ 変更: 静止時は瞬きなし
                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
                 >
                     <circle cx="40" cy="55" r="5" fill="#5D4037" />
