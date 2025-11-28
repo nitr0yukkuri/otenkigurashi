@@ -20,6 +20,21 @@ type ShareModalProps = {
     backgroundClass: string;
 };
 
+// ★追加: 天気をひらがなに変換するヘルパー関数
+const getWeatherText = (weather: string | null) => {
+    switch (weather) {
+        case 'clear': return 'かいせい';
+        case 'cloudy': return 'くもり';
+        case 'rainy': return 'あめ';
+        case 'thunderstorm': return 'かみなり';
+        case 'snowy': return 'ゆき';
+        case 'windy': return 'かぜ';
+        case 'night': return 'よる';
+        case 'sunny':
+        default: return 'はれ';
+    }
+};
+
 export default function ShareModal({
     isOpen,
     onClose,
@@ -78,7 +93,9 @@ export default function ShareModal({
 
     const handleShare = async () => {
         setIsGenerating(true);
-        const text = `今の ${petName} はこんな感じ！\n天気: ${weather || '晴れ'} 🌤️\n\n#おてんきぐらし #癒やし`;
+        // ★変更: 天気を日本語（ひらがな）に変換してテキストを作成
+        const weatherText = getWeatherText(weather);
+        const text = `今の ${petName} はこんな感じ！\n天気: ${weatherText} 🌤️\n\n#おてんきぐらし #癒やし`;
 
         try {
             // 1. 画像を生成
