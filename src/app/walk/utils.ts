@@ -2,7 +2,7 @@
 // ★★★ 重要: ファイル名を uitls.ts から utils.ts に修正しました ★★★
 
 export const mapWeatherType = (weatherData: any): string => {
-    // Check if weatherData and necessary nested properties exist
+    // Check if weatherData and necessary nested properaties exist
     if (!weatherData || !weatherData.weather || weatherData.weather.length === 0 || !weatherData.wind) {
         console.warn('Incomplete weather data received in mapWeatherType:', weatherData);
         return "sunny"; // Return a default value
