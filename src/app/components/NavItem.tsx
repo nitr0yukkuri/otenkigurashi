@@ -3,6 +3,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useSound } from '../hooks/useSound'; // ★ 追加
 
 // ★ isNight prop を受け取るように変更
 export default function NavItem({ icon, label, onClick, hasNotification = false, href, isNight }: {
@@ -13,8 +14,10 @@ export default function NavItem({ icon, label, onClick, hasNotification = false,
     href?: string,
     isNight?: boolean // ★ isNight prop を追加
 }) {
+    const { playSfx } = useSound(); // ★ 追加
 
     const handleClick = () => {
+        playSfx('decision.mp3'); // ★ 追加: クリック音再生
         if (onClick) {
             onClick();
         }

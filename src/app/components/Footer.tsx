@@ -56,8 +56,8 @@ export default function Footer({ onWalkClick }: { onWalkClick?: () => void }) {
         : 'bg-white/70';
 
     return (
-        // ★変更: absolute bottom-0 z-50 を追加して画面最下部に強制固定
-        <footer className={`w-full ${footerBgClass} backdrop-blur-sm flex-shrink-0 transition-all duration-500 absolute bottom-0 z-50 ${isMounted ? 'opacity-100' : 'opacity-0'}`}>
+        // ★修正: absolute bottom-0 z-50 を削除。フッターをコンテンツフローの最後に配置する。
+        <footer className={`w-full ${footerBgClass} backdrop-blur-sm flex-shrink-0 transition-all duration-500 ${isMounted ? 'opacity-100' : 'opacity-0'}`}>
             <nav className="flex items-center h-20">
                 {navItems.map((item) => (
                     <NavItem
