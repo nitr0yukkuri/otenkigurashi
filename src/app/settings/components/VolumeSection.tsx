@@ -1,3 +1,5 @@
+// src/app/settings/components/VolumeSection.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -39,7 +41,7 @@ export default function VolumeSection() {
                     onChange={(e) => handleBgmChange(Number(e.target.value))}
                 />
                 <SliderControl
-                    label="効果音"
+                    label="こうかおん" // ★修正: 「効果音」を「こうかおん」に変更
                     value={sfxVolume}
                     onChange={(e) => handleSfxChange(Number(e.target.value))}
                 />
