@@ -13,7 +13,7 @@ import HelpButton from './HelpButton';
 import HelpModal from './HelpModal';
 import ShareButton from './ShareButton';
 import ShareModal from './ShareModal';
-import { useSound } from '../hooks/useSound'; // ★ 追加
+import { useSound } from '../hooks/useSound';
 
 import {
     WeatherType,
@@ -24,12 +24,20 @@ import {
 
 const PET_NAME_STORAGE_KEY = 'otenki-gurashi-petName';
 const PET_COLOR_STORAGE_KEY = 'otenki-gurashi-petColor';
-const PET_CHEEK_COLOR_STORAGE_KEY = 'otenki-gurashi-petCheekColor';
+// ★修正1: エラー原因の「PET_CHEEK_COLOR_STORAGE_KEY」を「PET_CHEEK_COLOR_KEY」に修正。
+// ★定数ファイルに合わせた定義として、キー名を修正します。
+const PET_CHEEK_COLOR_KEY = 'otenki-gurashi-petCheekColor';
 const PET_EQUIPMENT_KEY = 'otenki-gurashi-petEquipment';
 const CURRENT_WEATHER_KEY = 'currentWeather';
 const PET_SETTINGS_CHANGED_EVENT = 'petSettingsChanged';
 
 const conversationMessages: { [key: string]: string[] } = {
+    // ★追加: 時間帯のメッセージ
+    morning: ["おはよう！今日も元気いっぱいだよ！", "朝ごはん食べた？今日も一日楽しもうね！"],
+    afternoon: ["こんにちは！おひるだよ〜", "午後も頑張ろうね！", "おなかすいたね？"],
+    evening: ["そろそろ夕方だね", "きれいな夕焼けが見えるかな？"],
+
+    // 天気メッセージ (既存)
     sunny: ["おひさまが気持ちいいね！", "こんな日はおさんぽしたくなるな〜", "あったかいね〜！", "ぽかぽかするね"],
     clear: ["雲ひとつないね！", "空がとっても青いよ！", "どこまでも見えそう！", "すがすがしい気分！"],
     cloudy: ["今日は過ごしやすいね！", "雲の形をずっと見ていられるなあ…", "おひさまはどこかな？"],
@@ -43,7 +51,7 @@ const conversationMessages: { [key: string]: string[] } = {
 
 export default function TenChanHomeClient({ initialData }: { initialData: any }) {
     const router = useRouter();
-    const { playSfx } = useSound(); // ★ 追加
+    const { playSfx } = useSound();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
@@ -72,18 +80,33 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     };
 
     const handleCharacterClick = () => {
-        playSfx('decision.mp3'); // ★ 追加: クリック音再生
+        // playSfx('decision.mp3'); // 効果音は無効化済み
 
         if (messageTimeoutRef.current) { clearTimeout(messageTimeoutRef.current); }
-        const isNight = timeOfDay === 'night';
-        let messageOptions = conversationMessages.default;
-        if (isNight) { messageOptions = conversationMessages.night; }
-        else if (weather && conversationMessages[weather]) { messageOptions = conversationMessages[weather]; }
+
+        let messageOptions: string[] = [];
+
+        // ★修正: 時間帯のメッセージを最優先に追加
+        if (timeOfDay && conversationMessages[timeOfDay]) {
+            messageOptions = messageOptions.concat(conversationMessages[timeOfDay]);
+        }
+
+        // ★修正: 次に、現在の天候に応じたメッセージを追加
+        if (weather && conversationMessages[weather]) {
+            messageOptions = messageOptions.concat(conversationMessages[weather]);
+        }
+
+        // どちらもメッセージがなかった場合、またはデフォルトメッセージが必要な場合にフォールバック
+        if (messageOptions.length === 0) {
+            messageOptions = conversationMessages.default;
+        }
+
         const randomMessage = messageOptions[Math.floor(Math.random() * messageOptions.length)];
         setMessage(randomMessage);
         messageTimeoutRef.current = setTimeout(() => { setMessage(null); }, 2000);
     };
 
+    // ★修正2: 未定義エラーを解消するため、cycleWeather関数を定義
     const cycleWeather = () => {
         setWeather(prev => {
             const weathers: WeatherType[] = ["sunny", "clear", "cloudy", "rainy", "thunderstorm", "snowy", "windy", "night"];
@@ -104,7 +127,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             if (storedName) setPetName(storedName);
             const storedColor = localStorage.getItem(PET_COLOR_STORAGE_KEY);
             if (storedColor) setPetColor(storedColor);
-            const storedCheekColor = localStorage.getItem(PET_CHEEK_COLOR_STORAGE_KEY);
+            const storedCheekColor = localStorage.getItem(PET_CHEEK_COLOR_KEY); // ★修正3: ここもキー名を修正
             if (storedCheekColor) setPetCheekColor(storedCheekColor);
             const storedEquipment = localStorage.getItem(PET_EQUIPMENT_KEY);
             if (storedEquipment) {

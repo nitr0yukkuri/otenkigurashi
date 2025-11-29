@@ -41,7 +41,7 @@ export default function VolumeSection() {
                     onChange={(e) => handleBgmChange(Number(e.target.value))}
                 />
                 <SliderControl
-                    label="こうかおん" // ★修正: 「効果音」を「こうかおん」に変更
+                    label="効果音" // ★修正: 「こうかおん」を「効果音」に戻す
                     value={sfxVolume}
                     onChange={(e) => handleSfxChange(Number(e.target.value))}
                 />
