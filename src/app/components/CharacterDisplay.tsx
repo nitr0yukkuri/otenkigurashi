@@ -83,8 +83,8 @@ export default function CharacterDisplay({
                         initial={{ opacity: 0, y: 10, scale: 0.8 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                        // ★修正: top-8 から top-20 に変更し、吹き出しを下に移動してPWA時のノッチ部分と干渉を防ぐ
-                        className={`absolute top-20 ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
+                        // ★修正: top-20 から top-28 に変更し、フキダシをさらに下に移動
+                        className={`absolute top-40 ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
                     >
                         <p className={`${messageText} text-[15px] font-medium`}>{message}</p>
                         <div className={`absolute left-1/2 -translate-x-1/2 bottom-[-8px] w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 ${messageArrow}`}></div>
