@@ -104,9 +104,12 @@ export default function CharacterDisplay({
                 </div>
             </div>
 
-            <div>
-                <h1 className={`text-4xl font-bold backdrop-blur-sm ${nameBg} rounded-lg px-4 py-1`}>{petName}</h1>
-            </div>
+            {/* ▼▼▼ 修正: petNameがある場合のみ表示（空文字の場合は非表示にする） ▼▼▼ */}
+            {petName && (
+                <div>
+                    <h1 className={`text-4xl font-bold backdrop-blur-sm ${nameBg} rounded-lg px-4 py-1`}>{petName}</h1>
+                </div>
+            )}
         </div>
     );
 }

@@ -145,7 +145,8 @@ export default function ShareModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+                    // ▼▼▼ 修正: z-50 → z-[60] (フッターのz-50より手前に表示して隠す) ▼▼▼
+                    className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <motion.div
@@ -175,7 +176,8 @@ export default function ShareModal({
                                 <h3 className={`text-2xl font-extrabold ${textColor} tracking-widest`}>{petName}</h3>
                             </div>
 
-                            <div className="scale-90">
+                            {/* ▼▼▼ 修正: translate-y-6 を追加しててんちゃんを下にずらす ▼▼▼ */}
+                            <div className="scale-90 translate-y-6">
                                 <CharacterDisplay
                                     petName=""
                                     petColor={petColor}
