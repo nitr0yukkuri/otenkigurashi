@@ -13,6 +13,7 @@ import HelpButton from './HelpButton';
 import HelpModal from './HelpModal';
 import ShareButton from './ShareButton';
 import ShareModal from './ShareModal';
+import { useSound } from '../hooks/useSound'; // ★ 追加
 
 import {
     WeatherType,
@@ -42,6 +43,7 @@ const conversationMessages: { [key: string]: string[] } = {
 
 export default function TenChanHomeClient({ initialData }: { initialData: any }) {
     const router = useRouter();
+    const { playSfx } = useSound(); // ★ 追加
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
@@ -70,6 +72,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     };
 
     const handleCharacterClick = () => {
+        playSfx('decision.mp3'); // ★ 追加: クリック音再生
+
         if (messageTimeoutRef.current) { clearTimeout(messageTimeoutRef.current); }
         const isNight = timeOfDay === 'night';
         let messageOptions = conversationMessages.default;
