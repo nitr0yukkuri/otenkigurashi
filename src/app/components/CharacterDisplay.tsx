@@ -84,7 +84,7 @@ export default function CharacterDisplay({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.8 }}
                         // ★修正: top-20 から top-28 に変更し、フキダシをさらに下に移動
-                        className={`absolute top-28 ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
+                        className={`absolute top-22 ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
                     >
                         <p className={`${messageText} text-[15px] font-medium`}>{message}</p>
                         <div className={`absolute left-1/2 -translate-x-1/2 bottom-[-8px] w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 ${messageArrow}`}></div>
