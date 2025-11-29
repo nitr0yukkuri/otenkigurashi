@@ -1,49 +1,14 @@
 // src/app/walk/utils.ts
-// ★★★ 重要: ファイル名を uitls.ts から utils.ts に修正しました ★★★
+// ★★★ 重要: 共通の weatherUtils からインポートするように変更 ★★★
 
-export const mapWeatherType = (weatherData: any): string => {
-    // Check if weatherData and necessary nested properaties exist
-    if (!weatherData || !weatherData.weather || weatherData.weather.length === 0 || !weatherData.wind) {
-        console.warn('Incomplete weather data received in mapWeatherType:', weatherData);
-        return "sunny"; // Return a default value
-    }
-    const main = weatherData.weather[0].main.toLowerCase();
-    const windSpeed = weatherData.wind.speed;
+import { mapWeatherType, getBackgroundGradientClass } from '../lib/weatherUtils';
 
-    const hour = new Date().getHours();
-    const isNight = hour < 5 || hour >= 19;
+// mapWeatherType は共通のものを使用
+export { mapWeatherType };
 
-    if (windSpeed >= 10) return "windy";
-    if (main.includes("thunderstorm")) return "thunderstorm";
-    if (main.includes("rain") || main.includes("drizzle")) return "rainy";
-    if (main.includes("snow")) return "snowy";
-
-    if (main.includes("clear")) {
-        return isNight ? "night" : "clear";
-    }
-    if (main.includes("clouds")) {
-        const cloudiness = weatherData.clouds?.all;
-        if (cloudiness !== undefined && cloudiness > 75) {
-            return isNight ? "night" : "cloudy";
-        }
-        return isNight ? "night" : "sunny";
-    }
-
-    return isNight ? "night" : "sunny";
-};
-
+// getBackgroundColorClass という名前で getBackgroundGradientClass をエクスポート（互換性のため）
 export const getBackgroundColorClass = (weatherType?: string): string => {
-    switch (weatherType) {
-        case 'clear': return 'bg-clear';
-        case 'sunny': return 'bg-sunny';
-        case 'rainy': return 'bg-rainy';
-        case 'cloudy': return 'bg-cloudy';
-        case 'snowy': return 'bg-snowy';
-        case 'thunderstorm': return 'bg-thunderstorm';
-        case 'windy': return 'bg-windy';
-        case 'night': return 'bg-night';
-        default: return 'bg-sky-200';
-    }
+    return getBackgroundGradientClass(weatherType as any);
 };
 
 export const getWalkMessage = (weatherType?: string): string => {

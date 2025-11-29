@@ -37,73 +37,78 @@ export async function POST(request: Request) {
     }
 
     try {
-        const currentProgress: UserProgress | null = await prisma.userProgress.findUnique({
-            where: { userId: userId },
-        });
+        // ★★★ 修正: トランザクションを使用して整合性を保証 ★★★
+        const progress = await prisma.$transaction(async (tx) => {
+            // トランザクション内で最新のデータを取得
+            const currentProgress: UserProgress | null = await tx.userProgress.findUnique({
+                where: { userId: userId },
+            });
 
-        const progressData: UserProgress = currentProgress || {
-            id: 0,
-            userId: userId,
-            walkCount: 0,
-            sunnyWalkCount: 0,
-            clearWalkCount: 0,
-            rainyWalkCount: 0,
-            cloudyWalkCount: 0,
-            snowyWalkCount: 0,
-            thunderstormWalkCount: 0,
-            windyWalkCount: 0,
-            nightWalkCount: 0,
-            collectedItemTypesCount: 0,
-            collectedNormalItemTypesCount: 0,
-            collectedUncommonItemTypesCount: 0,
-            collectedRareItemTypesCount: 0,
-            collectedEpicItemTypesCount: 0,
-            collectedLegendaryItemTypesCount: 0,
-            consecutiveWalkDays: 0,
-            lastWalkDate: null,
-        };
+            const progressData: UserProgress = currentProgress || {
+                id: 0,
+                userId: userId,
+                walkCount: 0,
+                sunnyWalkCount: 0,
+                clearWalkCount: 0,
+                rainyWalkCount: 0,
+                cloudyWalkCount: 0,
+                snowyWalkCount: 0,
+                thunderstormWalkCount: 0,
+                windyWalkCount: 0,
+                nightWalkCount: 0,
+                collectedItemTypesCount: 0,
+                collectedNormalItemTypesCount: 0,
+                collectedUncommonItemTypesCount: 0,
+                collectedRareItemTypesCount: 0,
+                collectedEpicItemTypesCount: 0,
+                collectedLegendaryItemTypesCount: 0,
+                consecutiveWalkDays: 0,
+                lastWalkDate: null,
+            };
 
-        const now = new Date();
-        let consecutiveDays = progressData.consecutiveWalkDays;
+            const now = new Date();
+            let consecutiveDays = progressData.consecutiveWalkDays;
 
-        if (progressData.lastWalkDate) {
-            const lastWalk = new Date(progressData.lastWalkDate);
-            if (isSameDay(lastWalk, now)) {
-                const progress = await prisma.userProgress.update({
-                    where: { userId: userId },
-                    data: { walkCount: { increment: 1 } },
-                });
-                return NextResponse.json({ message: 'おさんぽ回数を更新しました（同日）。', progress });
-            } else if (isConsecutiveDay(lastWalk, now)) {
-                consecutiveDays += 1;
+            if (progressData.lastWalkDate) {
+                const lastWalk = new Date(progressData.lastWalkDate);
+                if (isSameDay(lastWalk, now)) {
+                    // 同日の場合は回数のみインクリメント（連続日数は変更しない）
+                    return await tx.userProgress.update({
+                        where: { userId: userId },
+                        data: { walkCount: { increment: 1 } },
+                    });
+                } else if (isConsecutiveDay(lastWalk, now)) {
+                    consecutiveDays += 1;
+                } else {
+                    consecutiveDays = 1;
+                }
             } else {
                 consecutiveDays = 1;
             }
-        } else {
-            consecutiveDays = 1;
-        }
 
-        const weatherKey = `${weather}WalkCount` as keyof UserProgress;
-        const updateData: any = {
-            walkCount: { increment: 1 },
-            lastWalkDate: now,
-            consecutiveWalkDays: consecutiveDays,
-        };
-
-        if (weatherKey in progressData) {
-            updateData[weatherKey] = { increment: 1 };
-        }
-
-        const progress = await prisma.userProgress.upsert({
-            where: { userId: userId },
-            update: updateData,
-            create: {
-                userId: userId,
-                walkCount: 1,
+            const weatherKey = `${weather}WalkCount` as keyof UserProgress;
+            const updateData: any = {
+                walkCount: { increment: 1 },
                 lastWalkDate: now,
-                consecutiveWalkDays: 1,
-                ...((weatherKey in progressData) ? { [weatherKey]: 1 } : { sunnyWalkCount: 1 })
-            },
+                consecutiveWalkDays: consecutiveDays,
+            };
+
+            if (weatherKey in progressData) {
+                updateData[weatherKey] = { increment: 1 };
+            }
+
+            // 更新処理もトランザクション内で行う
+            return await tx.userProgress.upsert({
+                where: { userId: userId },
+                update: updateData,
+                create: {
+                    userId: userId,
+                    walkCount: 1,
+                    lastWalkDate: now,
+                    consecutiveWalkDays: 1,
+                    ...((weatherKey in progressData) ? { [weatherKey]: 1 } : { sunnyWalkCount: 1 })
+                },
+            });
         });
 
         return NextResponse.json({ message: 'おさんぽ回数を更新しました。', progress });

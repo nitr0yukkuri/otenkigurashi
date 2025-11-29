@@ -18,25 +18,34 @@ export async function GET(request: Request) {
     const lat = parseFloat(latRaw).toFixed(2);
     const lon = parseFloat(lonRaw).toFixed(2);
 
-    // ★★★ 修正: Forecast(予報)ではなく、Weather(現在)のAPIを使用 ★★★
-    // これによりリアルタイムな観測データを取得でき、精度が大幅に向上します。
+    // ★★★ 修正: Forecast(予報) API も取得して降水確率(pop)を取得する ★★★
     const weatherApiUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
+    const forecastApiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
 
     try {
-        const response = await fetch(weatherApiUrl, { cache: 'no-store' });
+        // 並行してリクエスト
+        const [weatherRes, forecastRes] = await Promise.all([
+            fetch(weatherApiUrl, { cache: 'no-store' }),
+            fetch(forecastApiUrl, { cache: 'no-store' })
+        ]);
 
-        if (!response.ok) {
-            const data = await response.json();
+        if (!weatherRes.ok) {
+            const data = await weatherRes.json();
             console.error('OpenWeatherMap API Error:', data);
-            return NextResponse.json({ message: data.message || '天気情報の取得に失敗しました。' }, { status: response.status });
+            return NextResponse.json({ message: data.message || '天気情報の取得に失敗しました。' }, { status: weatherRes.status });
         }
 
-        const currentData = await response.json();
+        const currentData = await weatherRes.json();
 
-        // ★★★ データ整形（アダプター処理） ★★★
-        // フロントエンドは "list[0]" の形式（Forecast APIの構造）を期待しているため、
-        // 現在の天気データを Forecast API のレスポンス形式に擬態させて返します。
-        // これにより、フロントエンドのコードを変更せずに精度だけを修正できます。
+        // Forecast APIから降水確率(pop)を取得
+        let pop = 0;
+        if (forecastRes.ok) {
+            const forecastData = await forecastRes.json();
+            // リストの先頭（現在に最も近い予報）のpopを使用
+            if (forecastData.list && forecastData.list.length > 0) {
+                pop = forecastData.list[0].pop;
+            }
+        }
 
         // アイコン名から昼夜(d/n)を判定 (例: "01n" -> "n")
         const icon = currentData.weather?.[0]?.icon || '01d';
@@ -52,7 +61,7 @@ export async function GET(request: Request) {
                     clouds: currentData.clouds,
                     wind: currentData.wind,
                     visibility: currentData.visibility,
-                    pop: 0, // 降水確率は現在天気にはないので0
+                    pop: pop, // ★ 修正: 取得したpopを使用（値は0〜1）
                     sys: {
                         pod: pod // 昼夜判定を渡す
                     },
