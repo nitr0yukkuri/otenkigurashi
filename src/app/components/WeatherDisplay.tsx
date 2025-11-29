@@ -1,3 +1,5 @@
+// src/app/components/WeatherDisplay.tsx
+
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,7 +34,8 @@ export default function WeatherDisplay({
 
     return (
         <div className="pt-8 text-center h-[150px] flex flex-col justify-center">
-            <div className="flex flex-col items-center gap-2 cursor-pointer" onClick={onCycleWeather}>
+            {/* 変更: onClickとcursor-pointerを削除 */}
+            <div className="flex flex-col items-center gap-2">
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={displayWeather || 'loading'}
@@ -44,7 +47,14 @@ export default function WeatherDisplay({
                     >
                         {displayWeather ? (
                             <>
-                                <WeatherIcon type={displayWeather} size={96} />
+                                {/* 修正: WeatherIconをbuttonでラップし、ここにonClickを移動 */}
+                                <button
+                                    onClick={onCycleWeather}
+                                    className="p-2 rounded-full transition-transform active:scale-95 focus:outline-none"
+                                    aria-label="天気切り替え"
+                                >
+                                    <WeatherIcon type={displayWeather} size={96} />
+                                </button>
                                 {/* ★★★ 変更点: textColorClass を適用 ★★★ */}
                                 <div className={`flex items-center justify-center gap-2 text-sm ${textColorClass} bg-white/30 backdrop-blur-sm rounded-md px-2 py-1`}>
                                     {isClient && <span>{currentTime.getHours().toString().padStart(2, '0')}:{currentTime.getMinutes().toString().padStart(2, '0')}</span>}
