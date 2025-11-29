@@ -16,11 +16,16 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     const main = weatherData.weather[0].main.toLowerCase();
     const windSpeed = weatherData.wind?.speed;
 
-    // データ内の pod (Part of Day) を優先して昼夜判定
+    // ★ 修正案: 時間(getHours)ではなく、OpenWeatherMapが返してくれる「昼夜フラグ(pod)」を優先する
     let isNight = false;
-    if (weatherData.sys?.pod) {
-        isNight = weatherData.sys.pod === 'n';
+
+    // APIデータの sys.pod が 'n' (night) なら夜とする
+    if (weatherData.sys && weatherData.sys.pod === 'n') {
+        isNight = true;
+    } else if (weatherData.sys && weatherData.sys.pod === 'd') {
+        isNight = false;
     } else {
+        // データがない場合のフォールバック（ここだけ時間は使うが、APIデータがあれば通らない）
         const hour = new Date().getHours();
         isNight = hour < 5 || hour >= 19;
     }
