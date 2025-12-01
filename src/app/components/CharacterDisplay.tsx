@@ -76,14 +76,15 @@ export default function CharacterDisplay({
     const isRainbow = petColor === 'rainbow';
 
     return (
-        <div className={`flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center ${isStatic ? '' : 'pb-20'} relative`}>
+        // ★修正: web-character-offset クラスを追加
+        <div className={`flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center ${isStatic ? '' : 'pb-20'} relative web-character-offset`}>
             <AnimatePresence>
                 {message && (
                     <motion.div
                         initial={{ opacity: 0, y: 10, scale: 0.8 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                        // ★修正: top-5 を削除し、カスタムクラス chat-bubble-pos を適用
+                        // ★修正: chat-bubble-pos クラスを適用
                         className={`absolute chat-bubble-pos ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
                     >
                         <p className={`${messageText} text-[15px] font-medium`}>{message}</p>
