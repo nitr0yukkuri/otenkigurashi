@@ -97,9 +97,9 @@ body {
     pointer-events: none; 
 }
 
-/* ★追加: チャットフキダシの位置制御 */
+/* ★追加: チャットフキダシの位置制御（通常Web時） */
 .chat-bubble-pos {
-    top: 1.25rem; /* Webデフォルト: top-5 (20px) */
+    top: 1.25rem; /* top-5 (20px) 相当 */
 }
 
 /* ★変更点: PWA (Standalone) モード時の iPhone 15 フルスクリーン対応 */
@@ -118,8 +118,8 @@ body {
         display: none !important;
     }
 
-    /* ★追加: PWAモード時のフキダシ位置変更 (少し下げる) */
+    /* ★追加: PWAモード時はフキダシを大きく下げる */
     .chat-bubble-pos {
-        top: 3.5rem; /* PWA用: top-14 (56px) 相当に変更 */
+        top: 7rem; /* top-28 (112px) 相当に変更してノッチ回避 */
     }
 }
