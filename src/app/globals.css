@@ -132,7 +132,7 @@ body {
 
     /* PWAモード: フキダシ位置調整 (ノッチ回避用) */
     .chat-bubble-pos {
-        top: 5rem; /* 1.25rem -> 5rem に変更 (だいぶ下に) */
+        top: 5.3rem; /* 1.25rem -> 5rem に変更 (だいぶ下に) */
     }
 
     /* ★追加: PWAモードではWeb用のオフセットを無効化（リセット） */
@@ -142,6 +142,6 @@ body {
 
     /* ★追加: PWAモードではフキダシ位置の上書きもリセット (こちらも5remに) */
     .web-character-offset .chat-bubble-pos {
-        top: 5rem; 
+        top: 5.3rem; 
     }
 }
