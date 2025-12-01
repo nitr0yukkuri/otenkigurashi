@@ -118,8 +118,8 @@ body {
         display: none !important;
     }
 
-    /* ★追加: PWAモード時はフキダシを大きく下げる */
+    /* ★追加: PWAモード時はフキダシの位置調整 */
     .chat-bubble-pos {
-        top: 7rem; /* top-28 (112px) 相当に変更してノッチ回避 */
+        top: 5rem; /* 5rem (80px) に調整 */
     }
 }
