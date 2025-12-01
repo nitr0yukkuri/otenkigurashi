@@ -120,6 +120,6 @@ body {
 
     /* ★追加: PWAモード時はフキダシの位置調整 */
     .chat-bubble-pos {
-        top: 5rem; /* 5rem (80px) に調整 */
+        top: 4rem; /* 4rem (64px) に調整 */
     }
 }
