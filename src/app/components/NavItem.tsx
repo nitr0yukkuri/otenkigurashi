@@ -3,33 +3,37 @@
 'use client';
 
 import Link from 'next/link';
-import { useSound } from '../hooks/useSound'; // ★ 追加
+import { motion } from 'framer-motion'; // ★追加
+import { useSound } from '../hooks/useSound';
 
-// ★ isNight prop を受け取るように変更
+// LinkコンポーネントをFramer Motion化
+const MotionLink = motion(Link);
+
+// isNight prop を受け取るように変更
 export default function NavItem({ icon, label, onClick, hasNotification = false, href, isNight }: {
     icon: React.ReactNode,
     label: string,
     onClick?: () => void,
     hasNotification?: boolean,
     href?: string,
-    isNight?: boolean // ★ isNight prop を追加
+    isNight?: boolean
 }) {
-    const { playSfx } = useSound(); // ★ 追加
+    const { playSfx } = useSound();
 
     const handleClick = () => {
-        playSfx('decision.mp3'); // ★ 追加: クリック音再生
+        playSfx('decision.mp3');
         if (onClick) {
             onClick();
         }
     };
 
-    // ★ isNight に応じて色を動的に決定 (text-slate-200/300 を text-white に変更)
+    // isNight に応じて色を動的に決定
     const iconColor = isNight ? 'text-white' : 'text-slate-800';
     const labelColor = isNight ? 'text-white' : 'text-slate-700';
 
     const content = (
         <>
-            {/* ★ アイコンの色を動的に適用 */}
+            {/* アイコンの色を動的に適用 */}
             <div className={`relative ${iconColor} transition-colors duration-300`}>
                 {icon}
                 {hasNotification && (
@@ -39,20 +43,27 @@ export default function NavItem({ icon, label, onClick, hasNotification = false,
                     </div>
                 )}
             </div>
-            {/* ★ ラベルの色を動的に適用 */}
+            {/* ラベルの色を動的に適用 */}
             <span className={`text-xs font-medium ${labelColor} transition-colors duration-300`}>{label}</span>
         </>
     );
 
-    const className = `flex-1 flex flex-col items-center justify-center gap-1 transition-transform active:scale-95 h-full border-none outline-none`;
+    // ★変更: transition-transform と active:scale-95 を削除 (Framer Motionで制御するため)
+    const className = `flex-1 flex flex-col items-center justify-center gap-1 h-full border-none outline-none bg-transparent`;
+
+    // ★追加: 控えめな「ポコッ」アニメーション設定
+    const animationProps = {
+        whileTap: { scale: 0.9 }, // 0.75 -> 0.9 に変更（変化を小さく）
+        transition: { type: "spring", stiffness: 400, damping: 17 } // dampingを増やして揺れを控えめに
+    };
 
     return href ? (
-        <Link href={href} className={className} onClick={handleClick}>
+        <MotionLink href={href} className={className} onClick={handleClick} {...animationProps}>
             {content}
-        </Link>
+        </MotionLink>
     ) : (
-        <button onClick={handleClick} className={className}>
+        <motion.button onClick={handleClick} className={className} {...animationProps}>
             {content}
-        </button>
+        </motion.button>
     );
 };
