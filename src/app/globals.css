@@ -97,9 +97,21 @@ body {
     pointer-events: none; 
 }
 
-/* ★追加: チャットフキダシの位置制御（通常Web時） */
+/* --- チャット＆キャラクター位置制御 --- */
+
+/* 基本のフキダシ位置 (top-5相当) */
 .chat-bubble-pos {
-    top: 1.25rem; /* top-5 (20px) 相当 */
+    top: 1.25rem; 
+}
+
+/* ★追加: Webブラウザ用の全体オフセット (キャラと名前を下に) */
+.web-character-offset {
+    padding-top: 4rem; 
+}
+
+/* ★追加: Webブラウザ時はフキダシも一緒に下げる (基本位置 + オフセット分) */
+.web-character-offset .chat-bubble-pos {
+    top: 5.25rem; /* 1.25rem + 4rem */
 }
 
 /* ★変更点: PWA (Standalone) モード時の iPhone 15 フルスクリーン対応 */
@@ -110,7 +122,6 @@ body {
         height: 100dvh !important;
         border-radius: 0 !important;
         padding-top: env(safe-area-inset-top) !important;
-        /* ▼▼▼ 修正: フッターの位置を下げるため、下のパディングを0に変更 ▼▼▼ */
         padding-bottom: 0 !important; 
     }
 
@@ -119,8 +130,18 @@ body {
         display: none !important;
     }
 
-    /* ★追加: PWAモード時はフキダシの位置調整 */
+    /* PWAモード: フキダシ位置調整 (ノッチ回避用) */
     .chat-bubble-pos {
-        top: 3.5rem; /* 3.5rem (56px) に調整 */
+        top: 4rem; 
+    }
+
+    /* ★追加: PWAモードではWeb用のオフセットを無効化（リセット） */
+    .web-character-offset {
+        padding-top: 0;
+    }
+
+    /* ★追加: PWAモードではフキダシ位置の上書きもリセット */
+    .web-character-offset .chat-bubble-pos {
+        top: 4rem; 
     }
 }
