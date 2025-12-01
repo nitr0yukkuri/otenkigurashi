@@ -110,7 +110,8 @@ body {
         height: 100dvh !important;
         border-radius: 0 !important;
         padding-top: env(safe-area-inset-top) !important;
-        padding-bottom: env(safe-area-inset-bottom) !important;
+        /* ▼▼▼ 修正: フッターの位置を下げるため、下のパディングを0に変更 ▼▼▼ */
+        padding-bottom: 0 !important; 
     }
 
     /* PWA時は画面上部の黒い疑似ノッチを非表示にする */
