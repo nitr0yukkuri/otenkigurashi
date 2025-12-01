@@ -142,6 +142,6 @@ body {
 
     /* ★追加: PWAモードではフキダシ位置の上書きもリセット */
     .web-character-offset .chat-bubble-pos {
-        top: 4rem; 
+        top: 6rem; 
     }
 }
