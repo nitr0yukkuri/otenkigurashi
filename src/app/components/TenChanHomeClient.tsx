@@ -262,7 +262,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                         petColor={petColor}
                         cheekColor={petCheekColor}
                         equipment={petEquipment}
-                        // ★修正: "scared" を正しく割り当てる
+                        // ★修正: 強風と雷雨のときに "scared" を指定
                         mood={error ? "sad" : (displayWeatherType === 'thunderstorm' || displayWeatherType === 'windy') ? "scared" : "happy"}
                         message={message}
                         onCharacterClick={handleCharacterClick}

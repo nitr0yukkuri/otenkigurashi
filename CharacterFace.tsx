@@ -5,7 +5,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
 type CharacterFaceProps = {
-    // ★修正: 型定義に "scared" を追加してエラーを解消
+    // ★修正: 型定義に "scared" を追加して CharacterDisplay 側との整合性を取る
     mood?: "happy" | "neutral" | "sad" | "scared";
     onClick?: () => void;
     petColor?: string;
@@ -81,7 +81,7 @@ export default function CharacterFace({
                 <circle cx="100" cy="70" r="12" fill={cheekColor} />
 
                 {/* 目 */}
-                {/* ★追加: moodがscaredのときは ＞＜ の目にする */}
+                {/* ★追加: moodがscaredのときは ＞＜ の目にする (isStatic判定も考慮) */}
                 {mood === 'scared' ? (
                     <motion.g
                         animate={isStatic ? undefined : { x: [-1, 1, -1], y: [0, 1, 0] }} // ガタガタ震える
@@ -112,7 +112,7 @@ export default function CharacterFace({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                         stroke="#5D4037"
-                        strokeWidth="4"
+                        strokeWidth="5"
                         fill="none"
                         strokeLinecap="round"
                         strokeLinejoin="round"
