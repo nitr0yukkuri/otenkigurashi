@@ -5,7 +5,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
 type CharacterFaceProps = {
-    // ★修正: 型定義に "scared" を追加して CharacterDisplay 側との整合性を取る
+    // ★修正: "scared" を追加
     mood?: "happy" | "neutral" | "sad" | "scared";
     onClick?: () => void;
     petColor?: string;
@@ -29,9 +29,9 @@ export default function CharacterFace({
                 return "M 45 80 L 75 80";
             case "sad":
                 return "M 45 85 Q 60 75 75 85";
-            // ★追加: 怖がり口（波線）
+            // ★追加: 怖がり口（波線）- 座標を修正して中央寄せ (40-80, 中心60)
             case "scared":
-                return "M 42 82 Q 47 77 52 82 Q 57 87 62 82 Q 67 77 72 82 Q 77 87 82 82";
+                return "M 40 82 Q 45 77 50 82 Q 55 87 60 82 Q 65 77 70 82 Q 75 87 80 82";
             default:
                 return "M 45 75 Q 60 90 75 75";
         }
