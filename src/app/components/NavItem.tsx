@@ -7,7 +7,8 @@ import { motion } from 'framer-motion'; // ★追加
 import { useSound } from '../hooks/useSound';
 
 // LinkコンポーネントをFramer Motion化
-const MotionLink = motion(Link);
+// ★変更: motion(Link) は非推奨のため motion.create(Link) に変更
+const MotionLink = motion.create(Link);
 
 // isNight prop を受け取るように変更
 export default function NavItem({ icon, label, onClick, hasNotification = false, href, isNight }: {
