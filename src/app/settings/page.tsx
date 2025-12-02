@@ -1,3 +1,5 @@
+// src/app/settings/page.tsx
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -23,7 +25,12 @@ export default function SettingsPage() {
         setIsNight(storedWeather === 'night');
     }, []);
 
-    const linkColor = isNight ? 'text-gray-300 hover:text-white' : 'text-slate-500 hover:text-slate-700';
+    // ★修正: 戻るボタンの視認性向上のためのクラス定義
+    // font-extrabold (800) を使用して文字を太くする
+    const backButtonClass = isNight
+        ? 'bg-black/20 text-gray-200 hover:bg-black/40'
+        : 'bg-white/40 text-slate-700 hover:bg-white/60';
+
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
     const titleIconColor = isNight ? 'text-gray-300' : 'text-slate-500';
 
@@ -32,7 +39,10 @@ export default function SettingsPage() {
             <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : ''} ${bgClass} transition-all duration-500`}>
                 <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
                 <div className="flex-grow overflow-y-auto p-6">
-                    <Link href="/" className={`mb-6 inline-block text-sm font-semibold ${linkColor} transition-colors`}>← もどる</Link>
+                    {/* ★修正: font-extrabold を適用し、カプセル型の背景を追加 */}
+                    <Link href="/" className={`mb-6 inline-block px-4 py-2 rounded-full backdrop-blur-md shadow-sm text-sm font-extrabold transition-all ${backButtonClass}`}>
+                        ← もどる
+                    </Link>
 
                     <header className="mb-8">
                         <h1 className={`text-4xl font-extrabold ${titleColor} tracking-wider flex items-center gap-2 backdrop-blur-sm bg-white/30 rounded-lg px-4 py-1`}>
