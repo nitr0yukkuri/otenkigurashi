@@ -68,7 +68,7 @@ export default function ItemDetailModal({ isOpen, onClose, item }: Props) {
                         <div className="text-sm text-slate-600 space-y-1">
                             <p className="text-center font-semibold">
                                 {/* 取得条件 */}
-                                {weatherText}の日に見つかる
+                                {weatherText}の日に見つかりやすい
                             </p>
                             <p className="text-center">{item.description}</p>
                             <p className="text-center text-xs font-bold text-yellow-500">
