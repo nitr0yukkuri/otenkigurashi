@@ -30,7 +30,7 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
         isNight = hour < 5 || hour >= 19;
     }
 
-    if (windSpeed !== undefined && windSpeed >= 10) return "windy";
+    if (windSpeed !== undefined && windSpeed >= 7) return "windy";
     if (main.includes("thunderstorm")) return "thunderstorm";
     if (main.includes("rain") || main.includes("drizzle")) return "rainy";
     if (main.includes("snow")) return "snowy";
