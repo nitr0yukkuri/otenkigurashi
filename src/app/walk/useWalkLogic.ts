@@ -5,7 +5,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { mapWeatherType, getBackgroundColorClass } from './utils';
-import { getUserId } from '../lib/userId'; // ★ 修正: userId -> userID
+// ★修正: 相対パスからエイリアスに変更
+import { getUserId } from '@/app/lib/userId';
 
 interface Item {
     id: number;

@@ -7,7 +7,8 @@ import { IoBan, IoShirt, IoHandRight, IoCloud } from 'react-icons/io5';
 import ItemIcon from '../../components/ItemIcon';
 import CharacterDisplay, { EquipmentState } from '../../components/CharacterDisplay';
 import { STORAGE_KEYS, EVENTS } from '../constants';
-import { getUserId } from '../../lib/userId';
+// ★修正: 相対パスからエイリアスに変更
+import { getUserId } from '@/app/lib/userId';
 
 interface CollectionItem {
     id: number;
@@ -28,7 +29,7 @@ export default function EquipmentSection() {
     const [equipment, setEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null });
     const [items, setItems] = useState<CollectionItem[]>([]);
     const [activeTab, setActiveTab] = useState<'head' | 'hand' | 'floating'>('head');
-    const [petColor, setPetColor] = useState('white');
+    const [petColor, setPetColor] = useState('#ffffff');
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
 
     useEffect(() => {
