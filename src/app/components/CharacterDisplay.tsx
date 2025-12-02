@@ -17,7 +17,7 @@ type CharacterDisplayProps = {
     petColor: string;
     cheekColor?: string;
     equipment: EquipmentState | null;
-    // ★"scared" が含まれていることを確認
+    // ★修正: "scared" を追加
     mood: "happy" | "neutral" | "sad" | "scared";
     message: string | null;
     onCharacterClick: () => void;

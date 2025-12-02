@@ -10,7 +10,7 @@ type CharacterFaceProps = {
     onClick?: () => void;
     petColor?: string;
     cheekColor?: string;
-    isStatic?: boolean; // ★ 追加: 静止モードフラグ
+    isStatic?: boolean;
 };
 
 export default function CharacterFace({
@@ -18,7 +18,7 @@ export default function CharacterFace({
     onClick,
     petColor = "white",
     cheekColor = "#F8BBD0",
-    isStatic = false // ★ 追加
+    isStatic = false
 }: CharacterFaceProps) {
 
     const getMouthPath = () => {
@@ -38,6 +38,8 @@ export default function CharacterFace({
     };
 
     const isRainbow = petColor === 'rainbow';
+    const safePetColor = petColor === 'white' ? '#ffffff' : petColor;
+
     const rainbowAnimation = {
         fill: [
             "#ff0000", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff", "#ff0000"
@@ -48,7 +50,7 @@ export default function CharacterFace({
     return (
         <motion.div
             style={{ width: '100%', height: '100%', cursor: 'pointer' }}
-            whileTap={isStatic ? undefined : { scale: 0.9 }} // ★ 変更: 静止時はタップアニメなし
+            whileTap={isStatic ? undefined : { scale: 0.9 }}
             transition={{ type: "spring", stiffness: 400, damping: 15 }}
             onClick={onClick}
         >
@@ -56,7 +58,7 @@ export default function CharacterFace({
                 viewBox="0 0 120 120"
                 width="100%"
                 height="100%"
-                animate={isStatic ? undefined : { // ★ 変更: 静止時は動きなし
+                animate={isStatic ? undefined : {
                     y: ["-3%", "3%"],
                     rotate: [-2, 2, -2]
                 }}
@@ -70,8 +72,8 @@ export default function CharacterFace({
                 {/* 顔のベース */}
                 <motion.circle
                     cx="60" cy="60" r="60"
-                    fill={isRainbow ? '#ff0000' : petColor}
-                    animate={isStatic ? undefined : (isRainbow ? rainbowAnimation : { fill: petColor })} // ★ 変更
+                    fill={isRainbow ? '#ff0000' : safePetColor}
+                    animate={isStatic ? undefined : (isRainbow ? rainbowAnimation : { fill: safePetColor })}
                 />
 
                 {/* ほっぺ */}
@@ -79,7 +81,7 @@ export default function CharacterFace({
                 <circle cx="100" cy="70" r="12" fill={cheekColor} />
 
                 {/* 目 */}
-                {/* ★追加: scaredのときは ＞＜ の目にする */}
+                {/* ★追加: moodがscaredのときは ＞＜ の目にする (isStatic判定も考慮) */}
                 {mood === 'scared' ? (
                     <motion.g
                         animate={isStatic ? undefined : { x: [-1, 1, -1], y: [0, 1, 0] }} // ガタガタ震える
@@ -92,7 +94,7 @@ export default function CharacterFace({
                     </motion.g>
                 ) : (
                     <motion.g
-                        animate={isStatic ? undefined : { scaleY: [1, 0.1, 1, 1, 1] }} // ★ 変更: 静止時は瞬きなし
+                        animate={isStatic ? undefined : { scaleY: [1, 0.1, 1, 1, 1] }}
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
                     >
                         <circle cx="40" cy="55" r="5" fill="#5D4037" />
@@ -113,6 +115,7 @@ export default function CharacterFace({
                         strokeWidth="5"
                         fill="none"
                         strokeLinecap="round"
+                        strokeLinejoin="round"
                     />
                 </AnimatePresence>
             </motion.svg>
