@@ -17,7 +17,8 @@ type CharacterDisplayProps = {
     petColor: string;
     cheekColor?: string;
     equipment: EquipmentState | null;
-    mood: "happy" | "neutral" | "sad";
+    // ★修正: 型定義に "scared" を追加
+    mood: "happy" | "neutral" | "sad" | "scared";
     message: string | null;
     onCharacterClick: () => void;
     isNight?: boolean;
@@ -83,7 +84,6 @@ export default function CharacterDisplay({
                         initial={{ opacity: 0, y: 10, scale: 0.8 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.8 }}
-                        // ★修正: top-5 を削除し、カスタムクラス chat-bubble-pos を適用
                         className={`absolute chat-bubble-pos ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
                     >
                         <p className={`${messageText} text-[15px] font-medium`}>{message}</p>
@@ -105,7 +105,6 @@ export default function CharacterDisplay({
                 </div>
             </div>
 
-            {/* ▼▼▼ 修正: petNameがある場合のみ表示（空文字の場合は非表示にする） ▼▼▼ */}
             {petName && (
                 <div>
                     <h1 className={`text-4xl font-bold backdrop-blur-sm ${nameBg} rounded-lg px-4 py-1`}>{petName}</h1>

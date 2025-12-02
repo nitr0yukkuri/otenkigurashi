@@ -5,11 +5,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
 type CharacterFaceProps = {
-    mood?: "happy" | "neutral" | "sad";
+    // ★修正: 型定義に "scared" を追加してエラーを解消
+    mood?: "happy" | "neutral" | "sad" | "scared";
     onClick?: () => void;
     petColor?: string;
     cheekColor?: string;
-    isStatic?: boolean; // ★ 追加: 静止モードフラグ
+    isStatic?: boolean;
 };
 
 export default function CharacterFace({
@@ -17,7 +18,7 @@ export default function CharacterFace({
     onClick,
     petColor = "white",
     cheekColor = "#F8BBD0",
-    isStatic = false // ★ 追加
+    isStatic = false
 }: CharacterFaceProps) {
 
     const getMouthPath = () => {
@@ -28,14 +29,15 @@ export default function CharacterFace({
                 return "M 45 80 L 75 80";
             case "sad":
                 return "M 45 85 Q 60 75 75 85";
+            // ★追加: 怖がり口（波線）
+            case "scared":
+                return "M 42 82 Q 47 77 52 82 Q 57 87 62 82 Q 67 77 72 82 Q 77 87 82 82";
             default:
                 return "M 45 75 Q 60 90 75 75";
         }
     };
 
     const isRainbow = petColor === 'rainbow';
-
-    // ★追加: カラーネーム "white" と Hexコード間のアニメーション警告を防ぐため、Hexに統一
     const safePetColor = petColor === 'white' ? '#ffffff' : petColor;
 
     const rainbowAnimation = {
@@ -48,7 +50,7 @@ export default function CharacterFace({
     return (
         <motion.div
             style={{ width: '100%', height: '100%', cursor: 'pointer' }}
-            whileTap={isStatic ? undefined : { scale: 0.9 }} // ★ 変更: 静止時はタップアニメなし
+            whileTap={isStatic ? undefined : { scale: 0.9 }}
             transition={{ type: "spring", stiffness: 400, damping: 15 }}
             onClick={onClick}
         >
@@ -56,7 +58,7 @@ export default function CharacterFace({
                 viewBox="0 0 120 120"
                 width="100%"
                 height="100%"
-                animate={isStatic ? undefined : { // ★ 変更: 静止時は動きなし
+                animate={isStatic ? undefined : {
                     y: ["-3%", "3%"],
                     rotate: [-2, 2, -2]
                 }}
@@ -70,7 +72,6 @@ export default function CharacterFace({
                 {/* 顔のベース */}
                 <motion.circle
                     cx="60" cy="60" r="60"
-                    // ★変更: petColor の代わりに safePetColor を使用
                     fill={isRainbow ? '#ff0000' : safePetColor}
                     animate={isStatic ? undefined : (isRainbow ? rainbowAnimation : { fill: safePetColor })}
                 />
@@ -80,13 +81,26 @@ export default function CharacterFace({
                 <circle cx="100" cy="70" r="12" fill={cheekColor} />
 
                 {/* 目 */}
-                <motion.g
-                    animate={isStatic ? undefined : { scaleY: [1, 0.1, 1, 1, 1] }} // ★ 変更: 静止時は瞬きなし
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
-                >
-                    <circle cx="40" cy="55" r="5" fill="#5D4037" />
-                    <circle cx="80" cy="55" r="5" fill="#5D4037" />
-                </motion.g>
+                {/* ★追加: moodがscaredのときは ＞＜ の目にする */}
+                {mood === 'scared' ? (
+                    <motion.g
+                        animate={isStatic ? undefined : { x: [-1, 1, -1], y: [0, 1, 0] }} // ガタガタ震える
+                        transition={{ duration: 0.2, repeat: Infinity }}
+                    >
+                        {/* 左目 ＞ */}
+                        <path d="M 35 50 L 45 55 L 35 60" fill="none" stroke="#5D4037" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                        {/* 右目 ＜ */}
+                        <path d="M 85 50 L 75 55 L 85 60" fill="none" stroke="#5D4037" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                    </motion.g>
+                ) : (
+                    <motion.g
+                        animate={isStatic ? undefined : { scaleY: [1, 0.1, 1, 1, 1] }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+                    >
+                        <circle cx="40" cy="55" r="5" fill="#5D4037" />
+                        <circle cx="80" cy="55" r="5" fill="#5D4037" />
+                    </motion.g>
+                )}
 
                 {/* 口 */}
                 <AnimatePresence mode="wait">
@@ -98,9 +112,10 @@ export default function CharacterFace({
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
                         stroke="#5D4037"
-                        strokeWidth="5"
+                        strokeWidth="4"
                         fill="none"
                         strokeLinecap="round"
+                        strokeLinejoin="round"
                     />
                 </AnimatePresence>
             </motion.svg>
