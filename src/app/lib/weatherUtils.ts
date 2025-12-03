@@ -7,7 +7,7 @@ export type WeatherType = "sunny" | "clear" | "rainy" | "cloudy" | "snowy" | "th
 
 /**
  * OpenWeatherMapのデータから天気タイプをマッピングします。
- * (TenChanHomeClient.tsx, page.tsx, weather/page.tsx から共通化)
+ * (TenChanHomeClient.tsx, page.tsx7, weather/page.tsx から共通化)
  */
 export const mapWeatherType = (weatherData: any): WeatherType => {
     if (!weatherData || !weatherData.weather || weatherData.weather.length === 0) {
@@ -30,7 +30,7 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
         isNight = hour < 5 || hour >= 19;
     }
 
-    if (windSpeed !== undefined && windSpeed >= 7) return "windy";
+    if (windSpeed !== undefined && windSpeed >= 8.5) return "windy";
     if (main.includes("thunderstorm")) return "thunderstorm";
     if (main.includes("rain") || main.includes("drizzle")) return "rainy";
     if (main.includes("snow")) return "snowy";
