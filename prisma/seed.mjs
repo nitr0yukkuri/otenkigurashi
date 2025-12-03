@@ -54,6 +54,12 @@ const initialItems = [
     { name: '月のしずく', description: '月の光が集まってできたような、優しい光の玉。', rarity: 'epic', iconName: 'BsMoonStarsFill', weather: 'night', category: 'floating' },
     { name: '真夜中の花', description: '夜にだけそっと咲く、珍しい花。', rarity: 'rare', iconName: 'GiNightSky', weather: 'night', category: 'head' },
     { name: '眠りの砂', description: '持っていると少し眠たくなる、キラキラした砂。', rarity: 'uncommon', iconName: 'GiSparkles', weather: 'night', category: 'floating' },
+
+    // --- ★ 新規追加アイテム ---
+    { name: 'クモの糸', description: '丈夫でキラキラした糸。何かに使えそう。', rarity: 'normal', iconName: 'GiSpiderWeb', weather: null, category: null },
+    { name: '虫取り網', description: '手作りの網。いろんなものを捕まえられそう！', rarity: 'rare', iconName: 'GiFishingNet', weather: null, category: 'hand' },
+    { name: '虹色のネックレス', description: '光に反射して七色に輝くネックレス。', rarity: 'epic', iconName: 'GiNecklace', weather: null, category: 'head' },
+    { name: 'てるてる坊主', description: 'あした天気になあれ。雨の日に飾るといいことがあるかも？', rarity: 'rare', iconName: 'GiGhost', weather: null, category: 'room' },
 ];
 
 async function main() {

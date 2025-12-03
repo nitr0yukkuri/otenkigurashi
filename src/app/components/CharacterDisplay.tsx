@@ -10,6 +10,8 @@ export type EquipmentState = {
     head: string | null;
     hand: string | null;
     floating: string | null;
+    // ★追加: お部屋スロット
+    room?: string | null;
 };
 
 type CharacterDisplayProps = {
@@ -17,24 +19,21 @@ type CharacterDisplayProps = {
     petColor: string;
     cheekColor?: string;
     equipment: EquipmentState | null;
-    // ★修正: "scared" を追加
     mood: "happy" | "neutral" | "sad" | "scared";
     message: string | null;
     onCharacterClick: () => void;
     isNight?: boolean;
     isStatic?: boolean;
+    // ★追加: 天気情報（家具の出し分け用）
+    weather?: string | null;
 };
 
 const SLOT_STYLES = {
-    head: {
-        className: "absolute -top-8 left-1/2 -translate-x-1/2 z-20 w-2/3",
-    },
-    hand: {
-        className: "absolute bottom-0 -right-4 z-30 w-1/3",
-    },
-    floating: {
-        className: "absolute -top-4 -right-8 z-10 w-1/3",
-    }
+    head: { className: "absolute -top-8 left-1/2 -translate-x-1/2 z-20 w-2/3" },
+    hand: { className: "absolute bottom-0 -right-4 z-30 w-1/3" },
+    floating: { className: "absolute -top-4 -right-8 z-10 w-1/3" },
+    // ★追加: 家具（背景）
+    room: { className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 w-full h-full scale-150 opacity-80 pointer-events-none" }
 };
 
 export default function CharacterDisplay({
@@ -46,22 +45,26 @@ export default function CharacterDisplay({
     message,
     onCharacterClick,
     isNight = false,
-    isStatic = false
+    isStatic = false,
+    weather
 }: CharacterDisplayProps) {
 
     const renderSlot = (slot: keyof EquipmentState) => {
         if (!equipment) return null;
-
         const itemName = equipment[slot];
         if (!itemName) return null;
+
+        // ★追加: 天気連動家具のロジック
+        // 「てるてる坊主(GiGhost)」は雨の日の「お部屋」スロットでのみ表示
+        if (slot === 'room' && itemName === 'GiGhost' && weather !== 'rainy' && weather !== null) {
+            // weatherがnull(設定画面など)の場合は常に表示する
+            return null;
+        }
 
         const style = SLOT_STYLES[slot];
 
         return (
-            <div
-                key={slot}
-                className={style.className}
-            >
+            <div key={slot} className={style.className}>
                 <div className="w-full h-full flex items-center justify-center drop-shadow-md">
                     <ItemIcon name={itemName} size={undefined} />
                 </div>
@@ -73,7 +76,6 @@ export default function CharacterDisplay({
     const messageText = isNight ? 'text-white' : 'text-slate-700';
     const messageArrow = isNight ? 'border-t-gray-700/80' : 'border-t-white/80';
     const nameBg = isNight ? 'bg-black/30' : 'bg-white/30';
-
     const isRainbow = petColor === 'rainbow';
 
     return (
@@ -92,10 +94,10 @@ export default function CharacterDisplay({
                 )}
             </AnimatePresence>
 
-            <div
-                className="w-40 h-40 rounded-full relative"
-                style={{ backgroundColor: isRainbow ? '#ff0000' : petColor }}
-            >
+            <div className="w-40 h-40 rounded-full relative">
+                {/* ★追加: 家具は一番後ろ */}
+                {renderSlot('room')}
+
                 {renderSlot('floating')}
                 {renderSlot('head')}
                 {renderSlot('hand')}

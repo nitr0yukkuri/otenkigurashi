@@ -3,11 +3,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { IoBan, IoShirt, IoHandRight, IoCloud } from 'react-icons/io5';
+import { IoBan, IoShirt, IoHandRight, IoCloud, IoHome } from 'react-icons/io5'; // ★ IoHome追加
 import ItemIcon from '../../components/ItemIcon';
 import CharacterDisplay, { EquipmentState } from '../../components/CharacterDisplay';
 import { STORAGE_KEYS, EVENTS } from '../constants';
-// ★修正: 相対パスからエイリアスに変更
 import { getUserId } from '@/app/lib/userId';
 
 interface CollectionItem {
@@ -16,19 +15,21 @@ interface CollectionItem {
     iconName: string | null;
     quantity: number;
     rarity: string;
-    category: 'head' | 'hand' | 'floating' | null;
+    category: 'head' | 'hand' | 'floating' | 'room' | null; // ★ 型定義拡張
 }
 
 const TABS = [
     { id: 'head', label: 'あたま', icon: <IoShirt /> },
     { id: 'hand', label: 'てもち', icon: <IoHandRight /> },
     { id: 'floating', label: 'まわり', icon: <IoCloud /> },
+    // ★追加: お部屋タブ
+    { id: 'room', label: 'お部屋', icon: <IoHome /> },
 ];
 
 export default function EquipmentSection() {
-    const [equipment, setEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null });
+    const [equipment, setEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null, room: null });
     const [items, setItems] = useState<CollectionItem[]>([]);
-    const [activeTab, setActiveTab] = useState<'head' | 'hand' | 'floating'>('head');
+    const [activeTab, setActiveTab] = useState<'head' | 'hand' | 'floating' | 'room'>('head');
     const [petColor, setPetColor] = useState('#ffffff');
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
 
@@ -39,12 +40,12 @@ export default function EquipmentSection() {
                 try {
                     const parsed = JSON.parse(storedEquipParams);
                     if (typeof parsed === 'object' && parsed !== null) {
-                        setEquipment(parsed);
+                        setEquipment({ head: null, hand: null, floating: null, room: null, ...parsed });
                     } else {
-                        setEquipment({ head: storedEquipParams, hand: null, floating: null });
+                        setEquipment({ head: storedEquipParams, hand: null, floating: null, room: null });
                     }
                 } catch (e) {
-                    setEquipment({ head: storedEquipParams, hand: null, floating: null });
+                    setEquipment({ head: storedEquipParams, hand: null, floating: null, room: null });
                 }
             }
             const storedColor = localStorage.getItem(STORAGE_KEYS.PET_COLOR);
@@ -83,7 +84,7 @@ export default function EquipmentSection() {
 
     return (
         <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
-            <h2 className="text-lg font-semibold text-slate-600 mb-3">きせかえ</h2>
+            <h2 className="text-lg font-semibold text-slate-600 mb-3">きせかえ & 模様替え</h2>
             <div className="flex justify-center mb-6 bg-sky-100/50 rounded-xl h-[180px] overflow-hidden relative items-center">
                 <div className="scale-[0.6] transform origin-center mt-12">
                     <CharacterDisplay
@@ -94,15 +95,16 @@ export default function EquipmentSection() {
                         mood="happy"
                         message={null}
                         onCharacterClick={() => { }}
+                    // 設定画面では家具を常に表示したいのでweatherはnullのまま
                     />
                 </div>
             </div>
-            <div className="flex gap-2 mb-4 border-b border-slate-200 pb-2">
+            <div className="flex gap-2 mb-4 border-b border-slate-200 pb-2 overflow-x-auto">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-sm font-bold transition-colors ${activeTab === tab.id ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-100'}`}
+                        className={`flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === tab.id ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-100'}`}
                     >
                         {tab.icon} {tab.label}
                     </button>
@@ -124,7 +126,7 @@ export default function EquipmentSection() {
                     </button>
                 ))}
             </div>
-            {displayItems.length === 0 && <p className="text-center text-xs text-slate-400 py-4">この部位のアイテムを持っていません</p>}
+            {displayItems.length === 0 && <p className="text-center text-xs text-slate-400 py-4">このカテゴリのアイテムを持っていません</p>}
         </section>
     );
 }

@@ -58,7 +58,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const [petName, setPetName] = useState("てんちゃん");
     const [petColor, setPetColor] = useState("white");
     const [petCheekColor, setPetCheekColor] = useState("#F8BBD0");
-    const [petEquipment, setPetEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null });
+    const [petEquipment, setPetEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null, room: null });
     const [location, setLocation] = useState<string | null>("場所を取得中...");
     const [isClient, setIsClient] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
@@ -124,15 +124,15 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 try {
                     const parsed = JSON.parse(storedEquipment);
                     if (typeof parsed === 'string') {
-                        setPetEquipment({ head: parsed, hand: null, floating: null });
+                        setPetEquipment({ head: parsed, hand: null, floating: null, room: null });
                     } else {
-                        setPetEquipment(parsed);
+                        setPetEquipment({ head: null, hand: null, floating: null, room: null, ...parsed });
                     }
                 } catch {
-                    setPetEquipment({ head: storedEquipment, hand: null, floating: null });
+                    setPetEquipment({ head: storedEquipment, hand: null, floating: null, room: null });
                 }
             } else {
-                setPetEquipment({ head: null, hand: null, floating: null });
+                setPetEquipment({ head: null, hand: null, floating: null, room: null });
             }
         };
 
@@ -262,11 +262,12 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                         petColor={petColor}
                         cheekColor={petCheekColor}
                         equipment={petEquipment}
-                        // ★修正: 強風と雷雨のときに "scared" を指定
                         mood={error ? "sad" : (displayWeatherType === 'thunderstorm' || displayWeatherType === 'windy') ? "scared" : "happy"}
                         message={message}
                         onCharacterClick={handleCharacterClick}
                         isNight={isNight}
+                        // ★追加: 天気情報を渡す
+                        weather={displayWeatherType}
                     />
                 )}
                 <Footer onWalkClick={() => setIsModalOpen(true)} />
