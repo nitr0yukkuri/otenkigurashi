@@ -80,7 +80,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
         let messageOptions: string[] = [];
 
-        if (timeOfDay && conversationMessages[timeOfDay]) {
+        // ★変更: 時間帯の会話は、天気が「晴れ」か「快晴」のときだけ追加する
+        if (timeOfDay && conversationMessages[timeOfDay] && (weather === 'sunny' || weather === 'clear')) {
             messageOptions = messageOptions.concat(conversationMessages[timeOfDay]);
         }
 
