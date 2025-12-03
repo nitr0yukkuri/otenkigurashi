@@ -7,7 +7,7 @@ import ItemIcon from '../components/ItemIcon';
 import Footer from '../components/Footer';
 import ItemDetailModal from '../components/ItemDetailModal';
 import { getUserId } from '../lib/userId';
-import { IoHammer } from 'react-icons/io5'; // ★ IoHammer追加
+import { IoHammer } from 'react-icons/io5';
 
 type WeatherType = "sunny" | "clear" | "rainy" | "cloudy" | "snowy" | "thunderstorm" | "windy" | "night";
 const CURRENT_WEATHER_KEY = 'currentWeather';
@@ -102,18 +102,21 @@ export default function CollectionPage() {
 
                 <div className="flex-grow overflow-y-auto p-6">
                     <header className="mb-8">
-                        <Link href="/" className={`mb-6 inline-block px-4 py-2 rounded-full backdrop-blur-md shadow-sm text-sm font-extrabold transition-all ${backButtonClass}`}>
-                            ← もどる
-                        </Link>
-                        <div className="flex justify-between items-end">
-                            <div>
-                                <h1 className={`text-4xl font-extrabold ${isNight ? 'text-white' : 'text-slate-800'} tracking-wider backdrop-blur-sm bg-white/30 rounded-lg px-4 py-1`}>ずかん</h1>
-                                <p className={`${subTitleColor} mt-1`}>集めたアイテムを見てみよう</p>
-                            </div>
-                            {/* ★追加: クラフトボタン */}
-                            <Link href="/craft" className="bg-amber-500 text-white p-3 rounded-full shadow-lg hover:bg-amber-600 transition-colors animate-bounce">
-                                <IoHammer size={24} />
+                        {/* ★変更: 上段に「もどる」ボタンと「クラフト」ボタンを配置 */}
+                        <div className="flex justify-between items-center mb-6">
+                            <Link href="/" className={`inline-block px-4 py-2 rounded-full backdrop-blur-md shadow-sm text-sm font-extrabold transition-all ${backButtonClass}`}>
+                                ← もどる
                             </Link>
+                            {/* ★変更: 動きを削除し、テキストを追加して右上に配置 */}
+                            <Link href="/craft" className="bg-amber-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-amber-600 transition-colors flex items-center gap-2 font-bold text-sm">
+                                <IoHammer size={18} />
+                                <span>クラフト</span>
+                            </Link>
+                        </div>
+
+                        <div>
+                            <h1 className={`text-4xl font-extrabold ${isNight ? 'text-white' : 'text-slate-800'} tracking-wider backdrop-blur-sm bg-white/30 rounded-lg px-4 py-1`}>ずかん</h1>
+                            <p className={`${subTitleColor} mt-1`}>集めたアイテムを見てみよう</p>
                         </div>
                     </header>
 
