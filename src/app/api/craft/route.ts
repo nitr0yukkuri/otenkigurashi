@@ -1,8 +1,8 @@
 // src/app/api/craft/route.ts
 
 import { NextResponse } from 'next/server';
-import prisma from '../lib/prisma';
-import { RECIPES } from '../lib/recipes';
+import prisma from '../../lib/prisma';
+import { RECIPES } from '../../lib/recipes';
 
 export async function POST(request: Request) {
     try {
