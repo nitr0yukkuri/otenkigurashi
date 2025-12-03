@@ -5,18 +5,38 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { IoHammer, IoArrowBack } from 'react-icons/io5';
-import Footer from '../components/Footer'; // ★修正: パスを ./ から ../ に変更
+import Footer from '../components/Footer';
 import ItemIcon from '../components/ItemIcon';
 import { getUserId } from '../lib/userId';
 import { RECIPES, Recipe } from '../lib/recipes';
+import { getBackgroundGradientClass, WeatherType } from '../lib/weatherUtils';
 
 type InventoryMap = { [itemName: string]: number };
+// ★追加: アイテムの詳細情報（アイコンなど）を保持する型
+type ItemDetailsMap = { [itemName: string]: { iconName: string | null, rarity: string } };
+
+const STORAGE_KEYS = {
+    CURRENT_WEATHER: 'currentWeather',
+};
 
 export default function CraftPage() {
     const [inventory, setInventory] = useState<InventoryMap>({});
+    // ★追加: アイテム詳細のState
+    const [itemDetails, setItemDetails] = useState<ItemDetailsMap>({});
     const [loading, setLoading] = useState(true);
     const [craftingId, setCraftingId] = useState<string | null>(null);
     const [resultMessage, setResultMessage] = useState<string | null>(null);
+
+    // ★追加: 天気・背景色State
+    const [dynamicBackgroundClass, setDynamicBackgroundClass] = useState('bg-sunny');
+    const [isNight, setIsNight] = useState(false);
+
+    // ★追加: 天気情報の読み込み
+    useEffect(() => {
+        const storedWeather = localStorage.getItem(STORAGE_KEYS.CURRENT_WEATHER) as WeatherType | null;
+        setDynamicBackgroundClass(getBackgroundGradientClass(storedWeather));
+        setIsNight(storedWeather === 'night');
+    }, []);
 
     const fetchInventory = async () => {
         try {
@@ -24,10 +44,14 @@ export default function CraftPage() {
             const res = await fetch(`/api/collection?userId=${userId}`);
             const data = await res.json();
             const map: InventoryMap = {};
+            const details: ItemDetailsMap = {}; // ★追加
             data.forEach((item: any) => {
                 map[item.name] = item.quantity;
+                // ★追加: アイテム名からアイコン情報を引けるようにする
+                details[item.name] = { iconName: item.iconName, rarity: item.rarity };
             });
             setInventory(map);
+            setItemDetails(details);
         } catch (error) {
             console.error(error);
         } finally {
@@ -66,19 +90,29 @@ export default function CraftPage() {
         return recipe.materials.every(mat => (inventory[mat.itemName] || 0) >= mat.count);
     };
 
+    // ★追加: 文字色と戻るボタンのスタイル調整
+    const textColor = isNight ? 'text-white' : 'text-slate-700';
+    const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
+    const backButtonClass = isNight
+        ? 'bg-black/20 text-gray-200 hover:bg-black/40'
+        : 'bg-white/40 text-slate-700 hover:bg-white/60';
+
     return (
         <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
-            <main className="w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col bg-amber-50 text-slate-700 transition-all duration-500">
+            <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${textColor} ${dynamicBackgroundClass} transition-all duration-500`}>
+                <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
+
                 <div className="flex-grow overflow-y-auto p-6 pb-24">
                     <header className="mb-6">
-                        <Link href="/collection" className="inline-flex items-center gap-1 text-sm font-bold text-slate-500 mb-4 hover:text-slate-700">
+                        {/* ★修正: 戻るボタンのスタイル適用 */}
+                        <Link href="/collection" className={`inline-flex items-center gap-1 text-sm font-bold mb-4 px-4 py-2 rounded-full backdrop-blur-md shadow-sm transition-all ${backButtonClass}`}>
                             <IoArrowBack /> ずかんへ戻る
                         </Link>
-                        <h1 className="text-3xl font-extrabold text-slate-800 flex items-center gap-2">
-                            <IoHammer className="text-amber-600" />
+                        <h1 className={`text-3xl font-extrabold flex items-center gap-2 ${isNight ? 'text-white' : 'text-slate-800'}`}>
+                            <IoHammer className="text-amber-500" />
                             クラフト
                         </h1>
-                        <p className="text-slate-500 text-sm mt-1">素材を集めてアイテムを作ろう</p>
+                        <p className={`${subTitleColor} text-sm mt-1`}>素材を集めてアイテムを作ろう</p>
                     </header>
 
                     {resultMessage && (
@@ -90,13 +124,21 @@ export default function CraftPage() {
                     <div className="space-y-4">
                         {RECIPES.map((recipe) => {
                             const canCraft = isCraftable(recipe);
+                            // ★追加: 成果物の詳細情報を取得
+                            const resultItemDetail = itemDetails[recipe.resultItemName];
+
                             return (
-                                <div key={recipe.id} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+                                <div key={recipe.id} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-slate-700">
                                     <div className="flex items-center gap-3 mb-3">
                                         <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center">
-                                            <ItemIcon name={null} rarity="epic" size={24} />
+                                            {/* ★修正: 正しいアイコンとレアリティを表示 */}
+                                            <ItemIcon
+                                                name={resultItemDetail?.iconName || null}
+                                                rarity={resultItemDetail?.rarity || 'normal'}
+                                                size={24}
+                                            />
                                         </div>
-                                        <h3 className="font-bold text-lg">{recipe.resultItemName}</h3>
+                                        <h3 className="font-bold text-lg text-slate-800">{recipe.resultItemName}</h3>
                                     </div>
 
                                     <div className="bg-slate-50 rounded-xl p-3 mb-3">
