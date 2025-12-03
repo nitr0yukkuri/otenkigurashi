@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { IoHammer, IoArrowBack } from 'react-icons/io5';
-import Footer from '../components/Footer';
+import Footer from '../components/Footer'; // ★修正: パスを ./ から ../ に変更
 import ItemIcon from '../components/ItemIcon';
 import { getUserId } from '../lib/userId';
 import { RECIPES, Recipe } from '../lib/recipes';
