@@ -5,7 +5,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import ItemIcon from '../components/ItemIcon';
-import TeruTeruIcon from '../components/TeruTeruIcon'; // ★追加
 import Footer from '../components/Footer';
 import ItemGetModal from '../components/ItemGetModal';
 import { getUserId } from '../lib/userId';
@@ -19,7 +18,6 @@ export default function CraftPage() {
     const [dynamicBackgroundClass, setDynamicBackgroundClass] = useState('bg-sunny');
     const [isNight, setIsNight] = useState(false);
     const [inventory, setInventory] = useState<Record<string, number>>({});
-    // アイテムの詳細情報（アイコンやレア度）を保持するマップ
     const [itemDetails, setItemDetails] = useState<Record<string, { iconName: string | null, rarity: string }>>({});
     const [loading, setLoading] = useState(true);
     const [craftingId, setCraftingId] = useState<string | null>(null);
@@ -79,7 +77,6 @@ export default function CraftPage() {
 
             const data = await res.json();
             if (data.success && data.item) {
-                // 在庫を更新
                 await fetchInventory();
                 setObtainedItem({
                     name: data.item.name,
@@ -142,19 +139,14 @@ export default function CraftPage() {
                                         </div>
 
                                         <div className="flex items-center gap-2 mb-4 overflow-x-auto">
-                                            {/* 素材リスト */}
                                             {recipe.materials.map((mat, idx) => {
                                                 const hasEnough = (inventory[mat.itemName] || 0) >= mat.count;
                                                 const matDetail = itemDetails[mat.itemName];
                                                 return (
                                                     <div key={idx} className="flex flex-col items-center justify-between bg-white/50 rounded-xl p-2 w-20 h-24 flex-shrink-0">
                                                         <div className="flex-grow flex items-center justify-center">
-                                                            {/* ★修正: アイコン名がGiGhostならTeruTeruIconを表示 */}
-                                                            {matDetail?.iconName === 'GiGhost' ? (
-                                                                <TeruTeruIcon size={28} />
-                                                            ) : (
-                                                                <ItemIcon name={matDetail?.iconName} size={28} />
-                                                            )}
+                                                            {/* ItemIconに任せる */}
+                                                            <ItemIcon name={matDetail?.iconName} size={28} />
                                                         </div>
                                                         <div className="w-full flex flex-col items-center">
                                                             <span className="text-[10px] font-medium text-slate-600 truncate w-full text-center">{mat.itemName}</span>
@@ -168,15 +160,10 @@ export default function CraftPage() {
 
                                             <IoArrowForward className="text-slate-400 min-w-[20px]" />
 
-                                            {/* 完成品 */}
                                             <div className="flex flex-col items-center justify-between bg-amber-100/80 rounded-xl p-2 w-20 h-24 border-2 border-amber-200 flex-shrink-0">
                                                 <div className="flex-grow flex items-center justify-center">
-                                                    {/* ★修正: アイコン名がGiGhostならTeruTeruIconを表示 */}
-                                                    {resultDetail?.iconName === 'GiGhost' ? (
-                                                        <TeruTeruIcon size={28} />
-                                                    ) : (
-                                                        <ItemIcon name={resultDetail?.iconName} rarity={resultDetail?.rarity} size={28} />
-                                                    )}
+                                                    {/* ItemIconに任せる */}
+                                                    <ItemIcon name={resultDetail?.iconName} rarity={resultDetail?.rarity} size={28} />
                                                 </div>
                                                 <div className="w-full flex flex-col items-center">
                                                     <span className="text-[10px] font-bold text-slate-700 truncate w-full text-center">{recipe.resultItemName}</span>

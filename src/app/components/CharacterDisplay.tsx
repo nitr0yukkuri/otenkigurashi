@@ -5,7 +5,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import CharacterFace from './CharacterFace';
 import ItemIcon from './ItemIcon';
-import TeruTeruIcon from './TeruTeruIcon'; // ★追加
+import TeruTeruIcon from './TeruTeruIcon';
 
 export type EquipmentState = {
     head: string | null;
@@ -44,7 +44,7 @@ export default function CharacterDisplay({
     onCharacterClick,
     isNight = false,
     isStatic = false,
-    weather
+    weather = null // ★デフォルト値をnullに設定 (設定画面などでundefinedの場合に表示されるようにするため)
 }: CharacterDisplayProps) {
 
     const renderSlot = (slot: keyof EquipmentState) => {
@@ -52,10 +52,10 @@ export default function CharacterDisplay({
         const itemName = equipment[slot];
         if (!itemName) return null;
 
-        // ★修正: 天気連動家具のロジック
-        // 「てるてる坊主(GiGhost)」は雨の日の「お部屋」スロットでのみ表示
-        // ただし、設定画面などでweatherがnullの場合は常に表示する
-        if (slot === 'room' && itemName === 'GiGhost') {
+        // ★修正: 「てるてる坊主(GiGhost)」の表示制御ロジック
+        // "floating" に移動したため、slotのチェックを外し、アイテム名だけで判定
+        if (itemName === 'GiGhost') {
+            // 雨の日以外は非表示（weatherがnullの場合は表示）
             if (weather !== 'rainy' && weather !== null) {
                 return null;
             }
@@ -66,9 +66,9 @@ export default function CharacterDisplay({
         return (
             <div key={slot} className={style.className}>
                 <div className="w-full h-full flex items-center justify-center drop-shadow-md">
-                    {/* ★修正: てるてる坊主(GiGhost)の場合は専用アイコンを表示 */}
+                    {/* ★修正: てるてる坊主(GiGhost)の場合は専用アイコンを表示（サイズは32） */}
                     {itemName === 'GiGhost' ? (
-                        <TeruTeruIcon size={slot === 'room' ? 80 : 32} /> // お部屋の場合は少し大きめに
+                        <TeruTeruIcon size={32} />
                     ) : (
                         <ItemIcon name={itemName} size={undefined} />
                     )}

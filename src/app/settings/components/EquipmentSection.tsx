@@ -3,9 +3,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { IoBan, IoShirt, IoHandRight, IoCloud, IoHome } from 'react-icons/io5';
+import { IoBan, IoShirt, IoHandRight, IoCloud } from 'react-icons/io5';
 import ItemIcon from '../../components/ItemIcon';
-import TeruTeruIcon from '../../components/TeruTeruIcon'; // ★追加
+import TeruTeruIcon from '../../components/TeruTeruIcon';
 import CharacterDisplay, { EquipmentState } from '../../components/CharacterDisplay';
 import { STORAGE_KEYS, EVENTS } from '../constants';
 import { getUserId } from '@/app/lib/userId';
@@ -16,20 +16,19 @@ interface CollectionItem {
     iconName: string | null;
     quantity: number;
     rarity: string;
-    category: 'head' | 'hand' | 'floating' | 'room' | null;
+    category: 'head' | 'hand' | 'floating' | null;
 }
 
 const TABS = [
     { id: 'head', label: 'あたま', icon: <IoShirt /> },
     { id: 'hand', label: 'てもち', icon: <IoHandRight /> },
     { id: 'floating', label: 'まわり', icon: <IoCloud /> },
-    { id: 'room', label: 'お部屋', icon: <IoHome /> },
 ];
 
 export default function EquipmentSection() {
     const [equipment, setEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null, room: null });
     const [items, setItems] = useState<CollectionItem[]>([]);
-    const [activeTab, setActiveTab] = useState<'head' | 'hand' | 'floating' | 'room'>('head');
+    const [activeTab, setActiveTab] = useState<'head' | 'hand' | 'floating'>('head');
     const [petColor, setPetColor] = useState('#ffffff');
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
 
@@ -63,7 +62,6 @@ export default function EquipmentSection() {
             if (!res.ok) return;
 
             const data: CollectionItem[] = await res.json();
-            // ★修正: quantity > 0 または開発環境(isDev)でフィルタリング
             const isDev = process.env.NODE_ENV === 'development';
             setItems(data.filter(item => (item.quantity > 0 || isDev) && item.category));
         };
@@ -81,7 +79,7 @@ export default function EquipmentSection() {
         window.dispatchEvent(new CustomEvent(EVENTS.PET_SETTINGS_CHANGED));
     };
 
-    const displayItems = items.filter(item => item.category === activeTab);
+    const displayItems = items.filter(item => item.category === activeTab as any);
 
     return (
         <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
@@ -96,12 +94,11 @@ export default function EquipmentSection() {
                         mood="happy"
                         message={null}
                         onCharacterClick={() => { }}
-                    // 設定画面では家具を常に表示したいのでweatherはnullのままでOK
-                    // (CharacterDisplay側で weather===null なら常に表示するロジックになっているため)
                     />
                 </div>
             </div>
-            <div className="flex gap-2 mb-4 border-b border-slate-200 pb-2 overflow-x-auto">
+            {/* ★修正: overflow-x-auto を削除し、スクロールバーを非表示に */}
+            <div className="flex gap-2 mb-4 border-b border-slate-200 pb-2">
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
@@ -122,7 +119,6 @@ export default function EquipmentSection() {
                 {displayItems.map(item => (
                     <button key={item.id} onClick={() => handleEquip(item.iconName)} disabled={item.quantity === 0} className="flex flex-col items-center gap-1 disabled:cursor-not-allowed">
                         <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all ${equipment[activeTab] === item.iconName ? 'border-sky-500 ring-2 ring-sky-200' : 'border-white'} ${item.quantity === 0 ? 'opacity-50' : ''}`}>
-                            {/* ★修正: てるてる坊主(GiGhost)の場合は専用アイコンを表示 */}
                             {item.iconName === 'GiGhost' ? (
                                 <TeruTeruIcon size={24} />
                             ) : (

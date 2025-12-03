@@ -57,9 +57,10 @@ const initialItems = [
 
     // --- ★ 新規追加アイテム ---
     { name: 'クモの糸', description: '丈夫でキラキラした糸。何かに使えそう。', rarity: 'normal', iconName: 'GiSpiderWeb', weather: null, category: null },
-    { name: '虫取り網', description: '手作りの網。いろんなものを捕まえられそう！', rarity: 'rare', iconName: 'GiFishingNet', weather: null, category: 'hand' },
+    { name: 'ドリームキャッチャー', description: '悪い夢を捕まえてくれるお守り。いい夢が見られますように。', rarity: 'rare', iconName: 'GiDreamCatcher', weather: null, category: 'room' },
     { name: '虹色のネックレス', description: '光に反射して七色に輝くネックレス。', rarity: 'epic', iconName: 'GiNecklace', weather: null, category: 'head' },
-    { name: 'てるてる坊主', description: 'あした天気になあれ。雨の日に飾るといいことがあるかも？', rarity: 'rare', iconName: 'GiGhost', weather: null, category: 'room' },
+    // ★修正: カテゴリを room -> floating に変更
+    { name: 'てるてる坊主', description: 'あした天気になあれ。雨の日に飾るといいことがあるかも？', rarity: 'rare', iconName: 'GiGhost', weather: null, category: 'floating' },
 ];
 
 async function main() {
