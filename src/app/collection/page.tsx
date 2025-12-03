@@ -100,14 +100,13 @@ export default function CollectionPage() {
             <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-slate-700'} ${dynamicBackgroundClass} transition-all duration-500`}>
                 <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl z-10"></div>
 
-                <div className="flex-grow overflow-y-auto p-6">
+                {/* ★修正: overflow-y-auto -> overflow-y-scroll に変更してスクロールバー分の幅を常に確保 */}
+                <div className="flex-grow overflow-y-scroll p-6">
                     <header className="mb-8">
-                        {/* ★変更: 上段に「もどる」ボタンと「クラフト」ボタンを配置 */}
                         <div className="flex justify-between items-center mb-6">
                             <Link href="/" className={`inline-block px-4 py-2 rounded-full backdrop-blur-md shadow-sm text-sm font-extrabold transition-all ${backButtonClass}`}>
                                 ← もどる
                             </Link>
-                            {/* ★変更: 動きを削除し、テキストを追加して右上に配置 */}
                             <Link href="/craft" className="bg-amber-500 text-white px-4 py-2 rounded-full shadow-lg hover:bg-amber-600 transition-colors flex items-center gap-2 font-bold text-sm">
                                 <IoHammer size={18} />
                                 <span>クラフト</span>

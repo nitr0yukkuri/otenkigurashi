@@ -5,12 +5,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import CharacterFace from './CharacterFace';
 import ItemIcon from './ItemIcon';
+import TeruTeruIcon from './TeruTeruIcon'; // ★追加
 
 export type EquipmentState = {
     head: string | null;
     hand: string | null;
     floating: string | null;
-    // ★追加: お部屋スロット
     room?: string | null;
 };
 
@@ -24,7 +24,6 @@ type CharacterDisplayProps = {
     onCharacterClick: () => void;
     isNight?: boolean;
     isStatic?: boolean;
-    // ★追加: 天気情報（家具の出し分け用）
     weather?: string | null;
 };
 
@@ -32,7 +31,6 @@ const SLOT_STYLES = {
     head: { className: "absolute -top-8 left-1/2 -translate-x-1/2 z-20 w-2/3" },
     hand: { className: "absolute bottom-0 -right-4 z-30 w-1/3" },
     floating: { className: "absolute -top-4 -right-8 z-10 w-1/3" },
-    // ★追加: 家具（背景）
     room: { className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 w-full h-full scale-150 opacity-80 pointer-events-none" }
 };
 
@@ -54,11 +52,13 @@ export default function CharacterDisplay({
         const itemName = equipment[slot];
         if (!itemName) return null;
 
-        // ★追加: 天気連動家具のロジック
+        // ★修正: 天気連動家具のロジック
         // 「てるてる坊主(GiGhost)」は雨の日の「お部屋」スロットでのみ表示
-        if (slot === 'room' && itemName === 'GiGhost' && weather !== 'rainy' && weather !== null) {
-            // weatherがnull(設定画面など)の場合は常に表示する
-            return null;
+        // ただし、設定画面などでweatherがnullの場合は常に表示する
+        if (slot === 'room' && itemName === 'GiGhost') {
+            if (weather !== 'rainy' && weather !== null) {
+                return null;
+            }
         }
 
         const style = SLOT_STYLES[slot];
@@ -66,7 +66,12 @@ export default function CharacterDisplay({
         return (
             <div key={slot} className={style.className}>
                 <div className="w-full h-full flex items-center justify-center drop-shadow-md">
-                    <ItemIcon name={itemName} size={undefined} />
+                    {/* ★修正: てるてる坊主(GiGhost)の場合は専用アイコンを表示 */}
+                    {itemName === 'GiGhost' ? (
+                        <TeruTeruIcon size={slot === 'room' ? 80 : 32} /> // お部屋の場合は少し大きめに
+                    ) : (
+                        <ItemIcon name={itemName} size={undefined} />
+                    )}
                 </div>
             </div>
         );
@@ -95,7 +100,7 @@ export default function CharacterDisplay({
             </AnimatePresence>
 
             <div className="w-40 h-40 rounded-full relative">
-                {/* ★追加: 家具は一番後ろ */}
+                {/* 家具は一番後ろ */}
                 {renderSlot('room')}
 
                 {renderSlot('floating')}

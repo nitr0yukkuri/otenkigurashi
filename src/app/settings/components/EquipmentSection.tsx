@@ -3,8 +3,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { IoBan, IoShirt, IoHandRight, IoCloud, IoHome } from 'react-icons/io5'; // ★ IoHome追加
+import { IoBan, IoShirt, IoHandRight, IoCloud, IoHome } from 'react-icons/io5';
 import ItemIcon from '../../components/ItemIcon';
+import TeruTeruIcon from '../../components/TeruTeruIcon'; // ★追加
 import CharacterDisplay, { EquipmentState } from '../../components/CharacterDisplay';
 import { STORAGE_KEYS, EVENTS } from '../constants';
 import { getUserId } from '@/app/lib/userId';
@@ -15,14 +16,13 @@ interface CollectionItem {
     iconName: string | null;
     quantity: number;
     rarity: string;
-    category: 'head' | 'hand' | 'floating' | 'room' | null; // ★ 型定義拡張
+    category: 'head' | 'hand' | 'floating' | 'room' | null;
 }
 
 const TABS = [
     { id: 'head', label: 'あたま', icon: <IoShirt /> },
     { id: 'hand', label: 'てもち', icon: <IoHandRight /> },
     { id: 'floating', label: 'まわり', icon: <IoCloud /> },
-    // ★追加: お部屋タブ
     { id: 'room', label: 'お部屋', icon: <IoHome /> },
 ];
 
@@ -63,6 +63,7 @@ export default function EquipmentSection() {
             if (!res.ok) return;
 
             const data: CollectionItem[] = await res.json();
+            // ★修正: quantity > 0 または開発環境(isDev)でフィルタリング
             const isDev = process.env.NODE_ENV === 'development';
             setItems(data.filter(item => (item.quantity > 0 || isDev) && item.category));
         };
@@ -95,7 +96,8 @@ export default function EquipmentSection() {
                         mood="happy"
                         message={null}
                         onCharacterClick={() => { }}
-                    // 設定画面では家具を常に表示したいのでweatherはnullのまま
+                    // 設定画面では家具を常に表示したいのでweatherはnullのままでOK
+                    // (CharacterDisplay側で weather===null なら常に表示するロジックになっているため)
                     />
                 </div>
             </div>
@@ -120,7 +122,12 @@ export default function EquipmentSection() {
                 {displayItems.map(item => (
                     <button key={item.id} onClick={() => handleEquip(item.iconName)} disabled={item.quantity === 0} className="flex flex-col items-center gap-1 disabled:cursor-not-allowed">
                         <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all ${equipment[activeTab] === item.iconName ? 'border-sky-500 ring-2 ring-sky-200' : 'border-white'} ${item.quantity === 0 ? 'opacity-50' : ''}`}>
-                            <ItemIcon name={item.iconName} rarity={item.rarity} size={24} />
+                            {/* ★修正: てるてる坊主(GiGhost)の場合は専用アイコンを表示 */}
+                            {item.iconName === 'GiGhost' ? (
+                                <TeruTeruIcon size={24} />
+                            ) : (
+                                <ItemIcon name={item.iconName} rarity={item.rarity} size={24} />
+                            )}
                         </div>
                         <span className="text-[10px] font-medium text-slate-600 truncate w-full text-center">{item.name}</span>
                     </button>
