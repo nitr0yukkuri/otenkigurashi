@@ -25,6 +25,9 @@ type CharacterDisplayProps = {
     isNight?: boolean;
     isStatic?: boolean;
     weather?: string | null;
+    // ★追加: なでなで判定用のイベントハンドラを受け取る
+    onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void;
+    onPointerLeave?: () => void;
 };
 
 const SLOT_STYLES = {
@@ -44,7 +47,10 @@ export default function CharacterDisplay({
     onCharacterClick,
     isNight = false,
     isStatic = false,
-    weather = null // ★デフォルト値をnullに設定 (設定画面などでundefinedの場合に表示されるようにするため)
+    weather = null,
+    // ★追加: Propsの受け取り
+    onPointerMove,
+    onPointerLeave
 }: CharacterDisplayProps) {
 
     const renderSlot = (slot: keyof EquipmentState) => {
@@ -52,10 +58,7 @@ export default function CharacterDisplay({
         const itemName = equipment[slot];
         if (!itemName) return null;
 
-        // ★修正: 「てるてる坊主(GiGhost)」の表示制御ロジック
-        // "floating" に移動したため、slotのチェックを外し、アイテム名だけで判定
         if (itemName === 'GiGhost') {
-            // 雨の日以外は非表示（weatherがnullの場合は表示）
             if (weather !== 'rainy' && weather !== null) {
                 return null;
             }
@@ -66,7 +69,6 @@ export default function CharacterDisplay({
         return (
             <div key={slot} className={style.className}>
                 <div className="w-full h-full flex items-center justify-center drop-shadow-md">
-                    {/* ★修正: てるてる坊主(GiGhost)の場合は専用アイコンを表示（サイズは32） */}
                     {itemName === 'GiGhost' ? (
                         <TeruTeruIcon size={32} />
                     ) : (
@@ -81,7 +83,6 @@ export default function CharacterDisplay({
     const messageText = isNight ? 'text-white' : 'text-slate-700';
     const messageArrow = isNight ? 'border-t-gray-700/80' : 'border-t-white/80';
     const nameBg = isNight ? 'bg-black/30' : 'bg-white/30';
-    const isRainbow = petColor === 'rainbow';
 
     return (
         <div className={`flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center ${isStatic ? '' : 'pb-20'} relative`}>
@@ -99,8 +100,12 @@ export default function CharacterDisplay({
                 )}
             </AnimatePresence>
 
-            <div className="w-40 h-40 rounded-full relative">
-                {/* 家具は一番後ろ */}
+            {/* ★修正: 顔のコンテナ（w-40 h-40）にイベントを設定し、touch-noneを追加 */}
+            <div
+                className="w-40 h-40 rounded-full relative touch-none"
+                onPointerMove={onPointerMove}
+                onPointerLeave={onPointerLeave}
+            >
                 {renderSlot('room')}
 
                 {renderSlot('floating')}

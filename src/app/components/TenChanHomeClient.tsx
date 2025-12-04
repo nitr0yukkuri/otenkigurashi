@@ -40,7 +40,7 @@ const conversationMessages: { [key: string]: string[] } = {
     rainy: ["雨の音が聞こえるね", "傘は持った？", "あめ、あめ、ふれ、ふれ♪", "しっとりするね"],
     thunderstorm: ["ゴロゴロって音がする…！", "ちょっとだけこわいかも…", "おへそ隠さなきゃ！"],
     snowy: ["わー！雪だ！", "雪だるま、作れるかな？", "ふわふわしてるね", "まっしろだね！"],
-    windy: ["風がびゅーびゅー言ってる！", "飛ばされそうだ〜", "わわっ！とばされちゃう〜！"],
+    windy: ["風がびゅーびゅー言ってる！", "帽子が飛ばされそうだ〜", "わわっ！とばされちゃう〜！"],
     night: ["今日もおつかれさま", "星が見えるかな？", "そろそろ眠いかも…", "いい夢みてね"],
     default: ["こんにちは！", "なになに？", "えへへっ", "今日も元気だよ！", "何か用かな？"]
 };
@@ -66,6 +66,10 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const [isPetting, setIsPetting] = useState(false);
+    const rubScoreRef = useRef(0);
+    const lastRubTimeRef = useRef(0);
+
     const timeOfDay = getTimeOfDay(currentTime);
 
     const setWeatherAndNotify = (newWeather: WeatherType | null) => {
@@ -75,7 +79,47 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         window.dispatchEvent(new CustomEvent('weatherChanged'));
     };
 
+    const handleRubbing = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (isPetting) return;
+
+        const now = Date.now();
+        if (now - lastRubTimeRef.current > 300) {
+            rubScoreRef.current = 0;
+        }
+        lastRubTimeRef.current = now;
+
+        const delta = Math.abs(e.movementX);
+        rubScoreRef.current += delta;
+
+        if (rubScoreRef.current > 1500) {
+            triggerPetting();
+            rubScoreRef.current = 0;
+        }
+    };
+
+    const triggerPetting = () => {
+        setIsPetting(true);
+        if (messageTimeoutRef.current) { clearTimeout(messageTimeoutRef.current); }
+
+        const pettingMessages = [
+            "えへへ〜♪\nなでなでうれしいな！",
+            "わぁ〜い！\nもっとっもっと〜！",
+            "くすぐったいよ〜\nえへへっ♪"
+        ];
+        const randomMsg = pettingMessages[Math.floor(Math.random() * pettingMessages.length)];
+
+        setMessage(randomMsg);
+        playSfx('decision.mp3');
+
+        messageTimeoutRef.current = setTimeout(() => {
+            setIsPetting(false);
+            setMessage(null);
+        }, 3000);
+    };
+
     const handleCharacterClick = () => {
+        if (isPetting) return;
+
         if (messageTimeoutRef.current) { clearTimeout(messageTimeoutRef.current); }
 
         let messageOptions: string[] = [];
@@ -209,6 +253,9 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const dynamicBackgroundClass = getBackgroundGradientClass(displayWeatherType);
     const isNight = displayWeatherType === 'night';
 
+    const currentMood = isPetting ? "happy" : (error ? "sad" : (displayWeatherType === 'thunderstorm' || displayWeatherType === 'windy') ? "scared" : "happy");
+    const currentCheekColor = isPetting ? "#FF80AB" : petCheekColor;
+
     return (
         <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
             <ItemGetModal isOpen={false} onClose={() => { }} itemName={null} iconName={null} rarity={null} />
@@ -255,17 +302,25 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                         <div><h1 className="text-xl font-medium text-slate-500 animate-pulse">{petName} じゅんびちゅう...</h1></div>
                     </div>
                 ) : (
-                    <CharacterDisplay
-                        petName={petName}
-                        petColor={petColor}
-                        cheekColor={petCheekColor}
-                        equipment={petEquipment}
-                        mood={error ? "sad" : (displayWeatherType === 'thunderstorm' || displayWeatherType === 'windy') ? "scared" : "happy"}
-                        message={message}
-                        onCharacterClick={handleCharacterClick}
-                        isNight={isNight}
-                        weather={displayWeatherType}
-                    />
+                    // ★修正: イベントハンドラを削除し、レイアウトのみのdivに変更
+                    <div
+                        className="flex-grow flex flex-col items-center justify-center w-full"
+                    >
+                        <CharacterDisplay
+                            petName={petName}
+                            petColor={petColor}
+                            cheekColor={currentCheekColor}
+                            equipment={petEquipment}
+                            mood={currentMood}
+                            message={message}
+                            onCharacterClick={handleCharacterClick}
+                            isNight={isNight}
+                            weather={displayWeatherType}
+                            // ★追加: CharacterDisplayにハンドラを渡す
+                            onPointerMove={handleRubbing}
+                            onPointerLeave={() => { rubScoreRef.current = 0; }}
+                        />
+                    </div>
                 )}
                 <Footer onWalkClick={() => setIsModalOpen(true)} />
             </main>
