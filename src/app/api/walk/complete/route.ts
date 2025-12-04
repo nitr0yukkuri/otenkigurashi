@@ -36,10 +36,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
     }
 
+    // ★修正: 日付取得をトランザクションの外に移動
+    const now = new Date();
+
     try {
-        // ★★★ 修正: トランザクションを使用して整合性を保証 ★★★
         const progress = await prisma.$transaction(async (tx) => {
-            // トランザクション内で最新のデータを取得
             const currentProgress: UserProgress | null = await tx.userProgress.findUnique({
                 where: { userId: userId },
             });
@@ -66,13 +67,11 @@ export async function POST(request: Request) {
                 lastWalkDate: null,
             };
 
-            const now = new Date();
             let consecutiveDays = progressData.consecutiveWalkDays;
 
             if (progressData.lastWalkDate) {
                 const lastWalk = new Date(progressData.lastWalkDate);
                 if (isSameDay(lastWalk, now)) {
-                    // 同日の場合は回数のみインクリメント（連続日数は変更しない）
                     return await tx.userProgress.update({
                         where: { userId: userId },
                         data: { walkCount: { increment: 1 } },
@@ -97,7 +96,6 @@ export async function POST(request: Request) {
                 updateData[weatherKey] = { increment: 1 };
             }
 
-            // 更新処理もトランザクション内で行う
             return await tx.userProgress.upsert({
                 where: { userId: userId },
                 update: updateData,
