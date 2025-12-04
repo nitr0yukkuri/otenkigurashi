@@ -46,7 +46,6 @@ export default function WeatherEffects({ weather }: { weather: string | null }) 
 
     // 雪: ふわふわ舞い落ちる雪
     if (weather === 'snowy') {
-        // ★修正: 雪の量を 30 -> 60 に倍増
         const flakes = Array.from({ length: 60 }).map((_, i) => ({
             id: i,
             left: `${Math.random() * 100}%`,
@@ -92,11 +91,18 @@ export default function WeatherEffects({ weather }: { weather: string | null }) 
 
         return (
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-                {/* ★追加: 太陽の光（右上からの光差し） */}
+                {/* ★修正: 太陽の光（右上からの光差し）を強化 */}
                 <motion.div
-                    className="absolute -top-20 -right-20 w-96 h-96 bg-white/20 rounded-full blur-3xl"
-                    animate={{ scale: [1, 1.1, 1], opacity: [0.4, 0.6, 0.4] }}
+                    className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-white/40 rounded-full blur-[80px]"
+                    animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                />
+
+                {/* ★追加: 画面全体に広がる光のグラデーション（日差し感） */}
+                <motion.div
+                    className="absolute inset-0 bg-gradient-to-bl from-white/30 via-transparent to-transparent"
+                    animate={{ opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 />
 
                 {orbs.map((orb) => (
