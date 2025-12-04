@@ -13,6 +13,8 @@ import HelpButton from './HelpButton';
 import HelpModal from './HelpModal';
 import ShareButton from './ShareButton';
 import ShareModal from './ShareModal';
+// ★追加: 天気エフェクトコンポーネント
+import WeatherEffects from './WeatherEffects';
 import { useSound } from '../hooks/useSound';
 
 import {
@@ -70,7 +72,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const rubScoreRef = useRef(0);
     const lastRubTimeRef = useRef(0);
 
-    // ★追加: 選択されたステージを保持するState
     const [walkStage, setWalkStage] = useState<string>('default');
 
     const timeOfDay = getTimeOfDay(currentTime);
@@ -249,7 +250,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         setIsModalOpen(false);
         const walkWeather = weather || 'sunny';
         const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗" ? location : "どこかの場所";
-        // ★修正: stageパラメータを追加して遷移
         router.push(`/walk?weather=${walkWeather}&location=${encodeURIComponent(walkLocation)}&stage=${walkStage}`);
     };
 
@@ -263,7 +263,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
             <ItemGetModal isOpen={false} onClose={() => { }} itemName={null} iconName={null} rarity={null} />
             <ConfirmationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={handleConfirmWalk} type="walk">
-                {/* ★修正: ステージ選択UIを追加 */}
                 <div className="text-center">
                     <p className="font-bold text-gray-800 text-lg mb-4 whitespace-pre-line">
                         {"おさんぽは1日\n3回しかできません"}
@@ -305,6 +304,9 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
             <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}>
                 <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl"></div>
+
+                {/* ★追加: 天気連動エフェクト (コンテンツの後ろ、背景の前) */}
+                <WeatherEffects weather={displayWeatherType} />
 
                 <ShareButton onClick={() => setIsShareOpen(true)} />
                 <HelpButton onClick={() => setIsHelpOpen(true)} />
