@@ -70,6 +70,9 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const rubScoreRef = useRef(0);
     const lastRubTimeRef = useRef(0);
 
+    // ★追加: 選択されたステージを保持するState
+    const [walkStage, setWalkStage] = useState<string>('default');
+
     const timeOfDay = getTimeOfDay(currentTime);
 
     const setWeatherAndNotify = (newWeather: WeatherType | null) => {
@@ -246,7 +249,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         setIsModalOpen(false);
         const walkWeather = weather || 'sunny';
         const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗" ? location : "どこかの場所";
-        router.push(`/walk?weather=${walkWeather}&location=${encodeURIComponent(walkLocation)}`);
+        // ★修正: stageパラメータを追加して遷移
+        router.push(`/walk?weather=${walkWeather}&location=${encodeURIComponent(walkLocation)}&stage=${walkStage}`);
     };
 
     const displayWeatherType = weather || 'sunny';
@@ -254,15 +258,36 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const isNight = displayWeatherType === 'night';
 
     const currentMood = isPetting ? "happy" : (error ? "sad" : (displayWeatherType === 'thunderstorm' || displayWeatherType === 'windy') ? "scared" : "happy");
-    const currentCheekColor = isPetting ? "#FF80AB" : petCheekColor;
 
     return (
         <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
             <ItemGetModal isOpen={false} onClose={() => { }} itemName={null} iconName={null} rarity={null} />
             <ConfirmationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={handleConfirmWalk} type="walk">
-                <h2 className="text-2xl font-bold text-gray-800 whitespace-pre-line">
-                    {"おさんぽは1日\n3回しかできません\n大丈夫ですか？"}
-                </h2>
+                {/* ★修正: ステージ選択UIを追加 */}
+                <div className="text-center">
+                    <p className="font-bold text-gray-800 text-lg mb-4 whitespace-pre-line">
+                        {"おさんぽは1日\n3回しかできません"}
+                    </p>
+                    <p className="text-sm text-gray-500 mb-2 font-bold">行き先を選んでね</p>
+                    <div className="flex justify-center gap-2 mb-2">
+                        {[
+                            { id: 'default', label: 'いつもの' },
+                            { id: 'sea', label: '海' },
+                            { id: 'mountain', label: '山' }
+                        ].map((s) => (
+                            <button
+                                key={s.id}
+                                onClick={() => setWalkStage(s.id)}
+                                className={`px-4 py-2 rounded-full font-bold text-sm transition-all border-2 ${walkStage === s.id
+                                    ? 'bg-sky-100 border-sky-400 text-sky-700 shadow-inner'
+                                    : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+                                    }`}
+                            >
+                                {s.label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </ConfirmationModal>
             <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
@@ -302,21 +327,19 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                         <div><h1 className="text-xl font-medium text-slate-500 animate-pulse">{petName} じゅんびちゅう...</h1></div>
                     </div>
                 ) : (
-                    // ★修正: イベントハンドラを削除し、レイアウトのみのdivに変更
                     <div
                         className="flex-grow flex flex-col items-center justify-center w-full"
                     >
                         <CharacterDisplay
                             petName={petName}
                             petColor={petColor}
-                            cheekColor={currentCheekColor}
+                            cheekColor={petCheekColor}
                             equipment={petEquipment}
                             mood={currentMood}
                             message={message}
                             onCharacterClick={handleCharacterClick}
                             isNight={isNight}
                             weather={displayWeatherType}
-                            // ★追加: CharacterDisplayにハンドラを渡す
                             onPointerMove={handleRubbing}
                             onPointerLeave={() => { rubScoreRef.current = 0; }}
                         />

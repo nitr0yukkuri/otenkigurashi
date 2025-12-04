@@ -5,7 +5,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { mapWeatherType, getBackgroundColorClass } from './utils';
-// ★修正: 相対パスからエイリアスに変更
 import { getUserId } from '@/app/lib/userId';
 
 interface Item {
@@ -38,6 +37,9 @@ export function useWalkLogic() {
     const dynamicBackgroundClass = useMemo(() => getBackgroundColorClass(weather || undefined), [weather]);
     const isNight = useMemo(() => weather === 'night', [weather]);
 
+    // ★追加: ステージIDを取得
+    const stage = searchParams.get('stage') || 'default';
+
     useEffect(() => {
         isMounted.current = true;
         return () => {
@@ -46,14 +48,12 @@ export function useWalkLogic() {
     }, []);
 
     useEffect(() => {
-        // 処理開始済み、または処理中なら即リターン
         if (hasStartedProcessing.current || isProcessing) return;
 
         const debugWeather = searchParams.get('weather');
         const paramLocation = searchParams.get('location');
 
         const obtainItem = (currentWeather: string) => {
-            // ★修正: ここでのチェックとフラグセットを削除 (呼び出し元でロック済みのため)
             setIsProcessing(true);
 
             setTimeout(async () => {
@@ -107,7 +107,6 @@ export function useWalkLogic() {
         };
 
         if (debugWeather) {
-            // ★修正: 非同期処理の前に即座にフラグを立ててロックする
             hasStartedProcessing.current = true;
             setWeather(debugWeather);
             if (paramLocation) setLocation(decodeURIComponent(paramLocation));
@@ -117,7 +116,6 @@ export function useWalkLogic() {
         }
 
         const fetchCurrentWeather = (lat: number, lon: number) => {
-            // ★修正: ロック済みなのでチェック削除
             fetch(`/api/weather/forecast?lat=${lat}&lon=${lon}`)
                 .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
                 .then(data => {
@@ -139,7 +137,6 @@ export function useWalkLogic() {
         };
 
         if (navigator.geolocation) {
-            // ★修正: 非同期処理(getCurrentPosition)の前に即座にフラグを立ててロックする
             hasStartedProcessing.current = true;
             navigator.geolocation.getCurrentPosition(
                 (pos) => fetchCurrentWeather(pos.coords.latitude, pos.coords.longitude),
@@ -152,7 +149,6 @@ export function useWalkLogic() {
                 }
             );
         } else {
-            // ★修正: 即座にロック
             hasStartedProcessing.current = true;
             setError("このブラウザでは位置情報機能が利用できません。");
             setLoading(false);
@@ -175,5 +171,7 @@ export function useWalkLogic() {
         dynamicBackgroundClass,
         handleModalClose,
         isNight,
+        // ★追加: stageを返す
+        stage
     };
 }

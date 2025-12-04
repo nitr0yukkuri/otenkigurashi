@@ -24,3 +24,13 @@ export const getWalkMessage = (weatherType?: string): string => {
         default: return 'てくてく…何が見つかるかな？';
     }
 }
+
+// ★修正: ステージIDに応じて名前を返すように変更
+export const getWalkStage = (stageId?: string): string => {
+    switch (stageId) {
+        case 'sea': return '海辺';
+        case 'mountain': return '山道';
+        case 'default':
+        default: return 'いつもの散歩道';
+    }
+}

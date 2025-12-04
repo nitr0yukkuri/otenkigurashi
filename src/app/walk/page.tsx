@@ -9,7 +9,8 @@ import Link from 'next/link';
 // import Footer from '../components/Footer'; // ★ 削除: お散歩中はフッターを表示しない
 import ItemGetModal from '../components/ItemGetModal';
 import { useWalkLogic } from './useWalkLogic';
-import { getWalkMessage } from './utils';
+// ★修正: getWalkStage をインポート
+import { getWalkMessage, getWalkStage } from './utils';
 
 function WalkPageComponent() {
     const {
@@ -22,6 +23,8 @@ function WalkPageComponent() {
         dynamicBackgroundClass,
         handleModalClose,
         isNight,
+        // ★追加: stageを受け取る
+        stage
     } = useWalkLogic();
 
     const [petName, setPetName] = useState("てんちゃん");
@@ -45,6 +48,9 @@ function WalkPageComponent() {
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
     const panelTextColor = isNight ? 'text-white' : 'text-slate-700';
 
+    // ★修正: 選択されたステージIDから名前を取得
+    const stageName = getWalkStage(stage);
+
     return (
         <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
             <ItemGetModal isOpen={isItemModalOpen} onClose={handleModalClose} itemName={obtainedItem.name} iconName={obtainedItem.iconName} rarity={obtainedItem.rarity} />
@@ -57,7 +63,11 @@ function WalkPageComponent() {
                             <h1 className={`text-3xl font-extrabold ${titleColor} tracking-wider`}>
                                 {loading ? 'おさんぽ準備中...' : error ? 'おさんぽ失敗...' : 'おさんぽ中...'}
                             </h1>
-                            <p className={`${subTitleColor} mt-1`}>{location}</p>
+                            {/* ★修正: ステージ名と場所を表示 */}
+                            <div className="flex flex-col items-center gap-1 mt-2">
+                                <p className={`text-lg font-bold ${titleColor} opacity-90`}>{!loading && !error && stageName}</p>
+                                <p className={`${subTitleColor} text-sm`}>{location}</p>
+                            </div>
                         </header>
                     </div>
                     <div className="flex flex-col items-center justify-center flex-grow p-4">
