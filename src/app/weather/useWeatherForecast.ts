@@ -20,7 +20,6 @@ interface DailyData {
     items: any[];
 }
 
-// ヘルパー関数はそのまま...
 const getWeatherText = (weatherType: string): string => {
     switch (weatherType) {
         case 'partlyCloudy': return '晴れ時々くもり';
@@ -37,7 +36,6 @@ const getWeatherText = (weatherType: string): string => {
 };
 
 const generateAdviceMessage = (data: { day: string; weather: string; high: number; low: number; pop: number }, index: number): string => {
-    // (generateAdviceMessageの中身は変更なしでOK)
     const { day, weather, high, low, pop } = data;
     const weatherText = getWeatherText(weather);
     let messages: string[] = [];
@@ -118,7 +116,8 @@ export function useWeatherForecast() {
         const fetchWeatherData = async (latitude: number, longitude: number) => {
             setError(null);
             try {
-                const forecastResponse = await fetch(`/api/weather/forecast?lat=${latitude}&lon=${longitude}`);
+                // ★修正1: 明示的に摂氏(metric)をリクエスト
+                const forecastResponse = await fetch(`/api/weather/forecast?lat=${latitude}&lon=${longitude}&units=metric`);
                 const data = await forecastResponse.json();
                 if (!forecastResponse.ok) throw new Error(data.message || '予報の取得に失敗しました');
                 setLocation(data.city.name || "不明な場所");
@@ -126,7 +125,8 @@ export function useWeatherForecast() {
                 const dailyForecasts = new Map<string, DailyData>();
                 data.list.forEach((item: any) => {
                     const d = new Date(item.dt * 1000);
-                    // JSTの日付キーを生成して、タイムゾーンによる日付のズレを防止
+                    // ★修正2: 日本時間(JST)で日付を区切る ("Japan is bad"対策)
+                    // これにより、UTCの深夜(JSTの朝)が「前日」に含まれてしまうのを防ぎます
                     const dateKey = d.toLocaleDateString('ja-JP', {
                         year: 'numeric',
                         month: '2-digit',
@@ -138,14 +138,20 @@ export function useWeatherForecast() {
                         dailyForecasts.set(dateKey, { temps: [], pops: [], weathers: [], items: [] });
                     }
                     const dayData = dailyForecasts.get(dateKey)!;
-                    dayData.temps.push(item.main.temp);
+
+                    // ★修正3: 温度の安全策 (万が一ケルビンで返ってきても補正)
+                    let temp = item.main.temp;
+                    if (temp > 200) {
+                        temp = temp - 273.15;
+                    }
+                    dayData.temps.push(temp);
+
                     dayData.pops.push(item.pop);
                     dayData.weathers.push(item.weather[0].main);
                     dayData.items.push(item);
                 });
 
                 const formattedForecast = Array.from(dailyForecasts.entries()).slice(0, 5).map(([dateKey, dailyData], index) => {
-                    // ★★★ 修正箇所: キーからDateオブジェクトを復元する ★★★
                     const [y, m, d] = dateKey.split('-').map(Number);
                     const date = new Date(y, m - 1, d);
 
@@ -155,8 +161,8 @@ export function useWeatherForecast() {
                     let representativeItem = dailyData.items[0];
 
                     if (index > 0) {
+                        // ★修正4: アイコン選択時も日本時間(UTC+9)の10時～14時を優先
                         const daytimeItem = dailyData.items.find((item: any) => {
-                            // JSTでの時間を取得 (UTC+9)
                             const h = (new Date(item.dt * 1000).getUTCHours() + 9) % 24;
                             return h >= 10 && h <= 14;
                         });
@@ -164,7 +170,6 @@ export function useWeatherForecast() {
                             representativeItem = daytimeItem;
                         } else {
                             const anyDaytimeItem = dailyData.items.find((item: any) => {
-                                // JSTでの時間を取得 (UTC+9)
                                 const h = (new Date(item.dt * 1000).getUTCHours() + 9) % 24;
                                 return h >= 6 && h <= 18;
                             });
@@ -200,7 +205,6 @@ export function useWeatherForecast() {
             navigator.geolocation.getCurrentPosition(
                 (position) => fetchWeatherData(position.coords.latitude, position.coords.longitude),
                 (geoError) => {
-                    // (エラーハンドリングはそのまま)
                     console.error("Geolocation Error:", geoError);
                     let errorMessage = "あれれ、いまどこにいるか分かんなくなっちゃった…";
                     let message = "いまどこにいるか分かれば、お天気を調べられるよ！";
