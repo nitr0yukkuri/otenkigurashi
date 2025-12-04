@@ -16,7 +16,7 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     const main = weatherData.weather[0].main.toLowerCase();
     const windSpeed = weatherData.wind?.speed;
 
-    // ★ 修正: 時間(getHours)ではなく、OpenWeatherMapが返してくれる「昼夜フラグ(pod)」を優先する
+    // 時間(getHours)ではなく、OpenWeatherMapが返してくれる「昼夜フラグ(pod)」を優先する
     let isNight = false;
 
     // APIデータの sys.pod が 'n' (night) なら夜とする
@@ -25,7 +25,7 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     } else if (weatherData.sys && weatherData.sys.pod === 'd') {
         isNight = false;
     } else {
-        // データがない場合のフォールバック（ここだけ時間は使うが、APIデータがあれば通らない）
+        // データがない場合のフォールバック
         const hour = new Date().getHours();
         isNight = hour < 5 || hour >= 19;
     }
@@ -40,7 +40,7 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     }
     if (main.includes("clouds")) {
         const cloudiness = weatherData.clouds?.all;
-        // ★ 閾値を 50 に設定し、くもり判定を緩和
+        // 閾値を 50 に設定し、くもり判定を緩和
         if (cloudiness !== undefined && cloudiness > 50) {
             return isNight ? "night" : "cloudy";
         }
@@ -62,7 +62,8 @@ export const getBackgroundGradientClass = (weather: WeatherType | null): string 
         case 'thunderstorm': return 'bg-thunderstorm';
         case 'snowy': return 'bg-snowy';
         case 'windy': return 'bg-windy';
-        case 'night': return 'bg-night';
+        // ★修正: 夜（night）の時だけ text-white を追加して文字を見やすくする
+        case 'night': return 'bg-night text-white';
         case 'sunny':
         default: return 'bg-sunny';
     }

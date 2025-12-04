@@ -9,6 +9,8 @@ import * as Gi from "react-icons/gi";
 import TeruTeruIcon from './TeruTeruIcon';
 import BugNetIcon from './BugNetIcon';
 import RainbowNecklaceIcon from './RainbowNecklacelcon';
+import LostButtonIcon from './LostButtonIcon';
+import RainbowShardIcon from './RainbowShardIcon'; // ★追加
 
 
 const AllIcons = { ...Io5, ...Bs, ...Fa, ...Gi };
@@ -75,6 +77,13 @@ export default function ItemIcon({ name, rarity = 'normal', size = 24 }: { name:
     }
     if (iconName === 'GiNecklace') {
         return <RainbowNecklaceIcon size={size} />;
+    }
+    if (iconName === 'BsRecordCircle') {
+        return <LostButtonIcon size={size} />;
+    }
+    // ★追加: 虹のかけら (GiRainbowStar) の場合にカスタムアイコンを表示
+    if (iconName === 'GiRainbowStar') {
+        return <RainbowShardIcon size={size} />;
     }
 
 
