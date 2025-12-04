@@ -125,10 +125,14 @@ export function useWeatherForecast() {
 
                 const dailyForecasts = new Map<string, DailyData>();
                 data.list.forEach((item: any) => {
-                    // ★★★ 修正箇所: toLocaleDateString をやめて、手動でキーを作成する ★★★
-                    // 環境によって日付フォーマットが変わるのを防ぐため
                     const d = new Date(item.dt * 1000);
-                    const dateKey = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`; // YYYY-M-D形式
+                    // JSTの日付キーを生成して、タイムゾーンによる日付のズレを防止
+                    const dateKey = d.toLocaleDateString('ja-JP', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        timeZone: 'Asia/Tokyo'
+                    }).replace(/\//g, '-');
 
                     if (!dailyForecasts.has(dateKey)) {
                         dailyForecasts.set(dateKey, { temps: [], pops: [], weathers: [], items: [] });
@@ -152,14 +156,16 @@ export function useWeatherForecast() {
 
                     if (index > 0) {
                         const daytimeItem = dailyData.items.find((item: any) => {
-                            const h = new Date(item.dt * 1000).getHours();
+                            // JSTでの時間を取得 (UTC+9)
+                            const h = (new Date(item.dt * 1000).getUTCHours() + 9) % 24;
                             return h >= 10 && h <= 14;
                         });
                         if (daytimeItem) {
                             representativeItem = daytimeItem;
                         } else {
                             const anyDaytimeItem = dailyData.items.find((item: any) => {
-                                const h = new Date(item.dt * 1000).getHours();
+                                // JSTでの時間を取得 (UTC+9)
+                                const h = (new Date(item.dt * 1000).getUTCHours() + 9) % 24;
                                 return h >= 6 && h <= 18;
                             });
                             if (anyDaytimeItem) representativeItem = anyDaytimeItem;
