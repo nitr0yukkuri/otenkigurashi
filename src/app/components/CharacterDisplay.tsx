@@ -26,6 +26,7 @@ type CharacterDisplayProps = {
     isNight?: boolean;
     isStatic?: boolean;
     weather?: string | null;
+    // ★追加: なでなで判定用のイベントハンドラ
     onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void;
     onPointerLeave?: () => void;
 };
