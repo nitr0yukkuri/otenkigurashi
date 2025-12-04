@@ -5,8 +5,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
 type CharacterFaceProps = {
-    // ★修正: "scared" を追加
-    mood?: "happy" | "neutral" | "sad" | "scared";
+    // ★修正: "sleepy", "looking" を追加
+    mood?: "happy" | "neutral" | "sad" | "scared" | "sleepy" | "looking";
     onClick?: () => void;
     petColor?: string;
     cheekColor?: string;
@@ -26,12 +26,14 @@ export default function CharacterFace({
             case "happy":
                 return "M 45 75 Q 60 90 75 75";
             case "neutral":
+            case "looking": // キョロキョロ中も普通の口
                 return "M 45 80 L 75 80";
             case "sad":
                 return "M 45 85 Q 60 75 75 85";
-            // ★追加: 怖がり口（波線）
             case "scared":
-                return "M 42 82 Q 47 77 52 82 Q 57 87 62 82 Q 67 77 72 82 Q 77 87 82 82";
+                return "M 40 82 Q 45 77 50 82 Q 55 87 60 82 Q 65 77 70 82 Q 75 87 80 82";
+            case "sleepy": // 寝ている口（小さく開く）
+                return "M 55 80 Q 60 85 65 80 Q 60 75 55 80";
             default:
                 return "M 45 75 Q 60 90 75 75";
         }
@@ -81,16 +83,36 @@ export default function CharacterFace({
                 <circle cx="100" cy="70" r="12" fill={cheekColor} />
 
                 {/* 目 */}
-                {/* ★追加: moodがscaredのときは ＞＜ の目にする (isStatic判定も考慮) */}
                 {mood === 'scared' ? (
                     <motion.g
-                        animate={isStatic ? undefined : { x: [-1, 1, -1], y: [0, 1, 0] }} // ガタガタ震える
+                        animate={isStatic ? undefined : { x: [-1, 1, -1], y: [0, 1, 0] }}
                         transition={{ duration: 0.2, repeat: Infinity }}
                     >
-                        {/* 左目 ＞ */}
                         <path d="M 35 50 L 45 55 L 35 60" fill="none" stroke="#5D4037" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-                        {/* 右目 ＜ */}
                         <path d="M 85 50 L 75 55 L 85 60" fill="none" stroke="#5D4037" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                    </motion.g>
+                ) : mood === 'sleepy' ? (
+                    // ★追加: 眠っている目 (U U)
+                    <g>
+                        <path d="M 35 55 Q 40 60 45 55" fill="none" stroke="#5D4037" strokeWidth="4" strokeLinecap="round" />
+                        <path d="M 75 55 Q 80 60 85 55" fill="none" stroke="#5D4037" strokeWidth="4" strokeLinecap="round" />
+                    </g>
+                ) : mood === 'looking' ? (
+                    // ★追加: 蝶々を目で追う (目が動く)
+                    <motion.g
+                        animate={{
+                            x: [0, 8, 5, -5, -8, 0],
+                            y: [0, -5, -8, -5, 0, 0]
+                        }}
+                        transition={{
+                            duration: 4,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            repeatDelay: 1
+                        }}
+                    >
+                        <circle cx="40" cy="55" r="5" fill="#5D4037" />
+                        <circle cx="80" cy="55" r="5" fill="#5D4037" />
                     </motion.g>
                 ) : (
                     <motion.g
@@ -117,6 +139,18 @@ export default function CharacterFace({
                         strokeLinecap="round"
                         strokeLinejoin="round"
                     />
+                    {/* 眠っている時の鼻提灯（オプション） */}
+                    {mood === 'sleepy' && (
+                        <motion.circle
+                            cx="70" cy="75" r="8"
+                            fill="rgba(255,255,255,0.7)"
+                            stroke="#81D4FA"
+                            strokeWidth="2"
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: [0.8, 1.2, 0.8], opacity: 0.8 }}
+                            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                    )}
                 </AnimatePresence>
             </motion.svg>
         </motion.div>

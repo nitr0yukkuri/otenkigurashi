@@ -19,13 +19,13 @@ type CharacterDisplayProps = {
     petColor: string;
     cheekColor?: string;
     equipment: EquipmentState | null;
-    mood: "happy" | "neutral" | "sad" | "scared";
+    // ★修正: moodの型をCharacterFaceと合わせる
+    mood: "happy" | "neutral" | "sad" | "scared" | "sleepy" | "looking";
     message: string | null;
     onCharacterClick: () => void;
     isNight?: boolean;
     isStatic?: boolean;
     weather?: string | null;
-    // ★追加: なでなで判定用のイベントハンドラを受け取る
     onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void;
     onPointerLeave?: () => void;
 };
@@ -48,7 +48,6 @@ export default function CharacterDisplay({
     isNight = false,
     isStatic = false,
     weather = null,
-    // ★追加: Propsの受け取り
     onPointerMove,
     onPointerLeave
 }: CharacterDisplayProps) {
@@ -100,7 +99,6 @@ export default function CharacterDisplay({
                 )}
             </AnimatePresence>
 
-            {/* ★修正: 顔のコンテナ（w-40 h-40）にイベントを設定し、touch-noneを追加 */}
             <div
                 className="w-40 h-40 rounded-full relative touch-none"
                 onPointerMove={onPointerMove}

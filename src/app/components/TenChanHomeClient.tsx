@@ -13,7 +13,6 @@ import HelpButton from './HelpButton';
 import HelpModal from './HelpModal';
 import ShareButton from './ShareButton';
 import ShareModal from './ShareModal';
-// ★追加: 天気エフェクトコンポーネント
 import WeatherEffects from './WeatherEffects';
 import { useSound } from '../hooks/useSound';
 
@@ -74,7 +73,41 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
     const [walkStage, setWalkStage] = useState<string>('default');
 
+    // ★追加: 放置リアクション用ステート
+    const [idleAction, setIdleAction] = useState<'sleepy' | 'looking' | null>(null);
+    const idleTimerRef = useRef<NodeJS.Timeout | null>(null);
+
     const timeOfDay = getTimeOfDay(currentTime);
+
+    // ★追加: 放置タイマーリセット関数
+    const resetIdleTimer = () => {
+        if (idleAction !== null) setIdleAction(null); // アクション中なら解除
+        if (message === "Zzz...") setMessage(null); // 寝言メッセージ消去
+
+        if (idleTimerRef.current) {
+            clearTimeout(idleTimerRef.current);
+        }
+
+        // 10秒放置でリアクション開始
+        idleTimerRef.current = setTimeout(() => {
+            const actions: ('sleepy' | 'looking')[] = ['sleepy', 'looking'];
+            const nextAction = actions[Math.floor(Math.random() * actions.length)];
+            setIdleAction(nextAction);
+
+            // 寝る場合はメッセージも出す
+            if (nextAction === 'sleepy') {
+                setMessage("Zzz...");
+            }
+        }, 10000);
+    };
+
+    // 初期化とクリーンアップ
+    useEffect(() => {
+        resetIdleTimer();
+        return () => {
+            if (idleTimerRef.current) clearTimeout(idleTimerRef.current);
+        };
+    }, []);
 
     const setWeatherAndNotify = (newWeather: WeatherType | null) => {
         const weatherValue = newWeather || 'sunny';
@@ -84,6 +117,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     };
 
     const handleRubbing = (e: React.PointerEvent<HTMLDivElement>) => {
+        resetIdleTimer(); // ★追加: 操作でリセット
+
         if (isPetting) return;
 
         const now = Date.now();
@@ -103,6 +138,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
     const triggerPetting = () => {
         setIsPetting(true);
+        setIdleAction(null); // なでなで中はアイドル解除
         if (messageTimeoutRef.current) { clearTimeout(messageTimeoutRef.current); }
 
         const pettingMessages = [
@@ -118,10 +154,13 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         messageTimeoutRef.current = setTimeout(() => {
             setIsPetting(false);
             setMessage(null);
+            resetIdleTimer(); // 終わったらタイマー再開
         }, 3000);
     };
 
     const handleCharacterClick = () => {
+        resetIdleTimer(); // ★追加: 操作でリセット
+
         if (isPetting) return;
 
         if (messageTimeoutRef.current) { clearTimeout(messageTimeoutRef.current); }
@@ -146,6 +185,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     };
 
     const cycleWeather = () => {
+        resetIdleTimer(); // 操作でリセット
         const weathers: WeatherType[] = ["sunny", "clear", "cloudy", "rainy", "thunderstorm", "snowy", "windy", "night"];
         const current = weather || 'sunny';
         const currentIndex = weathers.indexOf(current);
@@ -241,12 +281,14 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         return () => {
             clearInterval(timer);
             if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+            if (idleTimerRef.current) clearTimeout(idleTimerRef.current); // クリーンアップ
             window.removeEventListener(PET_SETTINGS_CHANGED_EVENT, handleSettingsChanged);
             window.removeEventListener('storage', handleSettingsChanged);
         };
     }, [initialData]);
 
     const handleConfirmWalk = () => {
+        resetIdleTimer(); // 操作でリセット
         setIsModalOpen(false);
         const walkWeather = weather || 'sunny';
         const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗" ? location : "どこかの場所";
@@ -257,7 +299,21 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const dynamicBackgroundClass = getBackgroundGradientClass(displayWeatherType);
     const isNight = displayWeatherType === 'night';
 
-    const currentMood = isPetting ? "happy" : (error ? "sad" : (displayWeatherType === 'thunderstorm' || displayWeatherType === 'windy') ? "scared" : "happy");
+    // ★修正: 優先順位 ペット中 > エラー > 放置アクション > 天気リアクション
+    let currentMood: "happy" | "neutral" | "sad" | "scared" | "sleepy" | "looking" = "happy";
+
+    if (isPetting) {
+        currentMood = "happy";
+    } else if (error) {
+        currentMood = "sad";
+    } else if (idleAction) {
+        // 放置アクション
+        currentMood = idleAction;
+    } else if (displayWeatherType === 'thunderstorm' || displayWeatherType === 'windy') {
+        currentMood = "scared";
+    } else {
+        currentMood = "happy";
+    }
 
     return (
         <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
@@ -305,7 +361,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}>
                 <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl"></div>
 
-                {/* ★追加: 天気連動エフェクト (コンテンツの後ろ、背景の前) */}
                 <WeatherEffects weather={displayWeatherType} />
 
                 <ShareButton onClick={() => setIsShareOpen(true)} />
