@@ -80,7 +80,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
         let messageOptions: string[] = [];
 
-        // ★変更: 時間帯の会話は、天気が「晴れ」か「快晴」のときだけ追加する
         if (timeOfDay && conversationMessages[timeOfDay] && (weather === 'sunny' || weather === 'clear')) {
             messageOptions = messageOptions.concat(conversationMessages[timeOfDay]);
         }
@@ -99,13 +98,11 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     };
 
     const cycleWeather = () => {
-        setWeather(prev => {
-            const weathers: WeatherType[] = ["sunny", "clear", "cloudy", "rainy", "thunderstorm", "snowy", "windy", "night"];
-            const currentIndex = prev ? weathers.indexOf(prev) : -1;
-            const nextWeather = weathers[(currentIndex + 1) % weathers.length];
-            setWeatherAndNotify(nextWeather);
-            return nextWeather;
-        });
+        const weathers: WeatherType[] = ["sunny", "clear", "cloudy", "rainy", "thunderstorm", "snowy", "windy", "night"];
+        const current = weather || 'sunny';
+        const currentIndex = weathers.indexOf(current);
+        const nextWeather = weathers[(currentIndex + 1) % weathers.length];
+        setWeatherAndNotify(nextWeather);
     };
 
     useEffect(() => {
@@ -241,7 +238,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 <HelpButton onClick={() => setIsHelpOpen(true)} />
 
                 <WeatherDisplay
-                    weather={isLoading || error ? null : displayWeatherType}
+                    weather={isLoading ? null : displayWeatherType}
                     timeOfDay={timeOfDay}
                     isClient={isClient}
                     currentTime={currentTime}
@@ -267,7 +264,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                         message={message}
                         onCharacterClick={handleCharacterClick}
                         isNight={isNight}
-                        // ★追加: 天気情報を渡す
                         weather={displayWeatherType}
                     />
                 )}
