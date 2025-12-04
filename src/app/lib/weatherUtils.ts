@@ -7,7 +7,7 @@ export type WeatherType = "sunny" | "clear" | "rainy" | "cloudy" | "snowy" | "th
 
 /**
  * OpenWeatherMapのデータから天気タイプをマッピングします。
- * (TenChanHomeClient.tsx, page.tsx7, weather/page.tsx から共通化)
+ * (TenChanHomeClient.tsx, page.tsx, weather/page.tsx から共通化)
  */
 export const mapWeatherType = (weatherData: any): WeatherType => {
     if (!weatherData || !weatherData.weather || weatherData.weather.length === 0) {
@@ -16,7 +16,7 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     const main = weatherData.weather[0].main.toLowerCase();
     const windSpeed = weatherData.wind?.speed;
 
-    // ★ 修正案: 時間(getHours)ではなく、OpenWeatherMapが返してくれる「昼夜フラグ(pod)」を優先する
+    // ★ 修正: 時間(getHours)ではなく、OpenWeatherMapが返してくれる「昼夜フラグ(pod)」を優先する
     let isNight = false;
 
     // APIデータの sys.pod が 'n' (night) なら夜とする
@@ -40,7 +40,7 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     }
     if (main.includes("clouds")) {
         const cloudiness = weatherData.clouds?.all;
-        // ★★★ 修正: 閾値を 75 -> 50 に変更し、くもり判定を緩和 ★★★
+        // ★ 閾値を 50 に設定し、くもり判定を緩和
         if (cloudiness !== undefined && cloudiness > 50) {
             return isNight ? "night" : "cloudy";
         }
