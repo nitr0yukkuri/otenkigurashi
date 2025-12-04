@@ -46,14 +46,14 @@ export function useWalkLogic() {
     }, []);
 
     useEffect(() => {
+        // 処理開始済み、または処理中なら即リターン
         if (hasStartedProcessing.current || isProcessing) return;
 
         const debugWeather = searchParams.get('weather');
         const paramLocation = searchParams.get('location');
 
         const obtainItem = (currentWeather: string) => {
-            if (hasStartedProcessing.current) return;
-            hasStartedProcessing.current = true;
+            // ★修正: ここでのチェックとフラグセットを削除 (呼び出し元でロック済みのため)
             setIsProcessing(true);
 
             setTimeout(async () => {
@@ -107,6 +107,8 @@ export function useWalkLogic() {
         };
 
         if (debugWeather) {
+            // ★修正: 非同期処理の前に即座にフラグを立ててロックする
+            hasStartedProcessing.current = true;
             setWeather(debugWeather);
             if (paramLocation) setLocation(decodeURIComponent(paramLocation));
             setLoading(false);
@@ -115,12 +117,11 @@ export function useWalkLogic() {
         }
 
         const fetchCurrentWeather = (lat: number, lon: number) => {
-            if (hasStartedProcessing.current) return;
+            // ★修正: ロック済みなのでチェック削除
             fetch(`/api/weather/forecast?lat=${lat}&lon=${lon}`)
                 .then(res => res.ok ? res.json() : Promise.reject(res.statusText))
                 .then(data => {
                     if (!isMounted.current) return;
-                    if (hasStartedProcessing.current) return;
                     if (!data.list) throw new Error('天気情報が取得できませんでした');
                     setLocation(data.city.name || "不明な場所");
                     const current = data.list[0];
@@ -130,37 +131,32 @@ export function useWalkLogic() {
                 })
                 .catch(err => {
                     if (!isMounted.current) return;
-                    if (hasStartedProcessing.current) return;
                     console.error(err);
                     setError("天気情報の取得に失敗しました。");
                     setLoading(false);
-                    hasStartedProcessing.current = true;
                     setIsProcessing(false);
                 });
         };
 
         if (navigator.geolocation) {
-            if (!hasStartedProcessing.current) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => fetchCurrentWeather(pos.coords.latitude, pos.coords.longitude),
-                    (err) => {
-                        if (!isMounted.current) return;
-                        if (hasStartedProcessing.current) return;
-                        console.error(err);
-                        setError("位置情報の取得を許可してください。");
-                        setLoading(false);
-                        hasStartedProcessing.current = true;
-                        setIsProcessing(false);
-                    }
-                );
-            }
+            // ★修正: 非同期処理(getCurrentPosition)の前に即座にフラグを立ててロックする
+            hasStartedProcessing.current = true;
+            navigator.geolocation.getCurrentPosition(
+                (pos) => fetchCurrentWeather(pos.coords.latitude, pos.coords.longitude),
+                (err) => {
+                    if (!isMounted.current) return;
+                    console.error(err);
+                    setError("位置情報の取得を許可してください。");
+                    setLoading(false);
+                    setIsProcessing(false);
+                }
+            );
         } else {
-            if (!hasStartedProcessing.current) {
-                setError("このブラウザでは位置情報機能が利用できません。");
-                setLoading(false);
-                hasStartedProcessing.current = true;
-                setIsProcessing(false);
-            }
+            // ★修正: 即座にロック
+            hasStartedProcessing.current = true;
+            setError("このブラウザでは位置情報機能が利用できません。");
+            setLoading(false);
+            setIsProcessing(false);
         }
     }, [searchParams, isProcessing]);
 
