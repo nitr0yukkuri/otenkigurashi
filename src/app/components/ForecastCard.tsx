@@ -19,7 +19,6 @@ interface ForecastCardProps {
     low: number;
     pop: number;
     onClick: (data: Forecast) => void;
-    // ★追加: 夜かどうかを受け取る
     isNight?: boolean;
 }
 
@@ -40,10 +39,9 @@ export default function ForecastCard({ day, date, weather, high, low, pop, onCli
 
     const cardData = { day, date, weather, high, low, pop };
 
-    // ★追加: 夜間モード用のテキスト色設定
     const titleColor = isNight ? 'text-gray-100' : 'text-slate-700';
-    const dateColor = isNight ? 'text-gray-300' : 'text-slate-500'; // 曜日が見やすいように明るくする
-    const weatherTextColor = isNight ? 'text-white/80' : 'text-slate-600';
+    const dateColor = isNight ? 'text-gray-300' : 'text-slate-500';
+    const weatherTextColor = isNight ? 'text-gray-200' : 'text-slate-600';
     const highTempColor = isNight ? 'text-white' : 'text-slate-800';
     const lowTempColor = isNight ? 'text-gray-400' : 'text-slate-400';
     const popColor = isNight ? 'text-cyan-300' : 'text-cyan-600';
@@ -55,7 +53,8 @@ export default function ForecastCard({ day, date, weather, high, low, pop, onCli
             className={`flex-shrink-0 w-32 text-center p-4 ${bgClass} backdrop-blur-md rounded-[2rem] shadow-lg flex flex-col items-center transition-transform active:scale-[0.98] cursor-pointer focus:outline-none focus:ring-2 focus:ring-sky-400`}
         >
             <p className={`font-bold ${titleColor}`}>{day}</p>
-            <p className={`text-sm ${dateColor} -mt-1`}>{date}</p>
+            {/* ▼▼▼ 修正: font-extrabold に変更してさらに太く ▼▼▼ */}
+            <p className={`text-sm font-extrabold ${dateColor} -mt-1`}>{date}</p>
 
             <div className="my-3">
                 <WeatherIcon type={weather} size={40} />
