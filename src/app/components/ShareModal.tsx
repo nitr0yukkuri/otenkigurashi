@@ -31,7 +31,7 @@ const getWeatherText = (weather: string | null) => {
         case 'thunderstorm': return 'かみなり';
         case 'snowy': return 'ゆき';
         case 'windy': return 'かぜ';
-        case 'night': return 'よる';
+        case 'night': return 'はれ';
         case 'sunny':
         default: return 'はれ';
     }
