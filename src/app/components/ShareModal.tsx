@@ -96,6 +96,8 @@ export default function ShareModal({
         // ★変更: 天気を日本語（ひらがな）に変換してテキストを作成
         const weatherText = getWeatherText(weather);
         const text = `今の ${petName} はこんな感じ！\n天気: ${weatherText} 🌤️\n\n#おてんきぐらし #癒やし`;
+        // ★追加: アプリのURL (Vercel URL)
+        const shareUrl = window.location.origin;
 
         try {
             // 1. 画像を生成
@@ -108,6 +110,7 @@ export default function ShareModal({
                 const shareData = {
                     files: [file],
                     text: text,
+                    url: shareUrl, // ★追加: URLをセットすることでリンクも共有
                 };
 
                 // ファイル共有がサポートされているか確認してから実行
@@ -119,7 +122,8 @@ export default function ShareModal({
 
             // 3. Web Share API非対応環境（PC等）の場合のフォールバック
             // 画像は添付できないため、テキストのみでツイート画面を開く
-            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            // ★変更: URLパラメータを追加
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
             window.open(url, '_blank');
 
         } catch (e: any) {
@@ -127,7 +131,8 @@ export default function ShareModal({
             if (e.name !== 'AbortError') {
                 console.error('シェアエラー:', e);
                 // エラー時はテキストのみでフォールバック
-                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+                // ★変更: URLパラメータを追加
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
                 window.open(url, '_blank');
             }
         } finally {
