@@ -1,8 +1,11 @@
+// src/app/components/CharacterFace.tsx
+
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
 
 type CharacterFaceProps = {
+    // ★修正: "sleepy", "looking" を追加
     mood?: "happy" | "neutral" | "sad" | "scared" | "sleepy" | "looking";
     onClick?: () => void;
     petColor?: string;
@@ -24,12 +27,13 @@ export default function CharacterFace({
                 return "M 45 75 Q 60 90 75 75";
             case "neutral":
             case "looking":
+                // ★修正: さみしそうな顔を削除し、穏やかな口元に戻す
                 return "M 45 80 Q 60 85 75 80";
             case "sad":
                 return "M 45 85 Q 60 75 75 85";
             case "scared":
                 return "M 40 82 Q 45 77 50 82 Q 55 87 60 82 Q 65 77 70 82 Q 75 87 80 82";
-            case "sleepy":
+            case "sleepy": // 寝ている口（小さく開く）
                 return "M 55 80 Q 60 85 65 80 Q 60 75 55 80";
             default:
                 return "M 45 75 Q 60 90 75 75";
@@ -79,27 +83,6 @@ export default function CharacterFace({
                 <circle cx="20" cy="70" r="12" fill={cheekColor} />
                 <circle cx="100" cy="70" r="12" fill={cheekColor} />
 
-                {/* 蝶々 (lookingの時のみ出現) */}
-                {/* <AnimatePresence>
-                    {mood === 'looking' && (
-                        <motion.g
-                            initial={{ opacity: 0, scale: 0 }}
-                            animate={{
-                                opacity: 1,
-                                scale: 1,
-                                x: [20, -20, 20],
-                                y: [-10, -25, -10],
-                                rotate: [0, -10, 10, 0]
-                            }}
-                            exit={{ opacity: 0, scale: 0 }}
-                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                        >
-                            <path d="M 80 30 Q 90 20 100 30 Q 90 40 80 30" fill="#B3E5FC" opacity="0.8" />
-                            <path d="M 80 30 Q 70 20 60 30 Q 70 40 80 30" fill="#B3E5FC" opacity="0.8" />
-                        </motion.g>
-                    )}
-                </AnimatePresence> */}
-
                 {/* 目 */}
                 {mood === 'scared' ? (
                     <motion.g
@@ -110,11 +93,13 @@ export default function CharacterFace({
                         <path d="M 85 50 L 75 55 L 85 60" fill="none" stroke="#5D4037" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
                     </motion.g>
                 ) : mood === 'sleepy' ? (
+                    // ★追加: 眠っている目 (U U)
                     <g>
                         <path d="M 35 55 Q 40 60 45 55" fill="none" stroke="#5D4037" strokeWidth="4" strokeLinecap="round" />
                         <path d="M 75 55 Q 80 60 85 55" fill="none" stroke="#5D4037" strokeWidth="4" strokeLinecap="round" />
                     </g>
                 ) : mood === 'looking' ? (
+                    // ★追加: 蝶々の動きに合わせて目を動かす
                     <motion.g
                         animate={{
                             x: [2, -2, 2],
