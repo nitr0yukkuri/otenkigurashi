@@ -146,7 +146,9 @@ export function useWalkLogic() {
                     setError("位置情報の取得を許可してください。");
                     setLoading(false);
                     setIsProcessing(false);
-                }
+                },
+                // ★修正: タイムアウトを4秒に短縮
+                { timeout: 4000 }
             );
         } else {
             hasStartedProcessing.current = true;

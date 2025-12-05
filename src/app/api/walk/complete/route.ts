@@ -36,8 +36,10 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: 'ユーザーIDが必要です。' }, { status: 400 });
     }
 
-    // ★修正: 日付取得をトランザクションの外に移動
-    const now = new Date();
+    // ★修正: 日付取得をトランザクションの外に移動し、JST（日本時間）に変換
+    // Vercel等のサーバーはUTCなので、+9時間して日本の「今日」に合わせる
+    const nowUtc = new Date();
+    const now = new Date(nowUtc.getTime() + 9 * 60 * 60 * 1000);
 
     try {
         const progress = await prisma.$transaction(async (tx) => {
