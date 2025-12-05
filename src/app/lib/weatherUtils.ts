@@ -16,19 +16,9 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     const main = weatherData.weather[0].main.toLowerCase();
     const windSpeed = weatherData.wind?.speed;
 
-    // 時間(getHours)ではなく、OpenWeatherMapが返してくれる「昼夜フラグ(pod)」を優先する
-    let isNight = false;
-
-    // APIデータの sys.pod が 'n' (night) なら夜とする
-    if (weatherData.sys && weatherData.sys.pod === 'n') {
-        isNight = true;
-    } else if (weatherData.sys && weatherData.sys.pod === 'd') {
-        isNight = false;
-    } else {
-        // データがない場合のフォールバック
-        const hour = new Date().getHours();
-        isNight = hour < 5 || hour >= 19;
-    }
+    // ★変更: 日没(pod)ではなく、19時～5時を夜とする固定ロジックに変更
+    const hour = new Date().getHours();
+    const isNight = hour < 5 || hour >= 19;
 
     if (windSpeed !== undefined && windSpeed >= 8.5) return "windy";
     if (main.includes("thunderstorm")) return "thunderstorm";

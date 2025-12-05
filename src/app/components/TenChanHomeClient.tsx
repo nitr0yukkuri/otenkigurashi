@@ -42,7 +42,8 @@ const conversationMessages: { [key: string]: string[] } = {
     thunderstorm: ["ゴロゴロって音がする…！", "ちょっとだけこわいかも…", "おへそ隠さなきゃ！"],
     snowy: ["わー！雪だ！", "雪だるま、作れるかな？", "ふわふわしてるね", "まっしろだね！"],
     windy: ["風がびゅーびゅー言ってる！", "帽子が飛ばされそうだ〜", "わわっ！とばされちゃう〜！"],
-    night: ["今日もおつかれさま", "星が見えるかな？", "そろそろ眠いかも…", "いい夢みてね"],
+    // ★変更: 眠いメッセージを削除
+    night: ["今日もおつかれさま", "星が見えるかな？"],
     default: ["こんにちは！", "なになに？", "えへへっ", "今日も元気だよ！", "何か用かな？"]
 };
 
@@ -173,6 +174,11 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
         if (weather && conversationMessages[weather]) {
             messageOptions = messageOptions.concat(conversationMessages[weather]);
+
+            // ★追加: 夜かつ22時以降なら眠いメッセージを追加
+            if (weather === 'night' && (currentTime.getHours() >= 22 || currentTime.getHours() < 5)) {
+                messageOptions.push("そろそろ眠いかも…", "いい夢みてね");
+            }
         }
 
         if (messageOptions.length === 0) {
