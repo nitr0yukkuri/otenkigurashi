@@ -8,6 +8,7 @@ const rounded_mplus = M_PLUS_Rounded_1c({
     subsets: ["latin"],
     weight: ["400", "500", "800"],
     display: 'swap',
+    preload: false, // ★修正: 開発環境でのタイムアウトエラー回避のためpreloadを無効化
 });
 
 export const metadata: Metadata = {
