@@ -62,6 +62,10 @@ export default function ShareModal({
                 document.body.appendChild(script);
             });
         }
+
+        // ★修正: スクリプト読み込み待ちの間に ref が null になる可能性があるため再チェック
+        if (!cardRef.current) return null;
+
         const html2canvas = (window as any).html2canvas;
 
         const canvas = await html2canvas(cardRef.current, {
