@@ -19,14 +19,12 @@ type CharacterDisplayProps = {
     petColor: string;
     cheekColor?: string;
     equipment: EquipmentState | null;
-    // ★修正: moodの型をCharacterFaceと合わせる
     mood: "happy" | "neutral" | "sad" | "scared" | "sleepy" | "looking";
     message: string | null;
     onCharacterClick: () => void;
     isNight?: boolean;
     isStatic?: boolean;
     weather?: string | null;
-    // ★追加: なでなで判定用のイベントハンドラ
     onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void;
     onPointerLeave?: () => void;
 };
@@ -58,11 +56,12 @@ export default function CharacterDisplay({
         const itemName = equipment[slot];
         if (!itemName) return null;
 
-        if (itemName === 'GiGhost') {
-            if (weather !== 'rainy' && weather !== null) {
-                return null;
-            }
-        }
+        // ★修正: てるてる坊主(GiGhost)の天気による表示制限を削除（コメントアウト）
+        // if (itemName === 'GiGhost') {
+        //     if (weather !== 'rainy' && weather !== null) {
+        //         return null;
+        //     }
+        // }
 
         const style = SLOT_STYLES[slot];
 
@@ -94,7 +93,6 @@ export default function CharacterDisplay({
                         exit={{ opacity: 0, y: 10, scale: 0.8 }}
                         className={`absolute chat-bubble-pos ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
                     >
-                        {/* ★修正: whitespace-nowrap を追加して改行を防止 */}
                         <p className={`${messageText} text-[15px] font-medium whitespace-nowrap`}>{message}</p>
                         <div className={`absolute left-1/2 -translate-x-1/2 bottom-[-8px] w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 ${messageArrow}`}></div>
                     </motion.div>
