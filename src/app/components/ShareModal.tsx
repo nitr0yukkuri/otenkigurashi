@@ -97,12 +97,11 @@ export default function ShareModal({
 
     const handleShare = async () => {
         setIsGenerating(true);
-        // ★追加: アプリのURL (Vercel URL)
-        const shareUrl = window.location.origin;
         // ★変更: 天気を日本語（ひらがな）に変換してテキストを作成
         const weatherText = getWeatherText(weather);
-        // ★修正: テキスト本文にURLを含める
-        const text = `今の ${petName} はこんな感じ！\n天気: ${weatherText} 🌤️\n\n#おてんきぐらし #癒やし\n${shareUrl}`;
+        const text = `今の ${petName} はこんな感じ！\n天気: ${weatherText} 🌤️\n\n#おてんきぐらし #癒やし`;
+        // ★追加: アプリのURL (Vercel URL)
+        const shareUrl = window.location.origin;
 
         try {
             // 1. 画像を生成
@@ -115,7 +114,7 @@ export default function ShareModal({
                 const shareData = {
                     files: [file],
                     text: text,
-                    // url: shareUrl, // テキストに含めたので重複を避けるためにコメントアウト
+                    url: shareUrl, // ★追加: URLをセットすることでリンクも共有
                 };
 
                 // ファイル共有がサポートされているか確認してから実行
@@ -127,8 +126,8 @@ export default function ShareModal({
 
             // 3. Web Share API非対応環境（PC等）の場合のフォールバック
             // 画像は添付できないため、テキストのみでツイート画面を開く
-            // ★変更: テキストにURLが含まれているため、urlパラメータは指定しない
-            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+            // ★変更: URLパラメータを追加
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
             window.open(url, '_blank');
 
         } catch (e: any) {
@@ -136,8 +135,8 @@ export default function ShareModal({
             if (e.name !== 'AbortError') {
                 console.error('シェアエラー:', e);
                 // エラー時はテキストのみでフォールバック
-                // ★変更: テキストにURLが含まれているため、urlパラメータは指定しない
-                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
+                // ★変更: URLパラメータを追加
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
                 window.open(url, '_blank');
             }
         } finally {
