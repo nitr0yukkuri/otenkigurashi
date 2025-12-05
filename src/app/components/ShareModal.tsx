@@ -18,9 +18,11 @@ type ShareModalProps = {
     weather: string | null;
     isNight: boolean;
     backgroundClass: string;
+    // ★追加: 現在の表情を受け取る
+    mood: "happy" | "neutral" | "sad" | "scared" | "sleepy" | "looking";
 };
 
-// ★追加: 天気をひらがなに変換するヘルパー関数
+// 天気をひらがなに変換するヘルパー関数
 const getWeatherText = (weather: string | null) => {
     switch (weather) {
         case 'clear': return 'かいせい';
@@ -44,7 +46,8 @@ export default function ShareModal({
     equipment,
     weather,
     isNight,
-    backgroundClass
+    backgroundClass,
+    mood // ★追加
 }: ShareModalProps) {
     const cardRef = useRef<HTMLDivElement>(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -63,7 +66,7 @@ export default function ShareModal({
             });
         }
 
-        // ★修正: スクリプト読み込み待ちの間に ref が null になる可能性があるため再チェック
+        // スクリプト読み込み待ちの間に ref が null になる可能性があるため再チェック
         if (!cardRef.current) return null;
 
         const html2canvas = (window as any).html2canvas;
@@ -97,11 +100,12 @@ export default function ShareModal({
 
     const handleShare = async () => {
         setIsGenerating(true);
-        // ★変更: 天気を日本語（ひらがな）に変換してテキストを作成
-        const weatherText = getWeatherText(weather);
-        const text = `今の ${petName} はこんな感じ！\n天気: ${weatherText} 🌤️\n\n#おてんきぐらし #癒やし`;
-        // ★追加: アプリのURL (Vercel URL)
+        // アプリのURL (Vercel URL)
         const shareUrl = window.location.origin;
+        // 天気を日本語（ひらがな）に変換してテキストを作成
+        const weatherText = getWeatherText(weather);
+        // テキスト本文にURLを含める
+        const text = `今の ${petName} はこんな感じ！\n天気: ${weatherText} 🌤️\n\n#おてんきぐらし #癒やし\n${shareUrl}`;
 
         try {
             // 1. 画像を生成
@@ -114,7 +118,6 @@ export default function ShareModal({
                 const shareData = {
                     files: [file],
                     text: text,
-                    url: shareUrl, // ★追加: URLをセットすることでリンクも共有
                 };
 
                 // ファイル共有がサポートされているか確認してから実行
@@ -126,8 +129,7 @@ export default function ShareModal({
 
             // 3. Web Share API非対応環境（PC等）の場合のフォールバック
             // 画像は添付できないため、テキストのみでツイート画面を開く
-            // ★変更: URLパラメータを追加
-            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+            const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
             window.open(url, '_blank');
 
         } catch (e: any) {
@@ -135,8 +137,7 @@ export default function ShareModal({
             if (e.name !== 'AbortError') {
                 console.error('シェアエラー:', e);
                 // エラー時はテキストのみでフォールバック
-                // ★変更: URLパラメータを追加
-                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
+                const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
                 window.open(url, '_blank');
             }
         } finally {
@@ -154,7 +155,6 @@ export default function ShareModal({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    // ▼▼▼ 修正: z-50 → z-[60] (フッターのz-50より手前に表示して隠す) ▼▼▼
                     className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
                     onClick={onClose}
                 >
@@ -185,14 +185,14 @@ export default function ShareModal({
                                 <h3 className={`text-2xl font-extrabold ${textColor} tracking-widest`}>{petName}</h3>
                             </div>
 
-                            {/* ▼▼▼ 修正: translate-y-6 を追加しててんちゃんを下にずらす ▼▼▼ */}
+                            {/* translate-y-6 を追加しててんちゃんを下にずらす */}
                             <div className="scale-90 translate-y-6">
                                 <CharacterDisplay
                                     petName=""
                                     petColor={petColor}
                                     cheekColor={cheekColor}
                                     equipment={equipment}
-                                    mood="happy"
+                                    mood={mood} // ★修正: 受け取ったmoodを渡す
                                     message={null}
                                     onCharacterClick={() => { }}
                                     isNight={isNight}

@@ -81,24 +81,25 @@ export default function WeatherEffects({ weather }: { weather: string | null }) 
 
     // 晴れ・快晴: ふわふわ浮遊する光の玉 + 太陽の光
     if (weather === 'sunny' || weather === 'clear') {
-        const orbs = Array.from({ length: 6 }).map((_, i) => ({
+        // ★変更: orbsの数を増やし、よりランダムな動きに
+        const orbs = Array.from({ length: 12 }).map((_, i) => ({
             id: i,
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
-            scale: 0.8 + Math.random() * 0.5,
-            duration: 5 + Math.random() * 4
+            scale: 0.5 + Math.random() * 0.8, // サイズのバリエーションを増やす
+            duration: 4 + Math.random() * 6 // 速度のバリエーションを増やす
         }));
 
         return (
             <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-                {/* ★修正: 太陽の光（右上からの光差し）を強化 */}
+                {/* 太陽の光（右上からの光差し） */}
                 <motion.div
                     className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-white/40 rounded-full blur-[80px]"
                     animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }}
                     transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                 />
 
-                {/* ★追加: 画面全体に広がる光のグラデーション（日差し感） */}
+                {/* 画面全体に広がる光のグラデーション（日差し感） */}
                 <motion.div
                     className="absolute inset-0 bg-gradient-to-bl from-white/30 via-transparent to-transparent"
                     animate={{ opacity: [0.3, 0.6, 0.3] }}
@@ -108,13 +109,14 @@ export default function WeatherEffects({ weather }: { weather: string | null }) 
                 {orbs.map((orb) => (
                     <motion.div
                         key={orb.id}
-                        className="absolute w-32 h-32 bg-white/10 rounded-full blur-2xl"
+                        // ★変更: blur-xl に変更してより柔らかく
+                        className="absolute w-24 h-24 bg-white/20 rounded-full blur-xl"
                         style={{ left: orb.left, top: orb.top }}
                         animate={{
-                            y: [0, -30, 0],
-                            x: [0, 20, 0],
-                            opacity: [0.1, 0.4, 0.1],
-                            scale: [orb.scale, orb.scale * 1.1, orb.scale]
+                            y: [0, -50, 0], // 上下の動きを大きく
+                            x: [0, 30, 0], // 左右の動きも追加
+                            opacity: [0.1, 0.5, 0.1], // 透明度の変化を大きく
+                            scale: [orb.scale, orb.scale * 1.2, orb.scale]
                         }}
                         transition={{
                             duration: orb.duration,

@@ -70,7 +70,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const [isPetting, setIsPetting] = useState(false);
     const rubScoreRef = useRef(0);
     const lastRubTimeRef = useRef(0);
-    // ★追加: 前回のタッチ位置を記録するRef
+    // 前回のタッチ位置を記録するRef
     const lastXRef = useRef<number | null>(null);
 
     const [walkStage, setWalkStage] = useState<string>('default');
@@ -126,7 +126,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         }
         lastRubTimeRef.current = now;
 
-        // ★変更: movementXを使わず、前回の座標との差分を計算 (スマホ対応)
+        // movementXを使わず、前回の座標との差分を計算 (スマホ対応)
         const currentX = e.clientX;
         let delta = 0;
 
@@ -366,6 +366,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 weather={displayWeatherType}
                 isNight={isNight}
                 backgroundClass={dynamicBackgroundClass}
+                mood={currentMood} // ★追加: 現在の気分を渡す
             />
 
             <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}>
