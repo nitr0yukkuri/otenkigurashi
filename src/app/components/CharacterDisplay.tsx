@@ -94,7 +94,8 @@ export default function CharacterDisplay({
                         exit={{ opacity: 0, y: 10, scale: 0.8 }}
                         className={`absolute chat-bubble-pos ${messageBg} backdrop-blur-sm rounded-xl px-3 py-1 shadow-md z-10`}
                     >
-                        <p className={`${messageText} text-[15px] font-medium`}>{message}</p>
+                        {/* ★修正: whitespace-nowrap を追加して改行を防止 */}
+                        <p className={`${messageText} text-[15px] font-medium whitespace-nowrap`}>{message}</p>
                         <div className={`absolute left-1/2 -translate-x-1/2 bottom-[-8px] w-0 h-0 border-l-8 border-l-transparent border-r-8 border-r-transparent border-t-8 ${messageArrow}`}></div>
                     </motion.div>
                 )}
