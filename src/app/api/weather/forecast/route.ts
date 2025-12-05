@@ -1,3 +1,5 @@
+// src/app/api/weather/forecast/route.ts
+
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -39,10 +41,10 @@ export async function GET(request: Request) {
         const currentData = await weatherRes.json();
         const forecastData = await forecastRes.json();
 
-        // ★★★ 追加修正: 予報リストから「現在時刻より古いデータ」を削除する ★★★
-        // これをしないと、例えば「午前中が雨、今が晴れ」の場合に、過去の「雨」データに引っ張られて
-        // 今日の表示が「雨」になってしまうのを防ぎます。
-        forecastData.list = forecastData.list.filter((item: any) => item.dt > currentData.dt);
+        // ★★★ 修正: フィルタリングを削除 ★★★
+        // 以前は過去データを削除していましたが、これだと夜間に当日のデータポイントが足りず
+        // 最高/最低気温が同じになる問題があるため、直近の予報枠（例: 21:00など）を含めるようにします。
+        // forecastData.list = forecastData.list.filter((item: any) => item.dt > currentData.dt);
 
         // ★★★ 修正: 「現在の天気」を「予報データの形式」に変換して、リストの先頭に追加する ★★★
         // これにより、「今日の予報」のアイコンや気温が、未来の予測値ではなく「今この瞬間の値」になります。

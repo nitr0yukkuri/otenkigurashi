@@ -16,11 +16,13 @@ export const mapWeatherType = (weatherData: any): WeatherType => {
     const main = weatherData.weather[0].main.toLowerCase();
     const windSpeed = weatherData.wind?.speed;
 
-    // ★変更: 日没(pod)ではなく、19時～5時を夜とする固定ロジックに変更
-    const hour = new Date().getHours();
+    // ★修正: データの日時(dt)が存在する場合はその時間を、なければ現在時刻を使用
+    // これにより、週間予報で「明日の昼」のデータが「現在が夜だから」という理由で夜アイコンになるのを防ぐ
+    const date = weatherData.dt ? new Date(weatherData.dt * 1000) : new Date();
+    const hour = date.getHours();
     const isNight = hour < 5 || hour >= 19;
 
-    if (windSpeed !== undefined && windSpeed >= 8.5) return "windy";
+    if (windSpeed !== undefined && windSpeed >= 10) return "windy";
     if (main.includes("thunderstorm")) return "thunderstorm";
     if (main.includes("rain") || main.includes("drizzle")) return "rainy";
     if (main.includes("snow")) return "snowy";
