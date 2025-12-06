@@ -11,6 +11,17 @@ const RarityWeight = {
     legendary: 1
 };
 
+// ★デモ用フォールバックアイテム
+const FALLBACK_ITEM = {
+    id: 9999,
+    name: 'きれいな小石',
+    description: '道ばたで見つけた、すべすべしたきれいな石。（通信不調時の特別プレゼント）',
+    rarity: 'normal',
+    iconName: 'GiStoneBlock',
+    weather: null,
+    category: null
+};
+
 export async function POST(request: Request) {
     try {
         const { weather, userId } = await request.json();
@@ -114,7 +125,8 @@ export async function POST(request: Request) {
         return NextResponse.json(selectedItem);
 
     } catch (error: any) {
-        console.error("Failed to obtain item:", error);
-        return NextResponse.json({ message: 'アイテムの獲得に失敗しました。' }, { status: 500 });
+        console.error("Failed to obtain item (using fallback):", error);
+        // ★修正: エラー時はフォールバックアイテムを返し、アプリを停止させない
+        return NextResponse.json(FALLBACK_ITEM);
     }
 }
