@@ -209,6 +209,11 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         };
     }, []);
 
+    // ★追加: 天気が変わったらタイマーをリセット（夜になったら寝る判定を有効にするため）
+    useEffect(() => {
+        if (weather) resetIdleTimer();
+    }, [weather]);
+
     const setWeatherAndNotify = (newWeather: WeatherType | null) => {
         const weatherValue = newWeather || 'sunny';
         setWeather(weatherValue);
@@ -379,17 +384,18 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     (position) => fetchWeatherDataByLocation(position.coords.latitude, position.coords.longitude),
                     (geoError) => {
                         console.error("Geolocation Error:", geoError);
-                        setError("位置情報の取得に失敗しました。");
-                        setLocation("？？？");
-                        setIsLoading(false);
+                        // ★修正: 致命的なバグ対策 (デモ用フォールバック)
+                        // GPS取得失敗時、エラー画面で止まるのを防ぐため、東京の座標で続行する
+                        console.log("Using fallback location (Tokyo) for demo.");
+                        fetchWeatherDataByLocation(35.6895, 139.6917);
                     },
                     // ★修正: タイムアウトを4秒に短縮 (10000 -> 4000)
                     { timeout: 4000 }
                 );
             } else {
-                setError("このブラウザでは位置情報が使えません。");
-                setLocation("？？？");
-                setIsLoading(false);
+                // こちらも同様にフォールバック
+                console.log("Geolocation not supported. Using fallback location.");
+                fetchWeatherDataByLocation(35.6895, 139.6917);
             }
         }
 
@@ -423,12 +429,12 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         currentMood = "sad";
     } else if (idleAction) {
         currentMood = idleAction;
-        // ★追加: 夜なら強制的に寝る（クロージャ問題でlookingが選ばれた場合の補正）
+        // ★修正: 夜なら強制的に寝る（クロージャ問題でlookingが選ばれた場合の補正）
         if (isNight) currentMood = 'sleepy';
     } else if (displayWeatherType === 'thunderstorm') {
         currentMood = message ? "happy" : "scared";
     } else {
-        // ★修正: 夜のデフォルト判定(isNight)ブロックを削除 -> 最初は happy になる
+        // ★修正: 夜でも最初は起きている（放置すると idleAction で寝る）
         currentMood = "happy";
     }
 

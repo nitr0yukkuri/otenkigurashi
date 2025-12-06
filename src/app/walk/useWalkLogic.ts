@@ -143,18 +143,19 @@ export function useWalkLogic() {
                 (err) => {
                     if (!isMounted.current) return;
                     console.error(err);
-                    setError("位置情報の取得を許可してください。");
-                    setLoading(false);
-                    setIsProcessing(false);
+                    // ★修正: 致命的なバグ対策 (デモ用フォールバック)
+                    // GPS取得失敗時、エラー画面で止まるのを防ぐため、東京の座標で続行する
+                    console.log("Using fallback location (Tokyo) for walk demo.");
+                    fetchCurrentWeather(35.6895, 139.6917);
                 },
                 // ★修正: タイムアウトを4秒に短縮
                 { timeout: 4000 }
             );
         } else {
             hasStartedProcessing.current = true;
-            setError("このブラウザでは位置情報機能が利用できません。");
-            setLoading(false);
-            setIsProcessing(false);
+            // ★修正: 非対応環境でも東京の座標で続行
+            console.log("Geolocation not supported. Using fallback location.");
+            fetchCurrentWeather(35.6895, 139.6917);
         }
     }, [searchParams, isProcessing]);
 
