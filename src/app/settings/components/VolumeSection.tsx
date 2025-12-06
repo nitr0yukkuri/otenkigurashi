@@ -33,8 +33,9 @@ export default function VolumeSection({ isNight }: { isNight: boolean }) {
     const sectionClass = isNight ? 'bg-white/10' : 'bg-white/60 backdrop-blur-sm';
     const titleClass = isNight ? 'text-gray-200' : 'text-slate-600';
 
+    // ★修正: ここにあった 'bg-white/60 backdrop-blur-sm' を削除し、sectionClass だけを使うように変更
     return (
-        <section className={`bg-white/60 backdrop-blur-sm rounded-2xl p-4 ${sectionClass} transition-colors`}>
+        <section className={`${sectionClass} rounded-2xl p-4 transition-colors`}>
             <h2 className={`text-lg font-semibold ${titleClass} mb-4`}>音量設定</h2>
             <div className="space-y-6">
                 <SliderControl
