@@ -183,8 +183,17 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         }
 
         idleTimerRef.current = setTimeout(() => {
-            const actions: ('sleepy' | 'looking')[] = ['sleepy', 'looking'];
-            const nextAction = actions[Math.floor(Math.random() * actions.length)];
+            // ★修正: 夜なら sleepy 固定、それ以外はランダム
+            const isNightNow = weather === 'night';
+
+            let nextAction: 'sleepy' | 'looking';
+            if (isNightNow) {
+                nextAction = 'sleepy';
+            } else {
+                const actions: ('sleepy' | 'looking')[] = ['sleepy', 'looking'];
+                nextAction = actions[Math.floor(Math.random() * actions.length)];
+            }
+
             setIdleAction(nextAction);
 
             if (nextAction === 'sleepy') {
@@ -414,9 +423,12 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         currentMood = "sad";
     } else if (idleAction) {
         currentMood = idleAction;
-    } else if (displayWeatherType === 'thunderstorm' || displayWeatherType === 'windy') {
-        currentMood = "scared";
+        // ★追加: 夜なら強制的に寝る（クロージャ問題でlookingが選ばれた場合の補正）
+        if (isNight) currentMood = 'sleepy';
+    } else if (displayWeatherType === 'thunderstorm') {
+        currentMood = message ? "happy" : "scared";
     } else {
+        // ★修正: 夜のデフォルト判定(isNight)ブロックを削除 -> 最初は happy になる
         currentMood = "happy";
     }
 
