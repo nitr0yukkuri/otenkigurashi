@@ -23,10 +23,10 @@ export async function GET(request: Request) {
     const forecastApiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
 
     try {
-        // 並行してリクエスト
+        // 並行してリクエスト（キャッシュを有効化してAPI節約: 30分 = 1800秒）
         const [weatherRes, forecastRes] = await Promise.all([
-            fetch(weatherApiUrl, { cache: 'no-store' }),
-            fetch(forecastApiUrl, { cache: 'no-store' })
+            fetch(weatherApiUrl, { next: { revalidate: 1800 } }),
+            fetch(forecastApiUrl, { next: { revalidate: 1800 } })
         ]);
 
         if (!weatherRes.ok) {

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ message: '緯度または経度が指定されていません。' }, { status: 400 });
     }
 
-    // 座標を丸める（キャッシュヒット率向上用だが、今回はno-storeなのでURLの一貫性のため）
+    // 座標を丸める（キャッシュヒット率向上用）
     const lat = parseFloat(latRaw).toFixed(2);
     const lon = parseFloat(lonRaw).toFixed(2);
 
@@ -25,10 +25,10 @@ export async function GET(request: Request) {
     const forecastApiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
 
     try {
-        // ★★★ 修正: 両方のデータを並行して取得（キャッシュなし） ★★★
+        // ★★★ 修正: 両方のデータを並行して取得（キャッシュを有効化してAPI節約: 30分 = 1800秒） ★★★
         const [weatherRes, forecastRes] = await Promise.all([
-            fetch(weatherApiUrl, { cache: 'no-store' }),
-            fetch(forecastApiUrl, { cache: 'no-store' })
+            fetch(weatherApiUrl, { next: { revalidate: 1800 } }),
+            fetch(forecastApiUrl, { next: { revalidate: 1800 } })
         ]);
 
         if (!weatherRes.ok || !forecastRes.ok) {
