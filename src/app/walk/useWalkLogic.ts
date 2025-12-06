@@ -2,7 +2,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getBackgroundGradientClass, WeatherType } from '../lib/weatherUtils';
 import { getUserId } from '../lib/userId';
@@ -24,12 +24,19 @@ export const useWalkLogic = () => {
     const [obtainedItem, setObtainedItem] = useState<{ name: string | null; iconName: string | null; rarity: string | null }>({ name: null, iconName: null, rarity: null });
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
 
+    // 2重実行防止用のRef
+    const walkStarted = useRef(false);
+
     useEffect(() => {
         if (weatherParam) setWeather(weatherParam);
         if (locationParam) setLocation(locationParam);
         if (stageParam) setStage(stageParam);
 
         const performWalk = async () => {
+            // すでに開始していたら何もしない（Strict Mode対策）
+            if (walkStarted.current) return;
+            walkStarted.current = true;
+
             const userId = getUserId();
             const currentWeather = weatherParam || 'sunny';
 
@@ -41,7 +48,7 @@ export const useWalkLogic = () => {
                     body: JSON.stringify({ userId, weather: currentWeather })
                 });
 
-                // 2. 演出用ウェイト (3秒)
+                // 2. 演出用ウェイト (3秒) - てんちゃんがお散歩している時間
                 await new Promise(resolve => setTimeout(resolve, 3000));
 
                 // 3. アイテム獲得API

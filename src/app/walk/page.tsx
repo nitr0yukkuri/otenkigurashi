@@ -64,7 +64,6 @@ function WalkPageComponent() {
 
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
-    const panelTextColor = isNight ? 'text-white' : 'text-slate-700';
 
     // ★修正: 選択されたステージIDから名前を取得
     const stageName = getWalkStage(stage);
@@ -81,22 +80,18 @@ function WalkPageComponent() {
                             <h1 className={`text-3xl font-extrabold ${titleColor} tracking-wider`}>
                                 {loading ? 'おさんぽ準備中...' : error ? 'おさんぽ失敗...' : 'おさんぽ中...'}
                             </h1>
-                            {/* ★修正: ステージ名と場所を表示 */}
+                            {/* ★修正: ステージ名と場所を表示 (loading中でも表示) */}
                             <div className="flex flex-col items-center gap-1 mt-2">
-                                <p className={`text-lg font-bold ${titleColor} opacity-90`}>{!loading && !error && stageName}</p>
+                                <p className={`text-lg font-bold ${titleColor} opacity-90`}>{stageName}</p>
                                 <p className={`${subTitleColor} text-sm`}>{location}</p>
                             </div>
                         </header>
                     </div>
+
                     <div className="flex flex-col items-center justify-center flex-grow p-4">
-                        {loading ? (
-                            <div className="animate-pulse text-center">
-                                <div className="w-40 h-40 rounded-full bg-white/50 p-2 mb-4 mx-auto"></div>
-                                <p className={panelTextColor}>{petName} 準備中...</p>
-                            </div>
-                        ) : error ? (
+                        {error ? (
                             <div className="text-center">
-                                {/* ★修正: CharacterDisplayを使用して装備を反映（エラー時は悲しい顔） */}
+                                {/* エラー時 */}
                                 <div className="scale-90 mb-4">
                                     <CharacterDisplay
                                         petName=""
@@ -117,23 +112,33 @@ function WalkPageComponent() {
                             </div>
                         ) : (
                             <>
-                                <div className="mb-4"><WeatherIcon type={weather || 'sunny'} size={60} /></div>
-                                {/* ★修正: CharacterDisplayを使用して装備を反映 */}
+                                {/* 正常時（準備中・おさんぽ中共通） */}
+                                {/* 天気アイコン */}
+                                <div className="mb-4">
+                                    <WeatherIcon type={weather || 'sunny'} size={60} />
+                                </div>
+
+                                {/* キャラクター表示 (animate-pulse削除、常時不透明表示) */}
                                 <div className="scale-90 mb-4">
                                     <CharacterDisplay
-                                        petName=""
+                                        petName={petName}
                                         petColor={petColor}
                                         cheekColor={cheekColor}
                                         equipment={petEquipment}
                                         mood="happy"
+                                        // ★修正: messageをnullにして顔の上の吹き出しを消去（貫通防止）
                                         message={null}
                                         onCharacterClick={() => { }}
                                         isNight={isNight}
                                         isStatic={true}
                                     />
                                 </div>
+
+                                {/* 下の会話エリア (準備中でも常時表示) */}
                                 <div className="p-3 bg-white/70 backdrop-blur-sm rounded-xl shadow-md max-w-xs text-center">
-                                    <p className="text-slate-700 font-medium">{getWalkMessage(weather || undefined)}</p>
+                                    <p className="text-slate-700 font-medium">
+                                        {getWalkMessage(weather || undefined)}
+                                    </p>
                                 </div>
                             </>
                         )}
