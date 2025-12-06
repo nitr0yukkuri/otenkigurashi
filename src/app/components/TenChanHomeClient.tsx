@@ -386,6 +386,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     (geoError) => {
                         console.error("Geolocation Error:", geoError);
                         // ★修正: 致命的なバグ対策 (デモ用フォールバック)
+                        // GPS取得失敗時、エラー画面で止まるのを防ぐため、東京の座標で続行する
                         console.log("Using fallback location (Tokyo) for demo.");
                         fetchWeatherDataByLocation(35.6895, 139.6917);
                     },
