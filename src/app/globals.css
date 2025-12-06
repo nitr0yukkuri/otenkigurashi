@@ -116,6 +116,12 @@ body {
 
 /* ★変更点: PWA (Standalone) モード時の iPhone 15 フルスクリーン対応 */
 @media all and (display-mode: standalone) {
+    /* ★追加: 画面全体を固定してバウンドを防ぐ */
+    html, body {
+        overflow: hidden;
+        overscroll-behavior: none;
+    }
+
     main {
         max-width: none !important;
         width: 100% !important;
