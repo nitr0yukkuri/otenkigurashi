@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { WeatherType, mapWeatherType, getTimeOfDay, getBackgroundGradientClass } from '../lib/weatherUtils';
+import { WeatherType, mapWeatherType, getBackgroundGradientClass } from '../lib/weatherUtils';
 
 export interface Forecast {
     day: string;
@@ -125,14 +125,10 @@ export function useWeatherForecast() {
                 const dailyForecasts = new Map<string, DailyData>();
                 data.list.forEach((item: any) => {
                     const d = new Date(item.dt * 1000);
-                    // ★修正2: 日本時間(JST)で日付を区切る ("Japan is bad"対策)
-                    // これにより、UTCの深夜(JSTの朝)が「前日」に含まれてしまうのを防ぎます
-                    const dateKey = d.toLocaleDateString('ja-JP', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        timeZone: 'Asia/Tokyo'
-                    }).replace(/\//g, '-');
+
+                    // ★修正2: 手動でJSTに変換して日付キーを生成 (ブラウザ依存回避)
+                    const jstTime = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+                    const dateKey = `${jstTime.getUTCFullYear()}-${String(jstTime.getUTCMonth() + 1).padStart(2, '0')}-${String(jstTime.getUTCDate()).padStart(2, '0')}`;
 
                     if (!dailyForecasts.has(dateKey)) {
                         dailyForecasts.set(dateKey, { temps: [], pops: [], weathers: [], items: [] });
@@ -160,21 +156,19 @@ export function useWeatherForecast() {
 
                     let representativeItem = dailyData.items[0];
 
-                    if (index > 0) {
-                        // ★修正4: アイコン選択時も日本時間(UTC+9)の10時～14時を優先
-                        const daytimeItem = dailyData.items.find((item: any) => {
+                    // ★修正4: アイコン選択ロジックを修正 (index 0の「今日」も含めて昼間のデータを優先)
+                    const daytimeItem = dailyData.items.find((item: any) => {
+                        const h = (new Date(item.dt * 1000).getUTCHours() + 9) % 24;
+                        return h >= 10 && h <= 14;
+                    });
+                    if (daytimeItem) {
+                        representativeItem = daytimeItem;
+                    } else {
+                        const anyDaytimeItem = dailyData.items.find((item: any) => {
                             const h = (new Date(item.dt * 1000).getUTCHours() + 9) % 24;
-                            return h >= 10 && h <= 14;
+                            return h >= 6 && h <= 18;
                         });
-                        if (daytimeItem) {
-                            representativeItem = daytimeItem;
-                        } else {
-                            const anyDaytimeItem = dailyData.items.find((item: any) => {
-                                const h = (new Date(item.dt * 1000).getUTCHours() + 9) % 24;
-                                return h >= 6 && h <= 18;
-                            });
-                            if (anyDaytimeItem) representativeItem = anyDaytimeItem;
-                        }
+                        if (anyDaytimeItem) representativeItem = anyDaytimeItem;
                     }
 
                     if (!representativeItem) representativeItem = { weather: [{ main: "Clear" }] };
