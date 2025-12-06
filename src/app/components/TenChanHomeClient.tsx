@@ -365,8 +365,9 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 })
                 .catch(err => {
                     console.error("Failed to fetch weather on client:", err);
-                    setError(err.message || "お天気情報の取得に失敗しました。");
-                    setLocation("取得失敗");
+                    // ★修正: エラーメッセージをかわいく
+                    setError("あわわ、お天気がわかんないよ〜💦 通信環境をかくにんしてね！");
+                    setLocation("？？？");
                     setTemperature(null);
                     setWeatherAndNotify(null);
                 })
@@ -385,7 +386,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     (geoError) => {
                         console.error("Geolocation Error:", geoError);
                         // ★修正: 致命的なバグ対策 (デモ用フォールバック)
-                        // GPS取得失敗時、エラー画面で止まるのを防ぐため、東京の座標で続行する
                         console.log("Using fallback location (Tokyo) for demo.");
                         fetchWeatherDataByLocation(35.6895, 139.6917);
                     },
@@ -413,7 +413,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         resetIdleTimer();
         setIsModalOpen(false);
         const walkWeather = weather || 'sunny';
-        const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗" ? location : "どこかの場所";
+        const walkLocation = location && location !== "場所を取得中..." && location !== "取得失敗" && location !== "？？？" ? location : "どこかの場所";
         router.push(`/walk?weather=${walkWeather}&location=${encodeURIComponent(walkLocation)}&stage=${walkStage}`);
     };
 

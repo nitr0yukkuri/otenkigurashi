@@ -94,7 +94,8 @@ export function useWalkLogic() {
                 } catch (err: any) {
                     console.error("アイテム取得または記録処理中にエラー:", err);
                     if (isMounted.current) {
-                        setError(err.message || 'アイテム処理中にエラーが発生しました');
+                        // ★修正: エラーメッセージをかわいく
+                        setError('あれれ？ アイテムをうまく拾えなかったみたい…💦');
                         setObtainedItem({ id: null, name: 'ふしぎな石', iconName: 'IoHelpCircle', rarity: 'normal' });
                         setIsItemModalOpen(true);
                     }
@@ -130,7 +131,8 @@ export function useWalkLogic() {
                 .catch(err => {
                     if (!isMounted.current) return;
                     console.error(err);
-                    setError("天気情報の取得に失敗しました。");
+                    // ★修正: エラーメッセージをかわいく
+                    setError("あわわ、お天気がわかんないよ〜💦");
                     setLoading(false);
                     setIsProcessing(false);
                 });
@@ -144,7 +146,6 @@ export function useWalkLogic() {
                     if (!isMounted.current) return;
                     console.error(err);
                     // ★修正: 致命的なバグ対策 (デモ用フォールバック)
-                    // GPS取得失敗時、エラー画面で止まるのを防ぐため、東京の座標で続行する
                     console.log("Using fallback location (Tokyo) for walk demo.");
                     fetchCurrentWeather(35.6895, 139.6917);
                 },
