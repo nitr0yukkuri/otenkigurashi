@@ -25,7 +25,8 @@ const TABS = [
     { id: 'floating', label: 'まわり', icon: <IoCloud /> },
 ];
 
-export default function EquipmentSection() {
+// isNightを受け取るように変更
+export default function EquipmentSection({ isNight }: { isNight: boolean }) {
     const [equipment, setEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null, room: null });
     const [items, setItems] = useState<CollectionItem[]>([]);
     const [activeTab, setActiveTab] = useState<'head' | 'hand' | 'floating'>('head');
@@ -81,10 +82,24 @@ export default function EquipmentSection() {
 
     const displayItems = items.filter(item => item.category === activeTab as any);
 
+    const sectionClass = isNight ? 'bg-white/10' : 'bg-white/60 backdrop-blur-sm';
+    const titleClass = isNight ? 'text-gray-200' : 'text-slate-600';
+    const previewBgClass = isNight ? 'bg-sky-900/50' : 'bg-sky-100/50';
+    const borderColor = isNight ? 'border-white/10' : 'border-slate-200';
+    const tabClass = (isActive: boolean) => {
+        if (isActive) return 'bg-sky-500 text-white';
+        return isNight ? 'bg-white/10 text-gray-300 hover:bg-white/20' : 'bg-white text-slate-500 hover:bg-slate-100';
+    };
+    const itemButtonBg = (isSelected: boolean) => {
+        if (isSelected) return 'border-sky-500 ring-2 ring-sky-200 bg-white';
+        return isNight ? 'bg-white/10 border-white/10' : 'bg-white border-white';
+    };
+    const itemNameColor = isNight ? 'text-gray-300' : 'text-slate-600';
+
     return (
-        <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
-            <h2 className="text-lg font-semibold text-slate-600 mb-3">きせかえ & 模様替え</h2>
-            <div className="flex justify-center mb-6 bg-sky-100/50 rounded-xl h-[180px] overflow-hidden relative items-center">
+        <section className={`mb-8 ${sectionClass} rounded-2xl p-4 transition-colors`}>
+            <h2 className={`text-lg font-semibold ${titleClass} mb-3`}>きせかえ & 模様替え</h2>
+            <div className={`flex justify-center mb-6 ${previewBgClass} rounded-xl h-[180px] overflow-hidden relative items-center`}>
                 <div className="scale-[0.6] transform origin-center mt-12">
                     <CharacterDisplay
                         petName=""
@@ -94,16 +109,19 @@ export default function EquipmentSection() {
                         mood="happy"
                         message={null}
                         onCharacterClick={() => { }}
+                        // プレビュー内は常に昼または現在のモードに合わせるか？
+                        // ここではisNightを渡してプレビュー内も夜にする
+                        isNight={isNight}
                     />
                 </div>
             </div>
-            {/* ★修正: overflow-x-auto を削除し、スクロールバーを非表示に */}
-            <div className="flex gap-2 mb-4 border-b border-slate-200 pb-2">
+
+            <div className={`flex gap-2 mb-4 ${borderColor} border-b pb-2`}>
                 {TABS.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${activeTab === tab.id ? 'bg-sky-500 text-white' : 'bg-white text-slate-500 hover:bg-slate-100'}`}
+                        className={`flex-1 flex items-center justify-center gap-1 py-2 px-3 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${tabClass(activeTab === tab.id)}`}
                     >
                         {tab.icon} {tab.label}
                     </button>
@@ -111,25 +129,25 @@ export default function EquipmentSection() {
             </div>
             <div className="grid grid-cols-4 gap-2 min-h-[100px]">
                 <button onClick={() => handleEquip(null)} className="flex flex-col items-center gap-1">
-                    <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all ${equipment[activeTab] === null ? 'border-sky-500 ring-2 ring-sky-200' : 'border-transparent'}`}>
-                        <IoBan className="text-slate-400" size={24} />
+                    <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${itemButtonBg(equipment[activeTab] === null)}`}>
+                        <IoBan className={isNight ? "text-gray-400" : "text-slate-400"} size={24} />
                     </div>
-                    <span className="text-[10px] font-medium text-slate-600">はずす</span>
+                    <span className={`text-[10px] font-medium ${itemNameColor}`}>はずす</span>
                 </button>
                 {displayItems.map(item => (
                     <button key={item.id} onClick={() => handleEquip(item.iconName)} disabled={item.quantity === 0} className="flex flex-col items-center gap-1 disabled:cursor-not-allowed">
-                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center bg-white transition-all ${equipment[activeTab] === item.iconName ? 'border-sky-500 ring-2 ring-sky-200' : 'border-white'} ${item.quantity === 0 ? 'opacity-50' : ''}`}>
+                        <div className={`w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all ${itemButtonBg(equipment[activeTab] === item.iconName)} ${item.quantity === 0 ? 'opacity-50' : ''}`}>
                             {item.iconName === 'GiGhost' ? (
                                 <TeruTeruIcon size={24} />
                             ) : (
                                 <ItemIcon name={item.iconName} rarity={item.rarity} size={24} />
                             )}
                         </div>
-                        <span className="text-[10px] font-medium text-slate-600 truncate w-full text-center">{item.name}</span>
+                        <span className={`text-[10px] font-medium ${itemNameColor} truncate w-full text-center`}>{item.name}</span>
                     </button>
                 ))}
             </div>
-            {displayItems.length === 0 && <p className="text-center text-xs text-slate-400 py-4">このカテゴリのアイテムを持っていません</p>}
+            {displayItems.length === 0 && <p className={`text-center text-xs ${isNight ? 'text-gray-500' : 'text-slate-400'} py-4`}>このカテゴリのアイテムを持っていません</p>}
         </section>
     );
 }

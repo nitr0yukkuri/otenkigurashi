@@ -5,13 +5,13 @@
 import { useState, useEffect } from 'react';
 // 波括弧 { } を外してインポート
 import SliderControl from './SliderControl';
-import { STORAGE_KEYS } from '../constants'; // ★ 追加
+import { STORAGE_KEYS } from '../constants';
 
-export default function VolumeSection() {
+// isNightを受け取るように変更
+export default function VolumeSection({ isNight }: { isNight: boolean }) {
     const [volume, setVolume] = useState(50);
     const [sfxVolume, setSfxVolume] = useState(50);
 
-    // ★ 追加: 初期読み込み
     useEffect(() => {
         const storedBgm = localStorage.getItem(STORAGE_KEYS.VOLUME_BGM);
         const storedSfx = localStorage.getItem(STORAGE_KEYS.VOLUME_SFX);
@@ -20,7 +20,6 @@ export default function VolumeSection() {
         if (storedSfx) setSfxVolume(Number(storedSfx));
     }, []);
 
-    // ★ 追加: 保存処理
     const handleBgmChange = (newVolume: number) => {
         setVolume(newVolume);
         localStorage.setItem(STORAGE_KEYS.VOLUME_BGM, newVolume.toString());
@@ -31,19 +30,24 @@ export default function VolumeSection() {
         localStorage.setItem(STORAGE_KEYS.VOLUME_SFX, newVolume.toString());
     };
 
+    const sectionClass = isNight ? 'bg-white/10' : 'bg-white/60 backdrop-blur-sm';
+    const titleClass = isNight ? 'text-gray-200' : 'text-slate-600';
+
     return (
-        <section className="bg-white/60 backdrop-blur-sm rounded-2xl p-4">
-            <h2 className="text-lg font-semibold text-slate-600 mb-4">音量設定</h2>
+        <section className={`bg-white/60 backdrop-blur-sm rounded-2xl p-4 ${sectionClass} transition-colors`}>
+            <h2 className={`text-lg font-semibold ${titleClass} mb-4`}>音量設定</h2>
             <div className="space-y-6">
                 <SliderControl
-                    label="BGM" // ラベルを少し分かりやすく変更
+                    label="BGM"
                     value={volume}
                     onChange={(e) => handleBgmChange(Number(e.target.value))}
+                    isNight={isNight} // ★ isNightを渡す
                 />
                 <SliderControl
-                    label="効果音" // ★修正: 「こうかおん」を「効果音」に戻す
+                    label="効果音"
                     value={sfxVolume}
                     onChange={(e) => handleSfxChange(Number(e.target.value))}
+                    isNight={isNight} // ★ isNightを渡す
                 />
             </div>
         </section>

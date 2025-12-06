@@ -97,6 +97,17 @@ export default function CraftPage() {
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
 
+    // ★追加: 夜モード用のスタイル定義
+    const cardBgClass = isNight ? 'bg-white/10 text-gray-100' : 'bg-white/60 text-slate-700';
+    const materialBgClass = isNight ? 'bg-white/10' : 'bg-white/50';
+    const materialTextColor = isNight ? 'text-gray-300' : 'text-slate-600';
+    const countTextColor = (hasEnough: boolean) => {
+        if (hasEnough) return isNight ? 'text-gray-200' : 'text-slate-700';
+        return isNight ? 'text-red-300' : 'text-red-500';
+    };
+    const resultBgClass = isNight ? 'bg-amber-500/20 border-amber-500/50' : 'bg-amber-100/80 border-amber-200';
+    const arrowColor = isNight ? 'text-gray-400' : 'text-slate-400';
+
     return (
         <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
             <ItemGetModal
@@ -133,9 +144,9 @@ export default function CraftPage() {
                                 const resultDetail = itemDetails[recipe.resultItemName];
 
                                 return (
-                                    <div key={recipe.id} className="bg-white/60 backdrop-blur-sm rounded-2xl p-4 shadow-sm">
+                                    <div key={recipe.id} className={`${cardBgClass} backdrop-blur-sm rounded-2xl p-4 shadow-sm`}>
                                         <div className="flex items-center justify-between mb-3">
-                                            <h3 className="font-bold text-slate-700 text-lg">{recipe.resultItemName}</h3>
+                                            <h3 className="font-bold text-lg">{recipe.resultItemName}</h3>
                                         </div>
 
                                         <div className="flex items-center gap-2 mb-4 overflow-x-auto">
@@ -143,14 +154,13 @@ export default function CraftPage() {
                                                 const hasEnough = (inventory[mat.itemName] || 0) >= mat.count;
                                                 const matDetail = itemDetails[mat.itemName];
                                                 return (
-                                                    <div key={idx} className="flex flex-col items-center justify-between bg-white/50 rounded-xl p-2 w-20 h-24 flex-shrink-0">
+                                                    <div key={idx} className={`flex flex-col items-center justify-between ${materialBgClass} rounded-xl p-2 w-20 h-24 flex-shrink-0`}>
                                                         <div className="flex-grow flex items-center justify-center">
-                                                            {/* ItemIconに任せる */}
                                                             <ItemIcon name={matDetail?.iconName} size={28} />
                                                         </div>
                                                         <div className="w-full flex flex-col items-center">
-                                                            <span className="text-[10px] font-medium text-slate-600 truncate w-full text-center">{mat.itemName}</span>
-                                                            <span className={`text-xs font-bold ${hasEnough ? 'text-slate-700' : 'text-red-500'}`}>
+                                                            <span className={`text-[10px] font-medium ${materialTextColor} truncate w-full text-center`}>{mat.itemName}</span>
+                                                            <span className={`text-xs font-bold ${countTextColor(hasEnough)}`}>
                                                                 {inventory[mat.itemName] || 0}/{mat.count}
                                                             </span>
                                                         </div>
@@ -158,15 +168,14 @@ export default function CraftPage() {
                                                 );
                                             })}
 
-                                            <IoArrowForward className="text-slate-400 min-w-[20px]" />
+                                            <IoArrowForward className={`${arrowColor} min-w-[20px]`} />
 
-                                            <div className="flex flex-col items-center justify-between bg-amber-100/80 rounded-xl p-2 w-20 h-24 border-2 border-amber-200 flex-shrink-0">
+                                            <div className={`flex flex-col items-center justify-between ${resultBgClass} rounded-xl p-2 w-20 h-24 border-2 flex-shrink-0`}>
                                                 <div className="flex-grow flex items-center justify-center">
-                                                    {/* ItemIconに任せる */}
                                                     <ItemIcon name={resultDetail?.iconName} rarity={resultDetail?.rarity} size={28} />
                                                 </div>
                                                 <div className="w-full flex flex-col items-center">
-                                                    <span className="text-[10px] font-bold text-slate-700 truncate w-full text-center">{recipe.resultItemName}</span>
+                                                    <span className={`text-[10px] font-bold ${materialTextColor} truncate w-full text-center`}>{recipe.resultItemName}</span>
                                                     <span className="text-xs font-bold text-amber-600">完成</span>
                                                 </div>
                                             </div>
@@ -177,7 +186,7 @@ export default function CraftPage() {
                                             disabled={!canCraft || craftingId === recipe.id}
                                             className={`w-full py-3 rounded-xl font-bold text-sm transition-all active:scale-95 ${canCraft
                                                 ? 'bg-amber-500 text-white shadow-md hover:bg-amber-600'
-                                                : 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                                                : isNight ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-slate-300 text-slate-500 cursor-not-allowed'
                                                 }`}
                                         >
                                             {craftingId === recipe.id ? '作成中...' : canCraft ? 'つくる！' : '素材が足りません'}

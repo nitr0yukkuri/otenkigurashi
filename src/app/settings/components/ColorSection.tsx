@@ -10,23 +10,21 @@ const bodyColorOptions = [
     { name: 'ひよこ', value: '#FFF9C4' },
 ];
 
-// ★★★ 追加: ほっぺの色のプリセット ★★★
 const cheekColorOptions = [
     { name: 'ピンク', value: '#F8BBD0' },
     { name: 'オレンジ', value: '#FFCC80' },
     { name: 'あか', value: '#EF9A9A' },
 ];
 
-export default function ColorSection() {
+// isNightを受け取るように変更
+export default function ColorSection({ isNight }: { isNight: boolean }) {
     const [petColor, setPetColor] = useState('white');
-    // ★★★ 追加: ほっぺの色State ★★★
     const [cheekColor, setCheekColor] = useState('#F8BBD0');
 
     useEffect(() => {
         const storedColor = localStorage.getItem(STORAGE_KEYS.PET_COLOR);
         if (storedColor) setPetColor(storedColor);
 
-        // ★★★ 追加: 読み込み ★★★
         const storedCheekColor = localStorage.getItem(STORAGE_KEYS.PET_CHEEK_COLOR);
         if (storedCheekColor) setCheekColor(storedCheekColor);
     }, []);
@@ -37,7 +35,6 @@ export default function ColorSection() {
         window.dispatchEvent(new CustomEvent(EVENTS.PET_SETTINGS_CHANGED));
     };
 
-    // ★★★ 追加: ほっぺの保存ロジック ★★★
     const saveCheekColor = (color: string) => {
         setCheekColor(color);
         localStorage.setItem(STORAGE_KEYS.PET_CHEEK_COLOR, color);
@@ -45,13 +42,16 @@ export default function ColorSection() {
     };
 
     const isCustomBodyColor = !bodyColorOptions.some(c => c.value === petColor);
-    // ★★★ 追加: カスタム判定 ★★★
     const isCustomCheekColor = !cheekColorOptions.some(c => c.value === cheekColor);
 
+    const sectionClass = isNight ? 'bg-white/10' : 'bg-white/60 backdrop-blur-sm';
+    const titleClass = isNight ? 'text-gray-200' : 'text-slate-600';
+    const labelClass = isNight ? 'text-gray-300' : 'text-slate-600';
+
     return (
-        <section className="mb-8 bg-white/60 backdrop-blur-sm rounded-2xl p-4">
+        <section className={`mb-8 ${sectionClass} rounded-2xl p-4 transition-colors`}>
             {/* --- 体の色 --- */}
-            <h2 className="text-lg font-semibold text-slate-600 mb-3">はだのいろ</h2>
+            <h2 className={`text-lg font-semibold ${titleClass} mb-3`}>はだのいろ</h2>
             <div className="flex justify-around items-center gap-2 flex-wrap mb-6">
                 {bodyColorOptions.map(color => (
                     <button
@@ -63,7 +63,7 @@ export default function ColorSection() {
                             className="w-12 h-12 rounded-full border-2 shadow-inner"
                             style={{
                                 backgroundColor: color.value,
-                                borderColor: petColor === color.value ? '#0ea5e9' : '#ffffff'
+                                borderColor: petColor === color.value ? '#0ea5e9' : (isNight ? 'rgba(255,255,255,0.2)' : '#ffffff')
                             }}
                         >
                             {petColor === color.value && (
@@ -72,7 +72,7 @@ export default function ColorSection() {
                                 </div>
                             )}
                         </div>
-                        <span className="text-xs font-medium text-slate-600">{color.name}</span>
+                        <span className={`text-xs font-medium ${labelClass}`}>{color.name}</span>
                     </button>
                 ))}
 
@@ -80,14 +80,14 @@ export default function ColorSection() {
                     <div
                         className="w-12 h-12 rounded-full border-2 shadow-inner overflow-hidden flex items-center justify-center"
                         style={{
-                            backgroundColor: isCustomBodyColor ? petColor : '#ffffff',
-                            borderColor: isCustomBodyColor ? '#0ea5e9' : '#ffffff'
+                            backgroundColor: isCustomBodyColor ? petColor : (isNight ? 'rgba(255,255,255,0.1)' : '#ffffff'),
+                            borderColor: isCustomBodyColor ? '#0ea5e9' : (isNight ? 'rgba(255,255,255,0.2)' : '#ffffff')
                         }}
                     >
                         {isCustomBodyColor ? (
                             <IoCheckmark size={28} className="text-white drop-shadow-md pointer-events-none" />
                         ) : (
-                            <IoColorPalette size={24} className="text-slate-400 pointer-events-none" />
+                            <IoColorPalette size={24} className={isNight ? "text-gray-400 pointer-events-none" : "text-slate-400 pointer-events-none"} />
                         )}
 
                         <input
@@ -97,12 +97,12 @@ export default function ColorSection() {
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
                     </div>
-                    <span className="text-xs font-medium text-slate-600">じゆう</span>
+                    <span className={`text-xs font-medium ${labelClass}`}>じゆう</span>
                 </div>
             </div>
 
-            {/* --- ★★★ 追加: ほっぺの色 --- */}
-            <h2 className="text-lg font-semibold text-slate-600 mb-3">ほっぺのいろ</h2>
+            {/* --- ほっぺの色 --- */}
+            <h2 className={`text-lg font-semibold ${titleClass} mb-3`}>ほっぺのいろ</h2>
             <div className="flex justify-around items-center gap-2 flex-wrap">
                 {cheekColorOptions.map(color => (
                     <button
@@ -114,7 +114,7 @@ export default function ColorSection() {
                             className="w-12 h-12 rounded-full border-2 shadow-inner"
                             style={{
                                 backgroundColor: color.value,
-                                borderColor: cheekColor === color.value ? '#0ea5e9' : '#ffffff'
+                                borderColor: cheekColor === color.value ? '#0ea5e9' : (isNight ? 'rgba(255,255,255,0.2)' : '#ffffff')
                             }}
                         >
                             {cheekColor === color.value && (
@@ -123,7 +123,7 @@ export default function ColorSection() {
                                 </div>
                             )}
                         </div>
-                        <span className="text-xs font-medium text-slate-600">{color.name}</span>
+                        <span className={`text-xs font-medium ${labelClass}`}>{color.name}</span>
                     </button>
                 ))}
 
@@ -131,14 +131,14 @@ export default function ColorSection() {
                     <div
                         className="w-12 h-12 rounded-full border-2 shadow-inner overflow-hidden flex items-center justify-center"
                         style={{
-                            backgroundColor: isCustomCheekColor ? cheekColor : '#ffffff',
-                            borderColor: isCustomCheekColor ? '#0ea5e9' : '#ffffff'
+                            backgroundColor: isCustomCheekColor ? cheekColor : (isNight ? 'rgba(255,255,255,0.1)' : '#ffffff'),
+                            borderColor: isCustomCheekColor ? '#0ea5e9' : (isNight ? 'rgba(255,255,255,0.2)' : '#ffffff')
                         }}
                     >
                         {isCustomCheekColor ? (
                             <IoCheckmark size={28} className="text-white drop-shadow-md pointer-events-none" />
                         ) : (
-                            <IoColorPalette size={24} className="text-slate-400 pointer-events-none" />
+                            <IoColorPalette size={24} className={isNight ? "text-gray-400 pointer-events-none" : "text-slate-400 pointer-events-none"} />
                         )}
 
                         <input
@@ -148,7 +148,7 @@ export default function ColorSection() {
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         />
                     </div>
-                    <span className="text-xs font-medium text-slate-600">じゆう</span>
+                    <span className={`text-xs font-medium ${labelClass}`}>じゆう</span>
                 </div>
             </div>
         </section>
