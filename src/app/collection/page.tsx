@@ -89,6 +89,11 @@ export default function CollectionPage() {
 
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
 
+    // ★追加: 夜モード用のスタイル定義
+    const itemBgClass = isNight ? 'bg-white/20' : 'bg-white/60';
+    const unknownTextColor = isNight ? 'text-gray-400' : 'text-slate-400';
+    const knownTextColor = isNight ? 'text-gray-100 font-bold' : 'text-slate-600 font-bold';
+
     return (
         <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
             <ItemDetailModal
@@ -127,7 +132,8 @@ export default function CollectionPage() {
                                 <button
                                     key={item.id}
                                     onClick={() => handleItemClick(item)}
-                                    className={`flex flex-col items-center justify-center p-2 bg-white/60 rounded-xl aspect-square transition-transform ${item.quantity > 0 ? 'cursor-pointer hover:scale-[1.05]' : ''}`}
+                                    // ★変更: itemBgClass を適用
+                                    className={`flex flex-col items-center justify-center p-2 ${itemBgClass} rounded-xl aspect-square transition-transform ${item.quantity > 0 ? 'cursor-pointer hover:scale-[1.05]' : ''}`}
                                     disabled={item.quantity === 0}
                                 >
                                     <div className={`relative transition-opacity ${item.quantity === 0 ? 'opacity-30' : ''}`}>
@@ -138,7 +144,8 @@ export default function CollectionPage() {
                                             </span>
                                         )}
                                     </div>
-                                    <p className={`text-xs text-center mt-1 ${item.quantity === 0 ? 'text-slate-400' : 'text-slate-600 font-bold'}`}>
+                                    {/* ★変更: 文字色クラス変数を適用 */}
+                                    <p className={`text-xs text-center mt-1 ${item.quantity === 0 ? unknownTextColor : knownTextColor}`}>
                                         {item.quantity > 0 ? item.name : '？？？'}
                                     </p>
                                 </button>
