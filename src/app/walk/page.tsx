@@ -3,7 +3,8 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-import CharacterFace from '../components/CharacterFace';
+// ★修正: CharacterFace の代わりに CharacterDisplay をインポート
+import CharacterDisplay, { EquipmentState } from '../components/CharacterDisplay';
 import WeatherIcon from '../components/WeatherIcon';
 import Link from 'next/link';
 // import Footer from '../components/Footer'; // ★ 削除: お散歩中はフッターを表示しない
@@ -30,6 +31,8 @@ function WalkPageComponent() {
     const [petName, setPetName] = useState("てんちゃん");
     const [petColor, setPetColor] = useState("white");
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
+    // ★追加: 装備のステート
+    const [petEquipment, setPetEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null, room: null });
 
     useEffect(() => {
         const storedName = localStorage.getItem('otenki-gurashi-petName');
@@ -42,6 +45,21 @@ function WalkPageComponent() {
 
         const storedCheek = localStorage.getItem('otenki-gurashi-petCheekColor');
         if (storedCheek) setCheekColor(storedCheek);
+
+        // ★追加: 装備情報の読み込み
+        const storedEquipment = localStorage.getItem('otenki-gurashi-petEquipment');
+        if (storedEquipment) {
+            try {
+                const parsed = JSON.parse(storedEquipment);
+                if (typeof parsed === 'string') {
+                    setPetEquipment({ head: parsed, hand: null, floating: null, room: null });
+                } else {
+                    setPetEquipment({ head: null, hand: null, floating: null, room: null, ...parsed });
+                }
+            } catch {
+                setPetEquipment({ head: storedEquipment, hand: null, floating: null, room: null });
+            }
+        }
     }, []);
 
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
@@ -78,8 +96,19 @@ function WalkPageComponent() {
                             </div>
                         ) : error ? (
                             <div className="text-center">
-                                <div className="w-40 h-40 mb-4 mx-auto">
-                                    <CharacterFace mood={'sad'} petColor={petColor} cheekColor={cheekColor} />
+                                {/* ★修正: CharacterDisplayを使用して装備を反映（エラー時は悲しい顔） */}
+                                <div className="scale-90 mb-4">
+                                    <CharacterDisplay
+                                        petName=""
+                                        petColor={petColor}
+                                        cheekColor={cheekColor}
+                                        equipment={petEquipment}
+                                        mood="sad"
+                                        message={null}
+                                        onCharacterClick={() => { }}
+                                        isNight={isNight}
+                                        isStatic={true}
+                                    />
                                 </div>
                                 <p className="text-red-600 bg-red-100 p-3 rounded-lg shadow-sm">{error}</p>
                                 <Link href="/" className="mt-4 inline-block bg-gray-900 text-white font-bold py-2 px-4 rounded-full text-sm hover:bg-gray-700 transition-colors">
@@ -89,8 +118,19 @@ function WalkPageComponent() {
                         ) : (
                             <>
                                 <div className="mb-4"><WeatherIcon type={weather || 'sunny'} size={60} /></div>
-                                <div className="w-40 h-40 mb-4">
-                                    <CharacterFace mood={'happy'} petColor={petColor} cheekColor={cheekColor} />
+                                {/* ★修正: CharacterDisplayを使用して装備を反映 */}
+                                <div className="scale-90 mb-4">
+                                    <CharacterDisplay
+                                        petName=""
+                                        petColor={petColor}
+                                        cheekColor={cheekColor}
+                                        equipment={petEquipment}
+                                        mood="happy"
+                                        message={null}
+                                        onCharacterClick={() => { }}
+                                        isNight={isNight}
+                                        isStatic={true}
+                                    />
                                 </div>
                                 <div className="p-3 bg-white/70 backdrop-blur-sm rounded-xl shadow-md max-w-xs text-center">
                                     <p className="text-slate-700 font-medium">{getWalkMessage(weather || undefined)}</p>
