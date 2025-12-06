@@ -66,9 +66,9 @@ interface Achievement {
 
 const masterAchievements: Achievement[] = [
     { id: 1, title: 'はじめてのおさんぽ', description: 'はじめておさんぽに出かけた', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 1, unit: 'かい' },
-    { id: 2, title: 'おさんぽチャレンジャー', description: 'おさんぽに10回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 10, unit: 'かい' },
-    { id: 3, title: 'おさんぽエキスパート', description: 'おさんぽに50回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 50, unit: 'かい' },
-    { id: 10, title: 'おさんぽマスター', description: 'おさんぽに100回行った', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 100, unit: 'かい' },
+    { id: 2, title: 'てくてくおさんぽ', description: 'おさんぽに10回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 10, unit: 'かい' },
+    { id: 3, title: 'おさんぽだいすき', description: 'おさんぽに50回行った', icon: <FaMapMarkerAlt size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 50, unit: 'かい' },
+    { id: 10, title: 'おもいでいっぱい', description: 'おさんぽに100回行った', icon: <FaTrophy size={24} />, isUnlocked: false, progressKey: 'walkCount', goal: 100, unit: 'かい' },
 
     // 天気関連
     { id: 20, title: '太陽とともだち', description: '晴れの日にはじめておさんぽした', icon: <IoSunny size={24} />, isUnlocked: false, progressKey: 'sunnyWalkCount', goal: 1, unit: 'かい' },
