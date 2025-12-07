@@ -48,8 +48,8 @@ export const useWalkLogic = () => {
                     body: JSON.stringify({ userId, weather: currentWeather })
                 });
 
-                // 2. 演出用ウェイト (3秒) - てんちゃんがお散歩している時間
-                await new Promise(resolve => setTimeout(resolve, 3000));
+                // 2. 演出用ウェイト (2秒) - てんちゃんがお散歩している時間
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
                 // 3. アイテム獲得API
                 const itemRes = await fetch('/api/items/obtain', {

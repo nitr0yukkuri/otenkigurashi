@@ -3,14 +3,12 @@
 'use client';
 
 import { Suspense, useState, useEffect } from 'react';
-// ★修正: CharacterFace の代わりに CharacterDisplay をインポート
+// CharacterFace の代わりに CharacterDisplay をインポート
 import CharacterDisplay, { EquipmentState } from '../components/CharacterDisplay';
 import WeatherIcon from '../components/WeatherIcon';
 import Link from 'next/link';
-// import Footer from '../components/Footer'; // ★ 削除: お散歩中はフッターを表示しない
 import ItemGetModal from '../components/ItemGetModal';
-import { useWalkLogic } from './useWalkLogic'; // ★ここからインポートするように変更
-// ★修正: getWalkStage をインポート
+import { useWalkLogic } from './useWalkLogic';
 import { getWalkMessage, getWalkStage } from './utils';
 
 function WalkPageComponent() {
@@ -24,15 +22,16 @@ function WalkPageComponent() {
         dynamicBackgroundClass,
         handleModalClose,
         isNight,
-        // ★追加: stageを受け取る
         stage
     } = useWalkLogic();
 
     const [petName, setPetName] = useState("てんちゃん");
     const [petColor, setPetColor] = useState("white");
     const [cheekColor, setCheekColor] = useState("#F8BBD0");
-    // ★追加: 装備のステート
     const [petEquipment, setPetEquipment] = useState<EquipmentState>({ head: null, hand: null, floating: null, room: null });
+
+    // ★追加: メッセージを固定化するためのState
+    const [fixedMessage, setFixedMessage] = useState<string>("");
 
     useEffect(() => {
         const storedName = localStorage.getItem('otenki-gurashi-petName');
@@ -46,7 +45,6 @@ function WalkPageComponent() {
         const storedCheek = localStorage.getItem('otenki-gurashi-petCheekColor');
         if (storedCheek) setCheekColor(storedCheek);
 
-        // ★追加: 装備情報の読み込み
         const storedEquipment = localStorage.getItem('otenki-gurashi-petEquipment');
         if (storedEquipment) {
             try {
@@ -62,10 +60,16 @@ function WalkPageComponent() {
         }
     }, []);
 
+    // ★追加: 天気情報が確定したタイミングでメッセージを一度だけ生成して固定する
+    useEffect(() => {
+        if (weather && !fixedMessage) {
+            setFixedMessage(getWalkMessage(weather));
+        }
+    }, [weather, fixedMessage]);
+
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
 
-    // ★修正: 選択されたステージIDから名前を取得
     const stageName = getWalkStage(stage);
 
     return (
@@ -80,7 +84,6 @@ function WalkPageComponent() {
                             <h1 className={`text-3xl font-extrabold ${titleColor} tracking-wider`}>
                                 {loading ? 'おさんぽ中...' : error ? 'おさんぽ失敗...' : 'おさんぽ中...'}
                             </h1>
-                            {/* ★修正: ステージ名と場所を表示 (loading中でも表示) */}
                             <div className="flex flex-col items-center gap-1 mt-2">
                                 <p className={`text-lg font-bold ${titleColor} opacity-90`}>{stageName}</p>
                                 <p className={`${subTitleColor} text-sm`}>{location}</p>
@@ -91,7 +94,6 @@ function WalkPageComponent() {
                     <div className="flex flex-col items-center justify-center flex-grow p-4">
                         {error ? (
                             <div className="text-center">
-                                {/* エラー時 */}
                                 <div className="scale-90 mb-4">
                                     <CharacterDisplay
                                         petName=""
@@ -112,13 +114,10 @@ function WalkPageComponent() {
                             </div>
                         ) : (
                             <>
-                                {/* 正常時（準備中・おさんぽ中共通） */}
-                                {/* 天気アイコン */}
                                 <div className="mb-4">
                                     <WeatherIcon type={weather || 'sunny'} size={60} />
                                 </div>
 
-                                {/* キャラクター表示 (animate-pulse削除、常時不透明表示) */}
                                 <div className="scale-90 mb-4">
                                     <CharacterDisplay
                                         petName={petName}
@@ -126,7 +125,6 @@ function WalkPageComponent() {
                                         cheekColor={cheekColor}
                                         equipment={petEquipment}
                                         mood="happy"
-                                        // ★修正: messageをnullにして顔の上の吹き出しを消去（貫通防止）
                                         message={null}
                                         onCharacterClick={() => { }}
                                         isNight={isNight}
@@ -134,10 +132,10 @@ function WalkPageComponent() {
                                     />
                                 </div>
 
-                                {/* 下の会話エリア (準備中でも常時表示) */}
                                 <div className="p-3 bg-white/70 backdrop-blur-sm rounded-xl shadow-md max-w-xs text-center">
                                     <p className="text-slate-700 font-medium">
-                                        {getWalkMessage(weather || undefined)}
+                                        {/* ★修正: 固定されたメッセージを表示 */}
+                                        {fixedMessage || "てくてく…"}
                                     </p>
                                 </div>
                             </>
