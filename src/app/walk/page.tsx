@@ -9,7 +9,7 @@ import WeatherIcon from '../components/WeatherIcon';
 import Link from 'next/link';
 // import Footer from '../components/Footer'; // ★ 削除: お散歩中はフッターを表示しない
 import ItemGetModal from '../components/ItemGetModal';
-import { useWalkLogic } from './useWalkLogic';
+import { useWalkLogic } from './useWalkLogic'; // ★ここからインポートするように変更
 // ★修正: getWalkStage をインポート
 import { getWalkMessage, getWalkStage } from './utils';
 
