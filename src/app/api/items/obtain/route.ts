@@ -35,8 +35,10 @@ export async function POST(request: Request) {
 
         const allItems = await prisma.item.findMany();
 
+        // ★修正: データベースにアイテムがない場合もエラーにせず、フォールバックアイテムを返すように変更
         if (allItems.length === 0) {
-            return NextResponse.json({ message: 'アイテムが見つかりません。' }, { status: 404 });
+            console.warn("No items found in DB, using fallback item.");
+            return NextResponse.json(FALLBACK_ITEM);
         }
 
         const weights = allItems.map(item => {
@@ -126,7 +128,7 @@ export async function POST(request: Request) {
 
     } catch (error: any) {
         console.error("Failed to obtain item (using fallback):", error);
-        // ★修正: エラー時はフォールバックアイテムを返し、アプリを停止させない
+        // エラー時もフォールバックアイテムを返す
         return NextResponse.json(FALLBACK_ITEM);
     }
 }
