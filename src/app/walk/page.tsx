@@ -78,7 +78,7 @@ function WalkPageComponent() {
                     <div className="w-full mt-8">
                         <header className="mb-8 text-center">
                             <h1 className={`text-3xl font-extrabold ${titleColor} tracking-wider`}>
-                                {loading ? 'おさんぽ準備中...' : error ? 'おさんぽ失敗...' : 'おさんぽ中...'}
+                                {loading ? 'おさんぽ中...' : error ? 'おさんぽ失敗...' : 'おさんぽ中...'}
                             </h1>
                             {/* ★修正: ステージ名と場所を表示 (loading中でも表示) */}
                             <div className="flex flex-col items-center gap-1 mt-2">
