@@ -54,7 +54,6 @@ export default function CharacterDisplay({
     isWalking = false
 }: CharacterDisplayProps) {
 
-    // ★追加: なでなで検知用のRef
     const isDragging = useRef(false);
     const totalDragDistance = useRef(0);
     const lastPointerPos = useRef({ x: 0, y: 0 });
@@ -66,10 +65,8 @@ export default function CharacterDisplay({
     };
 
     const handlePointerMoveInternal = (e: React.PointerEvent<HTMLDivElement>) => {
-        // 既存の視線追従処理があれば実行
         if (onPointerMove) onPointerMove(e);
 
-        // なでなで判定
         if (isDragging.current) {
             const dx = e.clientX - lastPointerPos.current.x;
             const dy = e.clientY - lastPointerPos.current.y;
@@ -78,10 +75,9 @@ export default function CharacterDisplay({
             totalDragDistance.current += distance;
             lastPointerPos.current = { x: e.clientX, y: e.clientY };
 
-            // 一定距離（例: 150px）以上撫でたらクリック扱いにする
             if (totalDragDistance.current > 150) {
                 onCharacterClick();
-                totalDragDistance.current = 0; // 連続で反応しないようにリセット（または連続反応させるなら調整）
+                totalDragDistance.current = 0;
             }
         }
     };
@@ -116,12 +112,9 @@ export default function CharacterDisplay({
     const messageArrow = isNight ? 'border-t-gray-700/80' : 'border-t-white/80';
     const nameBg = isNight ? 'bg-black/30' : 'bg-white/30';
 
-    // 天気ごとの判定
     const isSunnyOrClear = (weather === 'sunny' || weather === 'clear') && !isNight;
     const isCloudy = weather === 'cloudy';
     const isWindy = weather === 'windy';
-    // 「夜」天気、または夜間の「晴れ・快晴」のときに星を出す
-    const isStarryNight = weather === 'night' || (isNight && (weather === 'sunny' || weather === 'clear'));
 
     return (
         <div className={`flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center ${isStatic ? '' : 'pb-20'} relative`}>
@@ -141,7 +134,6 @@ export default function CharacterDisplay({
 
             <div
                 className={`w-40 h-40 rounded-full relative touch-none ${isWalking ? 'animate-fluffy-walk' : ''}`}
-                // ★修正: なでなでイベントをバインド
                 onPointerDown={handlePointerDown}
                 onPointerMove={handlePointerMoveInternal}
                 onPointerUp={handlePointerUpOrLeave}
@@ -209,109 +201,6 @@ export default function CharacterDisplay({
                                     }}
                                 />
                             ))}
-                        </>
-                    )}
-
-                    {/* 4. 夜 (派手な月光 + 超派手な流れ星 + 上に星) */}
-                    {isStarryNight && (
-                        <>
-                            {/* 上の方に瞬く星 */}
-                            {[...Array(8)].map((_, i) => (
-                                <motion.div
-                                    key={`star-${i}`}
-                                    initial={{ opacity: 0.3, scale: 0.8 }}
-                                    animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-                                    transition={{
-                                        duration: 3 + i * 0.5,
-                                        repeat: Infinity,
-                                        ease: "easeInOut"
-                                    }}
-                                    className="absolute bg-white rounded-full z-20 blur-[0.5px]"
-                                    style={{
-                                        width: i % 2 === 0 ? 3 : 2,
-                                        height: i % 2 === 0 ? 3 : 2,
-                                        top: `${5 + (i * 40 / 8)}%`,
-                                        left: `${(i * 90 / 8) + 5}%`,
-                                        boxShadow: '0 0 4px rgba(255, 255, 255, 0.8)'
-                                    }}
-                                />
-                            ))}
-
-                            {/* 月光の筋 (Night Rays) */}
-                            <motion.div
-                                key="moon-rays"
-                                initial={{ opacity: 0, rotate: -15 }}
-                                animate={{
-                                    opacity: [0.3, 0.5, 0.3],
-                                    rotate: [-15, -12, -15],
-                                    scale: [1, 1.05, 1]
-                                }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] z-20 pointer-events-none mix-blend-screen"
-                                style={{
-                                    background: 'conic-gradient(from 110deg at 50% 50%, transparent 0deg, rgba(200, 230, 255, 0.1) 15deg, rgba(180, 210, 255, 0.4) 30deg, rgba(200, 230, 255, 0.1) 45deg, transparent 60deg)',
-                                }}
-                            />
-                            {/* 月の輝き (Moon Glow) */}
-                            <motion.div
-                                key="moon-glow"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: [0.3, 0.6, 0.3] }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute top-0 left-0 w-full h-full rounded-full z-20 pointer-events-none mix-blend-screen"
-                                style={{
-                                    background: 'radial-gradient(circle at 30% 30%, rgba(220, 240, 255, 0.7) 0%, rgba(100, 150, 255, 0.2) 60%, transparent 90%)',
-                                }}
-                            />
-
-                            {/* 特大の流れ星 */}
-                            <motion.div
-                                key="shooting-star-main"
-                                initial={{ top: "0%", left: "95%", width: 0, opacity: 0 }}
-                                animate={{
-                                    top: ["0%", "75%"],
-                                    left: ["95%", "5%"],
-                                    width: [0, 250, 0],
-                                    opacity: [0, 1, 0.8, 0]
-                                }}
-                                transition={{
-                                    duration: 1.2,
-                                    repeat: Infinity,
-                                    repeatDelay: 2.2,
-                                    ease: "easeOut",
-                                    times: [0, 0.1, 0.8, 1]
-                                }}
-                                className="absolute h-[4px] z-20 rotate-[35deg] rounded-full"
-                                style={{
-                                    background: 'linear-gradient(90deg, #FFFFFF, transparent)',
-                                    boxShadow: '0 0 25px rgba(255, 255, 255, 1), 0 0 50px rgba(120, 220, 255, 0.9)'
-                                }}
-                            />
-
-                            {/* 小さめの流れ星 */}
-                            <motion.div
-                                key="shooting-star-sub"
-                                initial={{ top: "20%", left: "100%", width: 0, opacity: 0 }}
-                                animate={{
-                                    top: ["20%", "50%"],
-                                    left: ["100%", "40%"],
-                                    width: [0, 100, 0],
-                                    opacity: [0, 0.8, 0]
-                                }}
-                                transition={{
-                                    duration: 0.8,
-                                    repeat: Infinity,
-                                    repeatDelay: 1.5,
-                                    delay: 1.0,
-                                    ease: "easeOut"
-                                }}
-                                className="absolute h-[2px] bg-white z-20 rotate-[35deg]"
-                                style={{
-                                    boxShadow: '0 0 15px rgba(255, 255, 255, 1)'
-                                }}
-                            />
                         </>
                     )}
                 </AnimatePresence>
