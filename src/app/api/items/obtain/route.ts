@@ -33,11 +33,15 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: '天候情報が必要です。' }, { status: 400 });
         }
 
-        const allItems = await prisma.item.findMany();
+        const allItemsRaw = await prisma.item.findMany();
 
-        // ★修正: データベースにアイテムがない場合もエラーにせず、フォールバックアイテムを返すように変更
+        // ★修正: クラフト専用アイテム（虫取り網、虹色のネックレス、てるてる坊主）をおさんぽ出現リストから除外
+        const craftOnlyItems = ['虫取り網', '虹色のネックレス', 'てるてる坊主'];
+        const allItems = allItemsRaw.filter(item => !craftOnlyItems.includes(item.name));
+
+        // ★修正: データベースにアイテムがない（または全て除外された）場合もエラーにせず、フォールバックアイテムを返すように変更
         if (allItems.length === 0) {
-            console.warn("No items found in DB, using fallback item.");
+            console.warn("No items found in DB (or all filtered out), using fallback item.");
             return NextResponse.json(FALLBACK_ITEM);
         }
 
