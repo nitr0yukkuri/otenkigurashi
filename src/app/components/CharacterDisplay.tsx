@@ -1,5 +1,3 @@
-// src/app/components/CharacterDisplay.tsx
-
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,7 +25,6 @@ type CharacterDisplayProps = {
     weather?: string | null;
     onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void;
     onPointerLeave?: () => void;
-    // ★追加: 歩いているかどうか（アニメーション用）
     isWalking?: boolean;
 };
 
@@ -51,7 +48,6 @@ export default function CharacterDisplay({
     weather = null,
     onPointerMove,
     onPointerLeave,
-    // ★追加: デフォルトは false
     isWalking = false
 }: CharacterDisplayProps) {
 
@@ -60,7 +56,6 @@ export default function CharacterDisplay({
         const itemName = equipment[slot];
         if (!itemName) return null;
 
-        // ★修正: てるてる坊主(GiGhost)の天気による表示制限を削除（コメントアウト）
         // if (itemName === 'GiGhost') {
         //     if (weather !== 'rainy' && weather !== null) {
         //         return null;
@@ -87,6 +82,9 @@ export default function CharacterDisplay({
     const messageArrow = isNight ? 'border-t-gray-700/80' : 'border-t-white/80';
     const nameBg = isNight ? 'bg-black/30' : 'bg-white/30';
 
+    // ★追加: 晴れまたは快晴で、かつ夜でないかを判定
+    const isSunnyOrClear = (weather === 'sunny' || weather === 'clear') && !isNight;
+
     return (
         <div className={`flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center ${isStatic ? '' : 'pb-20'} relative`}>
             <AnimatePresence>
@@ -104,11 +102,38 @@ export default function CharacterDisplay({
             </AnimatePresence>
 
             <div
-                // ★修正: isWalking が true の場合のみ animate-fluffy-walk クラスを適用
                 className={`w-40 h-40 rounded-full relative touch-none ${isWalking ? 'animate-fluffy-walk' : ''}`}
                 onPointerMove={onPointerMove}
                 onPointerLeave={onPointerLeave}
             >
+                {/* ★追加: 太陽光エフェクト */}
+                <AnimatePresence>
+                    {isSunnyOrClear && (
+                        <motion.div
+                            key="sunlight-effect"
+                            initial={{ opacity: 0 }}
+                            animate={{
+                                opacity: [0.3, 0.5, 0.3],
+                                rotate: [0, 5, 0, -5, 0], // ゆっくりと光が揺らぐ
+                                scale: [1, 1.05, 1]
+                            }}
+                            exit={{ opacity: 0 }}
+                            transition={{
+                                opacity: { duration: 4, repeat: Infinity, ease: "easeInOut" },
+                                rotate: { duration: 10, repeat: Infinity, ease: "easeInOut" },
+                                scale: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+                            }}
+                            className="absolute top-0 left-0 w-full h-full rounded-full z-20 pointer-events-none mix-blend-soft-light"
+                            style={{
+                                // 左上からの温かい光のグラデーション
+                                background: 'radial-gradient(circle at 30% 30%, rgba(255, 250, 210, 0.7) 0%, rgba(255, 255, 255, 0) 65%)',
+                                // 全体に柔らかな光彩を追加
+                                boxShadow: 'inset 0 0 20px rgba(255, 235, 190, 0.3)'
+                            }}
+                        />
+                    )}
+                </AnimatePresence>
+
                 {renderSlot('room')}
 
                 {renderSlot('floating')}
