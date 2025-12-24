@@ -67,6 +67,12 @@ function WalkPageComponent() {
         }
     }, [weather, fixedMessage]);
 
+    // ★追加: なでなで（クリック）時のハンドラ
+    const handlePet = () => {
+        setFixedMessage("えへへ、うれしいな♪");
+        // 音声を再生する場合はここに記述（例: playSound('happy')）
+    };
+
     const subTitleColor = isNight ? 'text-gray-300' : 'text-slate-500';
     const titleColor = isNight ? 'text-white' : 'text-slate-800';
 
@@ -127,7 +133,8 @@ function WalkPageComponent() {
                                         equipment={petEquipment}
                                         mood="happy"
                                         message={null}
-                                        onCharacterClick={() => { }}
+                                        // ★修正: なでなでハンドラを渡す
+                                        onCharacterClick={handlePet}
                                         isNight={isNight}
                                         isStatic={true}
                                         isWalking={true}

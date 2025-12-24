@@ -3,6 +3,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRef } from 'react';
 import CharacterFace from './CharacterFace';
 import ItemIcon from './ItemIcon';
 import TeruTeruIcon from './TeruTeruIcon';
@@ -52,6 +53,43 @@ export default function CharacterDisplay({
     onPointerLeave,
     isWalking = false
 }: CharacterDisplayProps) {
+
+    // ★追加: なでなで検知用のRef
+    const isDragging = useRef(false);
+    const totalDragDistance = useRef(0);
+    const lastPointerPos = useRef({ x: 0, y: 0 });
+
+    const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        isDragging.current = true;
+        totalDragDistance.current = 0;
+        lastPointerPos.current = { x: e.clientX, y: e.clientY };
+    };
+
+    const handlePointerMoveInternal = (e: React.PointerEvent<HTMLDivElement>) => {
+        // 既存の視線追従処理があれば実行
+        if (onPointerMove) onPointerMove(e);
+
+        // なでなで判定
+        if (isDragging.current) {
+            const dx = e.clientX - lastPointerPos.current.x;
+            const dy = e.clientY - lastPointerPos.current.y;
+            const distance = Math.hypot(dx, dy);
+
+            totalDragDistance.current += distance;
+            lastPointerPos.current = { x: e.clientX, y: e.clientY };
+
+            // 一定距離（例: 150px）以上撫でたらクリック扱いにする
+            if (totalDragDistance.current > 150) {
+                onCharacterClick();
+                totalDragDistance.current = 0; // 連続で反応しないようにリセット（または連続反応させるなら調整）
+            }
+        }
+    };
+
+    const handlePointerUpOrLeave = () => {
+        isDragging.current = false;
+        if (onPointerLeave) onPointerLeave();
+    };
 
     const renderSlot = (slot: keyof EquipmentState) => {
         if (!equipment) return null;
@@ -103,10 +141,12 @@ export default function CharacterDisplay({
 
             <div
                 className={`w-40 h-40 rounded-full relative touch-none ${isWalking ? 'animate-fluffy-walk' : ''}`}
-                onPointerMove={onPointerMove}
-                onPointerLeave={onPointerLeave}
+                // ★修正: なでなでイベントをバインド
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMoveInternal}
+                onPointerUp={handlePointerUpOrLeave}
+                onPointerLeave={handlePointerUpOrLeave}
             >
-                {/* ★修正: 天気エフェクトの分岐を追加 */}
                 <AnimatePresence>
                     {/* 1. 晴れ・快晴 (木漏れ日) */}
                     {isSunnyOrClear && (
@@ -147,53 +187,130 @@ export default function CharacterDisplay({
                         />
                     )}
 
-                    {/* 3. 強風 (吹き抜ける風の筋) */}
+                    {/* 3. 強風 (強化: 画面全体に激しく吹き抜ける風) */}
                     {isWindy && (
                         <>
-                            {[...Array(3)].map((_, i) => (
+                            {[...Array(6)].map((_, i) => (
                                 <motion.div
                                     key={`wind-${i}`}
-                                    initial={{ x: "150%", opacity: 0 }}
-                                    animate={{ x: "-150%", opacity: [0, 0.6, 0] }}
+                                    initial={{ x: "180%", opacity: 0 }}
+                                    animate={{ x: "-180%", opacity: [0, 0.8, 0] }}
                                     transition={{
-                                        duration: 1.5,
+                                        duration: 0.8 + (i % 3) * 0.4,
                                         repeat: Infinity,
-                                        delay: i * 0.8, // ずらして再生
+                                        delay: (i * 0.7) % 2,
                                         ease: "easeInOut"
                                     }}
-                                    className="absolute h-1 bg-white/40 rounded-full z-20 pointer-events-none blur-[1px]"
+                                    className="absolute h-[3px] bg-white/50 rounded-full z-20 pointer-events-none blur-[1px]"
                                     style={{
-                                        top: `${30 + i * 20}%`,
-                                        width: '60%',
-                                        left: '20%'
+                                        top: `${10 + i * 15}%`,
+                                        width: `${50 + (i % 3) * 20}%`,
+                                        left: '10%'
                                     }}
                                 />
                             ))}
                         </>
                     )}
 
-                    {/* 4. 夜 (流れ星のみ) */}
+                    {/* 4. 夜 (派手な月光 + 超派手な流れ星 + 上に星) */}
                     {isStarryNight && (
                         <>
-                            {/* ★修正: 瞬く星を削除しました */}
+                            {/* 上の方に瞬く星 */}
+                            {[...Array(8)].map((_, i) => (
+                                <motion.div
+                                    key={`star-${i}`}
+                                    initial={{ opacity: 0.3, scale: 0.8 }}
+                                    animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
+                                    transition={{
+                                        duration: 3 + i * 0.5,
+                                        repeat: Infinity,
+                                        ease: "easeInOut"
+                                    }}
+                                    className="absolute bg-white rounded-full z-20 blur-[0.5px]"
+                                    style={{
+                                        width: i % 2 === 0 ? 3 : 2,
+                                        height: i % 2 === 0 ? 3 : 2,
+                                        top: `${5 + (i * 40 / 8)}%`,
+                                        left: `${(i * 90 / 8) + 5}%`,
+                                        boxShadow: '0 0 4px rgba(255, 255, 255, 0.8)'
+                                    }}
+                                />
+                            ))}
 
-                            {/* ★修正: 流れ星の頻度アップ (repeatDelay: 5 -> 1.5) */}
+                            {/* 月光の筋 (Night Rays) */}
                             <motion.div
-                                key="shooting-star"
-                                initial={{ top: "10%", left: "80%", width: 0, opacity: 0 }}
+                                key="moon-rays"
+                                initial={{ opacity: 0, rotate: -15 }}
                                 animate={{
-                                    top: ["10%", "60%"],
-                                    left: ["80%", "20%"],
-                                    width: [0, 40, 0],
-                                    opacity: [0, 1, 0]
+                                    opacity: [0.3, 0.5, 0.3],
+                                    rotate: [-15, -12, -15],
+                                    scale: [1, 1.05, 1]
+                                }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                                className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] z-20 pointer-events-none mix-blend-screen"
+                                style={{
+                                    background: 'conic-gradient(from 110deg at 50% 50%, transparent 0deg, rgba(200, 230, 255, 0.1) 15deg, rgba(180, 210, 255, 0.4) 30deg, rgba(200, 230, 255, 0.1) 45deg, transparent 60deg)',
+                                }}
+                            />
+                            {/* 月の輝き (Moon Glow) */}
+                            <motion.div
+                                key="moon-glow"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: [0.3, 0.6, 0.3] }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                className="absolute top-0 left-0 w-full h-full rounded-full z-20 pointer-events-none mix-blend-screen"
+                                style={{
+                                    background: 'radial-gradient(circle at 30% 30%, rgba(220, 240, 255, 0.7) 0%, rgba(100, 150, 255, 0.2) 60%, transparent 90%)',
+                                }}
+                            />
+
+                            {/* 特大の流れ星 */}
+                            <motion.div
+                                key="shooting-star-main"
+                                initial={{ top: "0%", left: "95%", width: 0, opacity: 0 }}
+                                animate={{
+                                    top: ["0%", "75%"],
+                                    left: ["95%", "5%"],
+                                    width: [0, 250, 0],
+                                    opacity: [0, 1, 0.8, 0]
                                 }}
                                 transition={{
-                                    duration: 1,
+                                    duration: 1.2,
                                     repeat: Infinity,
-                                    repeatDelay: 1.5, // 頻繁に流れるように変更
+                                    repeatDelay: 2.2,
+                                    ease: "easeOut",
+                                    times: [0, 0.1, 0.8, 1]
+                                }}
+                                className="absolute h-[4px] z-20 rotate-[35deg] rounded-full"
+                                style={{
+                                    background: 'linear-gradient(90deg, #FFFFFF, transparent)',
+                                    boxShadow: '0 0 25px rgba(255, 255, 255, 1), 0 0 50px rgba(120, 220, 255, 0.9)'
+                                }}
+                            />
+
+                            {/* 小さめの流れ星 */}
+                            <motion.div
+                                key="shooting-star-sub"
+                                initial={{ top: "20%", left: "100%", width: 0, opacity: 0 }}
+                                animate={{
+                                    top: ["20%", "50%"],
+                                    left: ["100%", "40%"],
+                                    width: [0, 100, 0],
+                                    opacity: [0, 0.8, 0]
+                                }}
+                                transition={{
+                                    duration: 0.8,
+                                    repeat: Infinity,
+                                    repeatDelay: 1.5,
+                                    delay: 1.0,
                                     ease: "easeOut"
                                 }}
-                                className="absolute h-[2px] bg-white z-20 rotate-[30deg] shadow-[0_0_8px_rgba(255,255,255,1)]"
+                                className="absolute h-[2px] bg-white z-20 rotate-[35deg]"
+                                style={{
+                                    boxShadow: '0 0 15px rgba(255, 255, 255, 1)'
+                                }}
                             />
                         </>
                     )}
