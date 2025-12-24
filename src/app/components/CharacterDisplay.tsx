@@ -27,6 +27,8 @@ type CharacterDisplayProps = {
     weather?: string | null;
     onPointerMove?: (e: React.PointerEvent<HTMLDivElement>) => void;
     onPointerLeave?: () => void;
+    // ★追加: 歩いているかどうか（アニメーション用）
+    isWalking?: boolean;
 };
 
 const SLOT_STYLES = {
@@ -48,7 +50,9 @@ export default function CharacterDisplay({
     isStatic = false,
     weather = null,
     onPointerMove,
-    onPointerLeave
+    onPointerLeave,
+    // ★追加: デフォルトは false
+    isWalking = false
 }: CharacterDisplayProps) {
 
     const renderSlot = (slot: keyof EquipmentState) => {
@@ -100,7 +104,8 @@ export default function CharacterDisplay({
             </AnimatePresence>
 
             <div
-                className="w-40 h-40 rounded-full relative touch-none"
+                // ★修正: isWalking が true の場合のみ animate-fluffy-walk クラスを適用
+                className={`w-40 h-40 rounded-full relative touch-none ${isWalking ? 'animate-fluffy-walk' : ''}`}
                 onPointerMove={onPointerMove}
                 onPointerLeave={onPointerLeave}
             >

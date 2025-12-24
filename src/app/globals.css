@@ -14,6 +14,22 @@
         animation: fade-in-up 0.3s ease-out forwards;
     }
 
+    /* ★変更: お散歩中のふわふわ歩きアニメーション */
+    /* 文字を動かさず、キャラだけふわふわさせる用 */
+    .animate-fluffy-walk {
+        animation: fluffy-walk 0.9s infinite ease-in-out;
+    }
+
+    @keyframes fluffy-walk {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            /* 動きを少しマイルドにして「ふわふわ」感を出す */
+            transform: translateY(-8px);
+        }
+    }
+
     @keyframes fade-in-up {
         from {
             opacity: 0;

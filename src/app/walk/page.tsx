@@ -118,6 +118,7 @@ function WalkPageComponent() {
                                     <WeatherIcon type={weather || 'sunny'} size={60} />
                                 </div>
 
+                                {/* ★修正: 親要素のアニメーションクラスを削除し、isWalking を渡す */}
                                 <div className="scale-90 mb-4">
                                     <CharacterDisplay
                                         petName={petName}
@@ -129,6 +130,7 @@ function WalkPageComponent() {
                                         onCharacterClick={() => { }}
                                         isNight={isNight}
                                         isStatic={true}
+                                        isWalking={true}
                                     />
                                 </div>
 
