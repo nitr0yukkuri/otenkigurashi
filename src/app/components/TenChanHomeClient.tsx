@@ -269,11 +269,11 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const handleCharacterClick = () => {
         resetIdleTimer();
 
-        // ★デバッグ設定: permissionがdefaultなら毎回確認を出す（拒否フラグは無視）
+        // ★修正: デバッグ設定を解除（拒否フラグをチェックする）
         if (
             "Notification" in window &&
-            Notification.permission === 'default'
-            // && !localStorage.getItem(NOTIFICATION_REFUSED_KEY)
+            Notification.permission === 'default' &&
+            !localStorage.getItem(NOTIFICATION_REFUSED_KEY)
         ) {
             setIsNotificationModalOpen(true);
         }
@@ -479,19 +479,18 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 </div>
             </ConfirmationModal>
 
-            {/* ★修正: 世界観に合わせたテキストに変更 */}
             <ConfirmationModal
                 isOpen={isNotificationModalOpen}
                 onClose={handleNotificationCancel}
                 onConfirm={handleNotificationConfirm}
                 type="notification"
-                title="おねがい"
+                title="てんちゃん"
                 confirmText="いいよ"
                 cancelText="だめ"
             >
                 <div className="text-center">
                     <p className="font-medium text-gray-700 mb-2 leading-relaxed">
-                        お天気の通知をしたいから<br />通知を出したいな！
+                        お天気の通知を出したいな！
                     </p>
                 </div>
             </ConfirmationModal>

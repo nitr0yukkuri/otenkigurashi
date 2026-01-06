@@ -173,11 +173,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                                     {displayConfirmText}
                                 </button>
 
-                                {/* キャンセルボタン */}
+                                {/* キャンセルボタン（だめボタン） */}
                                 {cancelText && (
                                     <button
                                         onClick={onClose}
-                                        className="w-full py-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                                        // ★ 修正: 薄い文字リンクから、グレーのしっかりしたボタンに変更
+                                        className="w-full py-3 rounded-xl font-bold text-slate-500 bg-slate-100 hover:bg-slate-200 hover:text-slate-700 transition-all active:scale-95"
                                     >
                                         {cancelText}
                                     </button>
