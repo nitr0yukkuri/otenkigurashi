@@ -200,20 +200,16 @@ export function useWeatherForecast() {
                 (position) => fetchWeatherData(position.coords.latitude, position.coords.longitude),
                 (geoError) => {
                     console.error("Geolocation Error:", geoError);
-                    let errorMessage = "あれれ、いまどこにいるか分かんなくなっちゃった…";
-                    let message = "いまどこにいるか分かれば、お天気を調べられるよ！";
-                    setLocation("？？？");
-                    setError(errorMessage);
-                    setLoading(false);
-                    setSelectedDayMessage(message);
+                    // 位置情報が取得できない場合は大阪を表示
+                    console.log("Using fallback location (Osaka).");
+                    fetchWeatherData(34.6937, 135.5023);
                 },
                 { timeout: 10000 }
             );
         } else {
-            setLocation("？？？");
-            setError("ごめんね、このアプリだと\nいまどこにいるかの機能が使えないみたい…");
-            setLoading(false);
-            setSelectedDayMessage("うーん、このアプリだと場所がわからないみたい…");
+            // 位置情報がサポートされていない場合も大阪を表示
+            console.log("Geolocation not supported. Using fallback location.");
+            fetchWeatherData(34.6937, 135.5023);
         }
     }, [handleInitialMessage]);
 

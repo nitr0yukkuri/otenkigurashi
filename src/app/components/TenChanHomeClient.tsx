@@ -386,9 +386,9 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     (geoError) => {
                         console.error("Geolocation Error:", geoError);
                         // ★修正: 致命的なバグ対策 (デモ用フォールバック)
-                        // GPS取得失敗時、エラー画面で止まるのを防ぐため、東京の座標で続行する
-                        console.log("Using fallback location (Tokyo) for demo.");
-                        fetchWeatherDataByLocation(35.6895, 139.6917);
+                        // GPS取得失敗時、エラー画面で止まるのを防ぐため、大阪の座標で続行する
+                        console.log("Using fallback location (Osaka) for demo.");
+                        fetchWeatherDataByLocation(34.6937, 135.5023);
                     },
                     // ★修正: タイムアウトを4秒に短縮 (10000 -> 4000)
                     { timeout: 4000 }
@@ -396,7 +396,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             } else {
                 // こちらも同様にフォールバック
                 console.log("Geolocation not supported. Using fallback location.");
-                fetchWeatherDataByLocation(35.6895, 139.6917);
+                fetchWeatherDataByLocation(34.6937, 135.5023);
             }
         }
 
