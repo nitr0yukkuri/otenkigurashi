@@ -10,7 +10,7 @@ import {
     FaSnowflake,
     FaWind,
     FaMoon,
-    FaBell // ★ 追加: 通知用アイコン
+    FaBell
 } from 'react-icons/fa';
 import { WiThunderstorm } from "react-icons/wi";
 import { IoMdClose } from "react-icons/io";
@@ -28,10 +28,10 @@ type ConfirmationModalProps = {
         icon?: string;
     };
     weatherType?: 'thunderstorm';
-    type?: 'walk' | 'item' | 'notification'; // ★ 追加: notificationタイプ
-    title?: string; // ★ 追加: タイトル上書き用
-    confirmText?: string; // ★ 追加: 実行ボタンのテキスト
-    cancelText?: string; // ★ 追加: キャンセルボタンのテキスト
+    type?: 'walk' | 'item' | 'notification';
+    title?: string;
+    confirmText?: string;
+    cancelText?: string;
 };
 
 const iconComponents: { [key: string]: React.ElementType } = {
@@ -109,24 +109,21 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    // ★ 下揃えのレイアウト（ボトムシート用）
-                    className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-0 md:items-center"
+                    // ★ 修正: items-end(下揃え) から items-center(中央揃え) に戻す（HelpModalと同様）
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
                     onClick={onClose}
                 >
                     <motion.div
-                        // ★ 下からスライドイン
-                        initial={{ y: "100%", opacity: 0.5 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: "100%", opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        // ★ ボトムシートスタイル (上だけ丸く、スマホサイズ最適化)
-                        className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-sm relative pb-safe md:pb-6"
+                        // ★ 修正: 下からのスライドではなく、中央での拡大フェード（HelpModalと同様）
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                        // ★ 修正: ボトムシートスタイルをやめ、角丸のカードデザインに戻す
+                        className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm relative"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* ハンドルバー（スマホ用装飾） */}
-                        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-6 md:hidden" />
-
-                        {/* 閉じるボタン（右上） */}
+                        {/* 閉じるボタン */}
                         <button
                             onClick={onClose}
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full transition-colors"
@@ -135,7 +132,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                             <IoMdClose size={20} />
                         </button>
 
-                        <div className="px-6 pb-8 text-center space-y-5">
+                        <div className="px-2 pb-2 text-center space-y-5">
                             <div className="pt-2">
                                 {renderIcon()}
                             </div>
@@ -174,7 +171,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                                     {displayConfirmText}
                                 </button>
 
-                                {/* ★ キャンセルボタン（だめボタン） */}
+                                {/* キャンセルボタン（だめボタン） */}
                                 {cancelText && (
                                     <button
                                         onClick={onClose}

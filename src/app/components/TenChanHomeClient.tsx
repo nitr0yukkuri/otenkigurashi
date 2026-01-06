@@ -273,7 +273,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         if (
             "Notification" in window &&
             Notification.permission === 'default'
-            // && !localStorage.getItem(NOTIFICATION_REFUSED_KEY) // ← デバッグ中なのでコメントアウト
+            // && !localStorage.getItem(NOTIFICATION_REFUSED_KEY)
         ) {
             setIsNotificationModalOpen(true);
         }
@@ -382,7 +382,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             setWeatherAndNotify(initialData.weather);
             setIsLoading(false);
         } else {
-            // ★修正: Geolocation APIを削除し、強制的に大阪を使用
             console.log("Using fixed location (Osaka) for settings.");
             fetchWeatherDataByLocation(34.6937, 135.5023);
         }
@@ -480,7 +479,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 </div>
             </ConfirmationModal>
 
-            {/* ★修正: 世界観に合わせたテキストと「いいよ・だめ」ボタン */}
+            {/* ★修正: 世界観に合わせたテキストに変更 */}
             <ConfirmationModal
                 isOpen={isNotificationModalOpen}
                 onClose={handleNotificationCancel}
@@ -492,7 +491,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             >
                 <div className="text-center">
                     <p className="font-medium text-gray-700 mb-2 leading-relaxed">
-                        毎朝7時ごろに、<br />今日の天気をお知らせしてもいい？
+                        お天気の通知をしたいから<br />通知を出したいな～
                     </p>
                 </div>
             </ConfirmationModal>
