@@ -491,7 +491,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             >
                 <div className="text-center">
                     <p className="font-medium text-gray-700 mb-2 leading-relaxed">
-                        お天気の通知をしたいから<br />通知を出したいな～
+                        お天気の通知をしたいから<br />通知を出したいな！
                     </p>
                 </div>
             </ConfirmationModal>

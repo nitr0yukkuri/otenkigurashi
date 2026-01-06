@@ -109,27 +109,26 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    // ★ 修正: items-end(下揃え) から items-center(中央揃え) に戻す（HelpModalと同様）
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+                    // ★ 修正: HelpModalと完全に同じ背景スタイル（bg-black/60）
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <motion.div
-                        // ★ 修正: 下からのスライドではなく、中央での拡大フェード（HelpModalと同様）
+                        // ★ 修正: HelpModalと同じアニメーション
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-                        // ★ 修正: ボトムシートスタイルをやめ、角丸のカードデザインに戻す
-                        className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-sm relative"
+                        // ★ 修正: HelpModalと同じスタイル（bg-white/90, rounded-3xl）
+                        className="bg-white/90 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* 閉じるボタン */}
+                        {/* ★ 修正: HelpModalと同じシンプルな閉じるボタン（背景なし） */}
                         <button
                             onClick={onClose}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full transition-colors"
+                            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
                             aria-label="Close"
                         >
-                            <IoMdClose size={20} />
+                            <IoMdClose size={24} />
                         </button>
 
                         <div className="px-2 pb-2 text-center space-y-5">
@@ -138,7 +137,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                             </div>
 
                             {!isWalkMode && (
-                                <h2 className="text-xl font-extrabold text-slate-700 tracking-wide">
+                                // ★ 修正: HelpModalのタイトルスタイルに合わせる（text-slate-800）
+                                <h2 className="text-2xl font-bold text-slate-800 mb-2">
                                     {displayTitle}
                                 </h2>
                             )}
@@ -155,7 +155,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                                     </div>
                                 </div>
                             ) : (
-                                <div className="text-slate-600 font-medium whitespace-pre-line leading-relaxed">
+                                // ★ 修正: HelpModalのテキストスタイルに合わせる
+                                <div className="text-slate-600 font-medium whitespace-pre-line leading-relaxed text-sm">
                                     {children}
                                 </div>
                             )}
@@ -163,7 +164,8 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                             <div className="space-y-3 pt-2">
                                 <button
                                     onClick={isWalkMode ? onConfirm : (type === 'notification' ? onConfirm : onClose)}
-                                    className={`w-full py-4 rounded-2xl text-lg font-bold transition-all shadow-lg active:scale-95 ${type === 'notification'
+                                    // ★ 修正: HelpModalのボタンスタイル（rounded-xl, py-3）に統一
+                                    className={`w-full py-3 rounded-xl text-lg font-bold transition-all shadow-lg active:scale-95 ${type === 'notification'
                                             ? 'bg-yellow-400 text-white hover:bg-yellow-500 shadow-yellow-200'
                                             : 'bg-slate-800 text-white hover:bg-slate-700 shadow-slate-200'
                                         }`}
@@ -171,7 +173,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                                     {displayConfirmText}
                                 </button>
 
-                                {/* キャンセルボタン（だめボタン） */}
+                                {/* キャンセルボタン */}
                                 {cancelText && (
                                     <button
                                         onClick={onClose}
