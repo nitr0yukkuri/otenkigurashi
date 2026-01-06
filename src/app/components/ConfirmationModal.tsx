@@ -1,9 +1,7 @@
 // src/app/components/ConfirmationModal.tsx
 
 import React from 'react';
-// --- 追加: Framer Motion ---
 import { motion, AnimatePresence } from 'framer-motion';
-// ▼▼▼ 最小限の変更: FaMapMarkerAlt を削除 ▼▼▼
 import {
     FaRegSun,
     FaCloudRain,
@@ -11,9 +9,9 @@ import {
     FaBolt,
     FaSnowflake,
     FaWind,
-    FaMoon
+    FaMoon,
+    FaBell // ★ 追加: 通知用アイコン
 } from 'react-icons/fa';
-// ★ 修正: IoIosThunderstorm → WiThunderstorm に変更（react-icons/wi から）
 import { WiThunderstorm } from "react-icons/wi";
 import { IoMdClose } from "react-icons/io";
 import Image from 'next/image';
@@ -27,10 +25,13 @@ type ConfirmationModalProps = {
         name: string;
         description: string;
         rarity: string;
-        icon?: string; // アイコンのファイルパスまたは種類
+        icon?: string;
     };
-    weatherType?: 'thunderstorm'; // お天気お守り用
-    type?: 'walk' | 'item';
+    weatherType?: 'thunderstorm';
+    type?: 'walk' | 'item' | 'notification'; // ★ 追加: notificationタイプ
+    title?: string; // ★ 追加: タイトル上書き用
+    confirmText?: string; // ★ 追加: 実行ボタンのテキスト
+    cancelText?: string; // ★ 追加: キャンセルボタンのテキスト
 };
 
 const iconComponents: { [key: string]: React.ElementType } = {
@@ -41,7 +42,7 @@ const iconComponents: { [key: string]: React.ElementType } = {
     FaSnowflake: FaSnowflake,
     FaWind: FaWind,
     FaMoon: FaMoon,
-    // WiThunderstorm は直接 JSX で使用するためここには含めない
+    FaBell: FaBell,
 };
 
 const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
@@ -52,10 +53,12 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     item,
     weatherType,
     type,
+    title: customTitle,
+    confirmText: customConfirmText,
+    cancelText
 }) => {
     const renderIcon = () => {
         if (item?.icon) {
-            // アイテムのiconプロパティが画像パスの場合
             if (item.icon.startsWith('/')) {
                 return (
                     <Image
@@ -67,7 +70,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                     />
                 );
             }
-            // アイテムのiconプロパティがアイコンコンポーネント名の場合
             const IconComponent = iconComponents[item.icon];
             if (IconComponent) {
                 return (
@@ -79,10 +81,15 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             }
         } else if (weatherType === 'thunderstorm') {
             return (
-                // WiThunderstorm を直接使用
                 <WiThunderstorm
                     className="text-6xl text-gray-700 mx-auto"
                     style={{ color: '#4A5568' }}
+                />
+            );
+        } else if (type === 'notification') {
+            return (
+                <FaBell
+                    className="text-5xl text-yellow-400 mx-auto drop-shadow-sm"
                 />
             );
         }
@@ -90,66 +97,93 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     };
 
     const isWalkMode = type === 'walk' && !item;
-    const title = item?.name || '確認';
-    const confirmText = isWalkMode ? 'OK！' : item ? 'OK !' : '確認';
+
+    // タイトルとボタン文字の決定ロジック
+    const displayTitle = customTitle || item?.name || '確認';
+    const displayConfirmText = customConfirmText || (isWalkMode ? 'OK！' : item ? 'OK !' : '確認');
 
     return (
         <AnimatePresence>
             {isOpen && (
                 <motion.div
-                    // 背景アニメーション
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4"
+                    // ★ 下揃えのレイアウト（ボトムシート用）
+                    className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-0 md:items-center"
                     onClick={onClose}
                 >
                     <motion.div
-                        // ★ サイズ縮小とスプリングアニメーション
-                        initial={{ scale: 0.8, y: -20, opacity: 0 }}
-                        animate={{ scale: 1, y: 0, opacity: 1 }}
-                        exit={{ scale: 0.8, y: 20, opacity: 0 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 25 }} // はじめてのおさんぽ/アイテムゲットモーダルと同様の動き
-                        className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xs relative" // ★ max-w-xsでサイズを小さく
+                        // ★ 下からスライドイン
+                        initial={{ y: "100%", opacity: 0.5 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: "100%", opacity: 0 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        // ★ ボトムシートスタイル (上だけ丸く、スマホサイズ最適化)
+                        className="bg-white rounded-t-3xl md:rounded-3xl shadow-2xl w-full md:max-w-sm relative pb-safe md:pb-6"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {/* 閉じるボタン */}
+                        {/* ハンドルバー（スマホ用装飾） */}
+                        <div className="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mt-3 mb-6 md:hidden" />
+
+                        {/* 閉じるボタン（右上） */}
                         <button
                             onClick={onClose}
-                            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-2xl font-bold"
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 bg-gray-100 p-2 rounded-full transition-colors"
                             aria-label="Close"
                         >
-                            <IoMdClose size={24} />
+                            <IoMdClose size={20} />
                         </button>
 
-                        <div className="text-center space-y-4">
-                            {renderIcon()}
+                        <div className="px-6 pb-8 text-center space-y-5">
+                            <div className="pt-2">
+                                {renderIcon()}
+                            </div>
 
                             {!isWalkMode && (
-                                <h2 className="text-2xl font-bold text-gray-800">
-                                    {title}
+                                <h2 className="text-xl font-extrabold text-slate-700 tracking-wide">
+                                    {displayTitle}
                                 </h2>
                             )}
 
                             {item ? (
-                                <>
-                                    <p className="text-gray-600 text-sm whitespace-pre-line leading-relaxed">
+                                <div className="py-2">
+                                    <p className="text-slate-600 text-sm whitespace-pre-line leading-relaxed mb-3">
                                         {item.description}
                                     </p>
-                                    <p className="text-orange-500 font-semibold text-sm">
-                                        (レア度: {item.rarity})
-                                    </p>
-                                </>
+                                    <div className="inline-block bg-orange-100 px-3 py-1 rounded-full">
+                                        <p className="text-orange-600 font-bold text-xs tracking-wider">
+                                            レア度: {item.rarity}
+                                        </p>
+                                    </div>
+                                </div>
                             ) : (
-                                children
+                                <div className="text-slate-600 font-medium whitespace-pre-line leading-relaxed">
+                                    {children}
+                                </div>
                             )}
 
-                            <button
-                                onClick={isWalkMode ? onConfirm : onClose}
-                                className="w-full bg-[#333C4E] text-white py-3 rounded-full text-lg font-bold hover:bg-[#4A5568] transition-colors duration-200 mt-4 active:scale-95"
-                            >
-                                {confirmText}
-                            </button>
+                            <div className="space-y-3 pt-2">
+                                <button
+                                    onClick={isWalkMode ? onConfirm : (type === 'notification' ? onConfirm : onClose)}
+                                    className={`w-full py-4 rounded-2xl text-lg font-bold transition-all shadow-lg active:scale-95 ${type === 'notification'
+                                            ? 'bg-yellow-400 text-white hover:bg-yellow-500 shadow-yellow-200'
+                                            : 'bg-slate-800 text-white hover:bg-slate-700 shadow-slate-200'
+                                        }`}
+                                >
+                                    {displayConfirmText}
+                                </button>
+
+                                {/* ★ キャンセルボタン（だめボタン） */}
+                                {cancelText && (
+                                    <button
+                                        onClick={onClose}
+                                        className="w-full py-2 text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        {cancelText}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </motion.div>
                 </motion.div>

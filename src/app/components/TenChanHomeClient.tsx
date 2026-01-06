@@ -29,6 +29,8 @@ const PET_CHEEK_COLOR_KEY = 'otenki-gurashi-petCheekColor';
 const PET_EQUIPMENT_KEY = 'otenki-gurashi-petEquipment';
 const CURRENT_WEATHER_KEY = 'currentWeather';
 const PET_SETTINGS_CHANGED_EVENT = 'petSettingsChanged';
+const LAST_NOTIFICATION_DATE_KEY = 'otenki-gurashi-last-notification-date';
+const NOTIFICATION_REFUSED_KEY = 'otenki-gurashi-notification-refused';
 
 const conversationMessages: { [key: string]: string[] } = {
     morning: [
@@ -144,6 +146,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const router = useRouter();
     const { playSfx } = useSound();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [isHelpOpen, setIsHelpOpen] = useState(false);
     const [isShareOpen, setIsShareOpen] = useState(false);
 
@@ -164,7 +167,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const [isPetting, setIsPetting] = useState(false);
     const rubScoreRef = useRef(0);
     const lastRubTimeRef = useRef(0);
-    // 前回のタッチ位置を記録するRef
     const lastXRef = useRef<number | null>(null);
 
     const [walkStage, setWalkStage] = useState<string>('default');
@@ -183,9 +185,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         }
 
         idleTimerRef.current = setTimeout(() => {
-            // ★修正: 夜なら sleepy 固定、それ以外はランダム
             const isNightNow = weather === 'night';
-
             let nextAction: 'sleepy' | 'looking';
             if (isNightNow) {
                 nextAction = 'sleepy';
@@ -193,9 +193,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 const actions: ('sleepy' | 'looking')[] = ['sleepy', 'looking'];
                 nextAction = actions[Math.floor(Math.random() * actions.length)];
             }
-
             setIdleAction(nextAction);
-
             if (nextAction === 'sleepy') {
                 setMessage("Zzz...");
             }
@@ -209,7 +207,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         };
     }, []);
 
-    // ★追加: 天気が変わったらタイマーをリセット（夜になったら寝る判定を有効にするため）
     useEffect(() => {
         if (weather) resetIdleTimer();
     }, [weather]);
@@ -223,28 +220,23 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
 
     const handleRubbing = (e: React.PointerEvent<HTMLDivElement>) => {
         resetIdleTimer();
-
         if (isPetting) return;
 
         const now = Date.now();
-        // 一定時間操作がない場合はリセット
         if (now - lastRubTimeRef.current > 300) {
             rubScoreRef.current = 0;
-            lastXRef.current = null; // 位置情報もリセット
+            lastXRef.current = null;
         }
         lastRubTimeRef.current = now;
 
-        // movementXを使わず、前回の座標との差分を計算 (スマホ対応)
         const currentX = e.clientX;
         let delta = 0;
-
         if (lastXRef.current !== null) {
             delta = Math.abs(currentX - lastXRef.current);
         }
         lastXRef.current = currentX;
 
         rubScoreRef.current += delta;
-
         if (rubScoreRef.current > 1500) {
             triggerPetting();
             rubScoreRef.current = 0;
@@ -277,31 +269,44 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const handleCharacterClick = () => {
         resetIdleTimer();
 
-        if (isPetting) return;
+        // ★デバッグ設定: permissionがdefaultなら毎回確認を出す（拒否フラグは無視）
+        if (
+            "Notification" in window &&
+            Notification.permission === 'default'
+            // && !localStorage.getItem(NOTIFICATION_REFUSED_KEY) // ← デバッグ中なのでコメントアウト
+        ) {
+            setIsNotificationModalOpen(true);
+        }
 
+        if (isPetting) return;
         if (messageTimeoutRef.current) { clearTimeout(messageTimeoutRef.current); }
 
         let messageOptions: string[] = [];
-
         if (timeOfDay && conversationMessages[timeOfDay] && (weather === 'sunny' || weather === 'clear')) {
             messageOptions = messageOptions.concat(conversationMessages[timeOfDay]);
         }
-
         if (weather && conversationMessages[weather]) {
             messageOptions = messageOptions.concat(conversationMessages[weather]);
-
             if (weather === 'night' && (currentTime.getHours() >= 22 || currentTime.getHours() < 5)) {
                 messageOptions.push("そろそろ眠いかも…", "いい夢みてね");
             }
         }
-
         if (messageOptions.length === 0) {
             messageOptions = conversationMessages.default;
         }
-
         const randomMessage = messageOptions[Math.floor(Math.random() * messageOptions.length)];
         setMessage(randomMessage);
         messageTimeoutRef.current = setTimeout(() => { setMessage(null); }, 2000);
+    };
+
+    const handleNotificationConfirm = () => {
+        Notification.requestPermission();
+        setIsNotificationModalOpen(false);
+    };
+
+    const handleNotificationCancel = () => {
+        localStorage.setItem(NOTIFICATION_REFUSED_KEY, 'true');
+        setIsNotificationModalOpen(false);
     };
 
     const cycleWeather = () => {
@@ -341,9 +346,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 setPetEquipment({ head: null, hand: null, floating: null, room: null });
             }
         };
-
         updatePetSettings();
-
         const handleSettingsChanged = () => updatePetSettings();
         window.addEventListener(PET_SETTINGS_CHANGED_EVENT, handleSettingsChanged);
         window.addEventListener('storage', handleSettingsChanged);
@@ -365,7 +368,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                 })
                 .catch(err => {
                     console.error("Failed to fetch weather on client:", err);
-                    // ★修正: エラーメッセージをかわいく
                     setError("あわわ、お天気がわかんないよ〜💦 通信環境をかくにんしてね！");
                     setLocation("？？？");
                     setTemperature(null);
@@ -380,24 +382,9 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             setWeatherAndNotify(initialData.weather);
             setIsLoading(false);
         } else {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => fetchWeatherDataByLocation(position.coords.latitude, position.coords.longitude),
-                    (geoError) => {
-                        console.error("Geolocation Error:", geoError);
-                        // ★修正: 致命的なバグ対策 (デモ用フォールバック)
-                        // GPS取得失敗時、エラー画面で止まるのを防ぐため、東京の座標で続行する
-                        console.log("Using fallback location (Tokyo) for demo.");
-                        fetchWeatherDataByLocation(35.6895, 139.6917);
-                    },
-                    // ★修正: タイムアウトを4秒に短縮 (10000 -> 4000)
-                    { timeout: 4000 }
-                );
-            } else {
-                // こちらも同様にフォールバック
-                console.log("Geolocation not supported. Using fallback location.");
-                fetchWeatherDataByLocation(35.6895, 139.6917);
-            }
+            // ★修正: Geolocation APIを削除し、強制的に大阪を使用
+            console.log("Using fixed location (Osaka) for settings.");
+            fetchWeatherDataByLocation(34.6937, 135.5023);
         }
 
         const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -410,6 +397,33 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         };
     }, [initialData]);
 
+    useEffect(() => {
+        if (!("Notification" in window)) return;
+        const checkAndNotify = () => {
+            if (Notification.permission !== 'granted') return;
+            if (!weather || temperature === null || !location || location === "場所を取得中..." || location === "？？？") return;
+            const now = new Date();
+            if (now.getHours() < 7) return;
+            const todayStr = now.toDateString();
+            const lastNotified = localStorage.getItem(LAST_NOTIFICATION_DATE_KEY);
+            if (lastNotified === todayStr) return;
+            const weatherLabels: { [key: string]: string } = {
+                sunny: '晴れ', clear: '快晴', cloudy: 'くもり', rainy: '雨',
+                thunderstorm: '雷雨', snowy: '雪', windy: '強風', night: '夜'
+            };
+            const wLabel = weatherLabels[weather] || '晴れ';
+            new Notification("おてんきぐらし", {
+                body: `おはよう！今日の${location}は${wLabel}、気温は${temperature}°Cだよ！`,
+                icon: '/icon.png',
+                tag: 'daily-weather'
+            });
+            localStorage.setItem(LAST_NOTIFICATION_DATE_KEY, todayStr);
+        };
+        checkAndNotify();
+        const interval = setInterval(checkAndNotify, 60000);
+        return () => clearInterval(interval);
+    }, [weather, temperature, location]);
+
     const handleConfirmWalk = () => {
         resetIdleTimer();
         setIsModalOpen(false);
@@ -421,27 +435,24 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const displayWeatherType = weather || 'sunny';
     const dynamicBackgroundClass = getBackgroundGradientClass(displayWeatherType);
     const isNight = displayWeatherType === 'night';
-
     let currentMood: "happy" | "neutral" | "sad" | "scared" | "sleepy" | "looking" = "happy";
-
     if (isPetting) {
         currentMood = "happy";
     } else if (error) {
         currentMood = "sad";
     } else if (idleAction) {
         currentMood = idleAction;
-        // ★修正: 夜なら強制的に寝る（クロージャ問題でlookingが選ばれた場合の補正）
         if (isNight) currentMood = 'sleepy';
     } else if (displayWeatherType === 'thunderstorm') {
         currentMood = message ? "happy" : "scared";
     } else {
-        // ★修正: 夜でも最初は起きている（放置すると idleAction で寝る）
         currentMood = "happy";
     }
 
     return (
         <div className="w-full min-h-screen md:bg-gray-200 md:flex md:items-center md:justify-center md:p-4">
             <ItemGetModal isOpen={false} onClose={() => { }} itemName={null} iconName={null} rarity={null} />
+
             <ConfirmationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onConfirm={handleConfirmWalk} type="walk">
                 <div className="text-center">
                     <p className="font-bold text-gray-800 text-lg mb-4 whitespace-pre-line">
@@ -468,6 +479,24 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                     </div>
                 </div>
             </ConfirmationModal>
+
+            {/* ★修正: 世界観に合わせたテキストと「いいよ・だめ」ボタン */}
+            <ConfirmationModal
+                isOpen={isNotificationModalOpen}
+                onClose={handleNotificationCancel}
+                onConfirm={handleNotificationConfirm}
+                type="notification"
+                title="おねがい"
+                confirmText="いいよ"
+                cancelText="だめ"
+            >
+                <div className="text-center">
+                    <p className="font-medium text-gray-700 mb-2 leading-relaxed">
+                        毎朝7時ごろに、<br />今日の天気をお知らせしてもいい？
+                    </p>
+                </div>
+            </ConfirmationModal>
+
             <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
 
             <ShareModal
