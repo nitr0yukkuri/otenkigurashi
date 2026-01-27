@@ -14,6 +14,20 @@ const rounded_mplus = M_PLUS_Rounded_1c({
 export const metadata: Metadata = {
     title: "おてんきぐらし",
     description: "あなたの「今」とつながる、新しい癒やしの体験。",
+    // --- OGP設定追加 ---
+    openGraph: {
+        title: "おてんきぐらし",
+        description: "あなたの「今」とつながる、新しい癒やしの体験。",
+        images: ["/og-image.png"],
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "おてんきぐらし",
+        description: "あなたの「今」とつながる、新しい癒やしの体験。",
+        images: ["/og-image.png"],
+    },
+    // ------------------
     icons: {
         icon: '/icon.png',
         shortcut: '/favicon.ico',
