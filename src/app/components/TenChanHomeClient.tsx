@@ -249,19 +249,10 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         setIdleAction(null);
         if (messageTimeoutRef.current) { clearTimeout(messageTimeoutRef.current); }
 
-        const pettingMessages = [
-            "えへへ〜♪\nなでなでうれしいな！",
-            "わぁ〜い！\nもっとっもっと〜！",
-            "くすぐったいよ〜\nえへへっ♪"
-        ];
-        const randomMsg = pettingMessages[Math.floor(Math.random() * pettingMessages.length)];
-
-        setMessage(randomMsg);
         playSfx('decision.mp3');
 
         messageTimeoutRef.current = setTimeout(() => {
             setIsPetting(false);
-            setMessage(null);
             resetIdleTimer();
         }, 3000);
     };
@@ -269,7 +260,6 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const handleCharacterClick = () => {
         resetIdleTimer();
 
-        // ★修正: デバッグ設定を解除（拒否フラグをチェックする）
         if (
             "Notification" in window &&
             Notification.permission === 'default' &&

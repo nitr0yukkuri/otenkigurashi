@@ -75,8 +75,8 @@ export default function CharacterDisplay({
             totalDragDistance.current += distance;
             lastPointerPos.current = { x: e.clientX, y: e.clientY };
 
+            // なでなで（こする動作）で会話が発生しないよう、ここでの自動クリック処理を削除
             if (totalDragDistance.current > 150) {
-                onCharacterClick();
                 totalDragDistance.current = 0;
             }
         }
@@ -140,7 +140,6 @@ export default function CharacterDisplay({
                 onPointerLeave={handlePointerUpOrLeave}
             >
                 <AnimatePresence>
-                    {/* 1. 晴れ・快晴 (木漏れ日) */}
                     {isSunnyOrClear && (
                         <>
                             <motion.div
@@ -164,7 +163,6 @@ export default function CharacterDisplay({
                         </>
                     )}
 
-                    {/* 2. くもり (流れる霧) */}
                     {isCloudy && (
                         <motion.div
                             key="cloudy-fog"
@@ -179,7 +177,6 @@ export default function CharacterDisplay({
                         />
                     )}
 
-                    {/* 3. 強風 (強化: 画面全体に激しく吹き抜ける風) */}
                     {isWindy && (
                         <>
                             {[...Array(6)].map((_, i) => (
