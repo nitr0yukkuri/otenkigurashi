@@ -223,7 +223,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         if (isPetting) return;
 
         const now = Date.now();
-        if (now - lastRubTimeRef.current > 300) {
+        // ★修正: 判定リセット時間を 300ms -> 500ms に緩和（ゆっくりこすってもOKに）
+        if (now - lastRubTimeRef.current > 500) {
             rubScoreRef.current = 0;
             lastXRef.current = null;
         }
@@ -237,7 +238,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         lastXRef.current = currentX;
 
         rubScoreRef.current += delta;
-        if (rubScoreRef.current > 1500) {
+        // ★修正: 必要スコアを 1500 -> 800 に緩和（少ない回数で反応するように）
+        if (rubScoreRef.current > 800) {
             triggerPetting();
             rubScoreRef.current = 0;
             lastXRef.current = null;
