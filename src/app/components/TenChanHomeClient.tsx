@@ -167,7 +167,8 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
     const [isPetting, setIsPetting] = useState(false);
     const rubScoreRef = useRef(0);
     const lastRubTimeRef = useRef(0);
-    const lastXRef = useRef<number | null>(null);
+    // ★修正: X座標だけでなくY座標も記録するため、number | null から object | null に変更
+    const lastPosRef = useRef<{ x: number, y: number } | null>(null);
 
     const [walkStage, setWalkStage] = useState<string>('default');
 
@@ -223,26 +224,30 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
         if (isPetting) return;
 
         const now = Date.now();
-        // ★修正: 判定リセット時間を 300ms -> 500ms に緩和（ゆっくりこすってもOKに）
         if (now - lastRubTimeRef.current > 500) {
             rubScoreRef.current = 0;
-            lastXRef.current = null;
+            lastPosRef.current = null;
         }
         lastRubTimeRef.current = now;
 
         const currentX = e.clientX;
+        const currentY = e.clientY;
         let delta = 0;
-        if (lastXRef.current !== null) {
-            delta = Math.abs(currentX - lastXRef.current);
+
+        // ★修正: 上下左右すべての移動距離を計算 (Euclidean distance)
+        if (lastPosRef.current !== null) {
+            const dx = currentX - lastPosRef.current.x;
+            const dy = currentY - lastPosRef.current.y;
+            delta = Math.hypot(dx, dy);
         }
-        lastXRef.current = currentX;
+        lastPosRef.current = { x: currentX, y: currentY };
 
         rubScoreRef.current += delta;
-        // ★修正: 必要スコアを 1500 -> 800 に緩和（少ない回数で反応するように）
-        if (rubScoreRef.current > 800) {
+        // ★修正: 閾値をさらに緩和 (800 -> 500)
+        if (rubScoreRef.current > 500) {
             triggerPetting();
             rubScoreRef.current = 0;
-            lastXRef.current = null;
+            lastPosRef.current = null;
         }
     };
 
@@ -505,7 +510,10 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             <main className={`w-full md:max-w-sm h-[100dvh] md:h-[640px] md:rounded-3xl md:shadow-2xl overflow-hidden relative flex flex-col ${isNight ? 'text-white' : 'text-[#5D4037]'} ${dynamicBackgroundClass} transition-all duration-500`}>
                 <div className="hidden md:block absolute top-0 left-1/2 -translate-x-1/2 h-6 w-32 bg-black/80 rounded-b-xl"></div>
 
-                <WeatherEffects weather={displayWeatherType} />
+                {/* ★修正: 天気エフェクトがクリックを遮断しないように pointer-events-none を付与 */}
+                <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
+                    <WeatherEffects weather={displayWeatherType} />
+                </div>
 
                 <ShareButton onClick={() => setIsShareOpen(true)} />
                 <HelpButton onClick={() => setIsHelpOpen(true)} />
@@ -542,7 +550,7 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
                             isNight={isNight}
                             weather={displayWeatherType}
                             onPointerMove={handleRubbing}
-                            onPointerLeave={() => { rubScoreRef.current = 0; lastXRef.current = null; }}
+                            onPointerLeave={() => { rubScoreRef.current = 0; lastPosRef.current = null; }}
                         />
                     </div>
                 )}

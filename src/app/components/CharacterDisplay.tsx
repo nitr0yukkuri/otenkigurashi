@@ -75,7 +75,6 @@ export default function CharacterDisplay({
             totalDragDistance.current += distance;
             lastPointerPos.current = { x: e.clientX, y: e.clientY };
 
-            // なでなで（こする動作）で会話が発生しないよう、ここでの自動クリック処理を削除
             if (totalDragDistance.current > 150) {
                 totalDragDistance.current = 0;
             }
@@ -117,7 +116,14 @@ export default function CharacterDisplay({
     const isWindy = weather === 'windy';
 
     return (
-        <div className={`flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center ${isStatic ? '' : 'pb-20'} relative`}>
+        // ★修正: イベントリスナーを最外層に移動し、touch-noneを追加してスクロールを防止
+        <div
+            className={`flex-grow flex flex-col items-center justify-center gap-y-4 p-3 text-center ${isStatic ? '' : 'pb-20'} relative touch-none`}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMoveInternal}
+            onPointerUp={handlePointerUpOrLeave}
+            onPointerLeave={handlePointerUpOrLeave}
+        >
             <AnimatePresence>
                 {message && (
                     <motion.div
@@ -132,12 +138,9 @@ export default function CharacterDisplay({
                 )}
             </AnimatePresence>
 
+            {/* ★修正: 内部のdivからはイベントリスナーを削除 */}
             <div
-                className={`w-40 h-40 rounded-full relative touch-none ${isWalking ? 'animate-fluffy-walk' : ''}`}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMoveInternal}
-                onPointerUp={handlePointerUpOrLeave}
-                onPointerLeave={handlePointerUpOrLeave}
+                className={`w-40 h-40 rounded-full relative ${isWalking ? 'animate-fluffy-walk' : ''}`}
             >
                 <AnimatePresence>
                     {isSunnyOrClear && (
