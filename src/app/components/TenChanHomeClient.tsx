@@ -379,8 +379,20 @@ export default function TenChanHomeClient({ initialData }: { initialData: any })
             setWeatherAndNotify(initialData.weather);
             setIsLoading(false);
         } else {
-            console.log("Using fixed location (Osaka) for settings.");
-            fetchWeatherDataByLocation(34.6937, 135.5023);
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => fetchWeatherDataByLocation(position.coords.latitude, position.coords.longitude),
+                    (geoError) => {
+                        console.error("Geolocation Error:", geoError);
+                        console.log("Using fixed location (Osaka) for settings fallback.");
+                        fetchWeatherDataByLocation(34.6937, 135.5023);
+                    },
+                    { enableHighAccuracy: true, timeout: 10000 }
+                );
+            } else {
+                console.log("Geolocation not supported. Using fixed location (Osaka) for settings.");
+                fetchWeatherDataByLocation(34.6937, 135.5023);
+            }
         }
 
         const timer = setInterval(() => setCurrentTime(new Date()), 60000);

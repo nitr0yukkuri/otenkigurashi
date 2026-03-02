@@ -204,7 +204,7 @@ export function useWeatherForecast() {
                     console.log("Using fallback location (Osaka).");
                     fetchWeatherData(34.6937, 135.5023);
                 },
-                { timeout: 10000 }
+                { enableHighAccuracy: true, timeout: 10000 }
             );
         } else {
             // 位置情報がサポートされていない場合も大阪を表示
