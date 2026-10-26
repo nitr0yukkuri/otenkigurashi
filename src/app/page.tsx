@@ -7,7 +7,9 @@ import { mapWeatherType } from './lib/weatherUtils';
 // サーバーサイドで天気データを取得する関数
 async function getInitialWeatherData(lat: string, lon: string) {
     console.log("getInitialWeatherData called with:", { lat, lon }); // ログ追加
-    const apiKey = process.env.OPENWEATHERMAP_API_KEY;
+    const apiKey =
+        process.env.OPENWEATHERMAP_API_KEY ??
+        process.env.NEXT_PUBLIC_WEATHER_API_KEY; // Legacy server-side fallback for existing deployments.
     if (!apiKey) {
         console.error("API Key is missing!"); // ログ追加
         return null;
