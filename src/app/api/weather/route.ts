@@ -5,7 +5,7 @@ export async function GET(request: Request) {
     const latRaw = searchParams.get('lat');
     const lonRaw = searchParams.get('lon');
 
-    const apiKey = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
+    const apiKey = process.env.OPENWEATHERMAP_API_KEY;
 
     if (!apiKey) {
         return NextResponse.json({ message: 'APIキーが設定されていません。' }, { status: 500 });
