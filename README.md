@@ -65,7 +65,7 @@
     ```
 
 3.  **.env.local ファイルを作成:**
-    プロジェクトのルートに`.env.local`ファイルを作成し、サーバー側で使うOpenWeatherMap APIキーを設定します。このキーはRoute Handlerだけで使い、`NEXT_PUBLIC_` 接頭辞は付けないでください。
+    プロジェクトのルートに`.env.local`ファイルを作成し、サーバー側で使うOpenWeatherMap APIキーを設定します。このキーはRoute Handlerだけで使い、`NEXT_PUBLIC_` 接頭辞は付けないでください。既存デプロイ向けに旧環境変数名もサーバー側のみ一時的に読み取りますが、新しい設定ではこの変数名を使ってください。
     ```dotenv
     OPENWEATHERMAP_API_KEY="YOUR_API_KEY_HERE"
     ```
