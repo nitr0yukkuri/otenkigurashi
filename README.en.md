@@ -58,7 +58,7 @@ This project is built with a modern JavaScript / TypeScript stack.
    ```
 
 3. **Create a `.env.local` file:**  
-   Create the file in the project root and set the OpenWeatherMap API key used by server-side Route Handlers. Do not add the `NEXT_PUBLIC_` prefix; it exposes the value to the browser.
+   Create the file in the project root and set the OpenWeatherMap API key used by server-side Route Handlers. Do not add the `NEXT_PUBLIC_` prefix; it exposes the value to the browser. Existing deployments can temporarily use the legacy variable name on the server, but new configuration should use this name.
    ```dotenv
    OPENWEATHERMAP_API_KEY="YOUR_API_KEY_HERE"
    ```
