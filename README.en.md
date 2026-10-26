@@ -48,8 +48,8 @@ This project is built with a modern JavaScript / TypeScript stack.
 
 1. **Clone the repository:**
    ```bash
-   git clone [URL of this repository]
-   cd otenki-gurashi
+   git clone https://github.com/nitr0yukkuri/otenkigurashi.git
+   cd otenkigurashi
    ```
 
 2. **Install dependencies:**
@@ -58,9 +58,9 @@ This project is built with a modern JavaScript / TypeScript stack.
    ```
 
 3. **Create a `.env.local` file:**  
-   Create the file in the project root and set your OpenWeatherMap API key.
-   ```text
-   NEXT_PUBLIC_WEATHER_API_KEY="YOUR_API_KEY_HERE"
+   Create the file in the project root and set the OpenWeatherMap API key used by server-side Route Handlers. Do not add the `NEXT_PUBLIC_` prefix; it exposes the value to the browser.
+   ```dotenv
+   OPENWEATHERMAP_API_KEY="YOUR_API_KEY_HERE"
    ```
 
 4. **Start the development server:**
