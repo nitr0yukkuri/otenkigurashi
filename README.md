@@ -1,5 +1,7 @@
 # おてんきぐらし (Otenki Gurashi) 🌤️
 
+[日本語](README.md) | [English](README.en.md)
+
 
 あなたの「今」とつながる、新しい癒やしの体験。
 『おてんきぐらし』は、あなたのいる場所の現実世界の天気や時間とリアルタイムで連動する、新感覚の育成Webサービスです。
@@ -53,8 +55,8 @@
 
 1.  **リポジトリをクローン:**
     ```bash
-    git clone [このリポジトリのURL]
-    cd otenki-gurashi
+    git clone https://github.com/nitr0yukkuri/otenkigurashi.git
+    cd otenkigurashi
     ```
 
 2.  **依存パッケージをインストール:**
@@ -63,9 +65,9 @@
     ```
 
 3.  **.env.local ファイルを作成:**
-    プロジェクトのルートに`.env.local`ファイルを作成し、OpenWeatherMapのAPIキーを設定します。
-    ```
-    NEXT_PUBLIC_WEATHER_API_KEY="YOUR_API_KEY_HERE"
+    プロジェクトのルートに`.env.local`ファイルを作成し、サーバー側で使うOpenWeatherMap APIキーを設定します。このキーはRoute Handlerだけで使い、`NEXT_PUBLIC_` 接頭辞は付けないでください。既存デプロイ向けに旧環境変数名もサーバー側のみ一時的に読み取りますが、新しい設定ではこの変数名を使ってください。
+    ```dotenv
+    OPENWEATHERMAP_API_KEY="YOUR_API_KEY_HERE"
     ```
 
 4.  **開発サーバーを起動:**
