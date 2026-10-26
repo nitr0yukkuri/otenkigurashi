@@ -55,8 +55,8 @@
 
 1.  **リポジトリをクローン:**
     ```bash
-    git clone [このリポジトリのURL]
-    cd otenki-gurashi
+    git clone https://github.com/nitr0yukkuri/otenkigurashi.git
+    cd otenkigurashi
     ```
 
 2.  **依存パッケージをインストール:**
@@ -65,9 +65,9 @@
     ```
 
 3.  **.env.local ファイルを作成:**
-    プロジェクトのルートに`.env.local`ファイルを作成し、OpenWeatherMapのAPIキーを設定します。
-    ```
-    NEXT_PUBLIC_WEATHER_API_KEY="YOUR_API_KEY_HERE"
+    プロジェクトのルートに`.env.local`ファイルを作成し、サーバー側で使うOpenWeatherMap APIキーを設定します。このキーはRoute Handlerだけで使い、`NEXT_PUBLIC_` 接頭辞は付けないでください。
+    ```dotenv
+    OPENWEATHERMAP_API_KEY="YOUR_API_KEY_HERE"
     ```
 
 4.  **開発サーバーを起動:**
