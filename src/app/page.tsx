@@ -7,7 +7,7 @@ import { mapWeatherType } from './lib/weatherUtils';
 // サーバーサイドで天気データを取得する関数
 async function getInitialWeatherData(lat: string, lon: string) {
     console.log("getInitialWeatherData called with:", { lat, lon }); // ログ追加
-    const apiKey = process.env.NEXT_PUBLIC_WEATHER_API_KEY;
+    const apiKey = process.env.OPENWEATHERMAP_API_KEY;
     if (!apiKey) {
         console.error("API Key is missing!"); // ログ追加
         return null;
@@ -18,7 +18,7 @@ async function getInitialWeatherData(lat: string, lon: string) {
     }
 
     const forecastApiUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`;
-    console.log("Fetching URL:", forecastApiUrl); // ログ追加
+    console.log("Fetching OpenWeatherMap forecast.");
 
     try {
         // ★★★ キャッシュを無効化 ★★★
